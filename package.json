@@ -11,8 +11,12 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@studio-freight/lenis": "^1.0.42",
     "autoprefixer": "^10.4.27",
     "axios": "^1.13.6",
+    "gsap": "^3.14.2",
+    "lenis": "^1.3.18",
+    "lucide-vue-next": "^0.577.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.1",
     "uid": "^2.0.2",

@@ -1,43 +1,51 @@
 <template>
-  <header class="sticky top-0 border-b border-white/10 bg-weather-primary shadow-lg">
-    <nav class="container flex items-center justify- gap-4 py-6 text-white ">
-      <RouterLink :to="{ name: 'home' }" class="flex-1 items-center gap-3">
-        <div class="flex items-center gap-3 ">
-          <span class="text-2xl leading-none" aria-hidden="true">☀</span>
-          <p class="text-2xl font-bold tracking-tight">Weather App</p>
-        </div>
-      </RouterLink>
-      <i @click="toggleModal"
-        class="fa-solid fa-circle-exclamation text-2xl hover:text-weather-secondary transition-colors duration-300 cursor-pointer"></i>
-      <i @click="addCity" v-if="route.query.adcode"
-        class="fa-solid fa-plus  text-2xl hover:text-weather-secondary transition-colors duration-300 cursor-pointer"></i>
-      <BaseModal :show="showModal" @close-modal="toggleModal">
-        <h2 class="text-2xl font-bold mb-4 text-black">About This App</h2>
-        <p class="mb-4 text-black">
-          此天气应用为您的位置提供准确和最新的天气信息。它具有用户友好的界面，
-          并使用 Vue.js 构建。
+  <header
+    class="fixed top-0 w-full z-50 transition-all duration-500 py-6 px-4 md:px-12 flex justify-between items-center">
+    <RouterLink :to="{ name: 'home' }" class="group flex items-center gap-2">
+      <div class="w-3 h-3 rounded-full bg-current transition-transform duration-500 group-hover:scale-150"></div>
+      <p class="text-sm font-semibold tracking-widest uppercase ml-2">WTHR.studio</p>
+    </RouterLink>
+
+    <div class="flex items-center gap-6">
+      <button @click="toggleModal" class="hover:opacity-60 transition-opacity duration-300" aria-label="About">
+        <Info class="w-5 h-5" stroke-width="1.5" />
+      </button>
+      <button @click="addCity" v-if="route.query.adcode" class="hover:opacity-60 transition-opacity duration-300"
+        aria-label="Add City">
+        <Plus class="w-5 h-5" stroke-width="1.5" />
+      </button>
+    </div>
+
+    <BaseModal :show="showModal" @close-modal="toggleModal">
+      <div class="p-8 pb-12">
+        <h2 class="text-3xl font-light mb-8 tracking-tight text-brand-primary">Concept.</h2>
+        <p class="text-brand-muted leading-relaxed font-light text-lg">
+          A sophisticated weather visualization tool. Accurately delivering atmospheric conditions
+          through a minimalist, avant-garde lens. Built with Vue.js for high-performance interactions.
         </p>
-      </BaseModal>
-    </nav>
+      </div>
+    </BaseModal>
   </header>
 </template>
 
 <script setup>
-  import { uid } from "uid";
+  import { ref } from 'vue';
+  import { useRoute, useRouter, RouterLink } from 'vue-router';
+  import { uid } from 'uid';
+  import { Info, Plus } from 'lucide-vue-next';
 
   const showModal = ref(false);
   const savedCities = ref([]);
   const route = useRoute();
   const router = useRouter();
 
-
   function toggleModal() {
     showModal.value = !showModal.value;
   }
 
   const addCity = () => {
-    if (localStorage.getItem("savedCities")) {
-      savedCities.value = JSON.parse(localStorage.getItem("savedCities"));
+    if (localStorage.getItem('savedCities')) {
+      savedCities.value = JSON.parse(localStorage.getItem('savedCities'));
     }
 
     const locationObj = {
@@ -48,13 +56,10 @@
     };
 
     savedCities.value.push(locationObj)
-    localStorage.setItem("savedCities", JSON.stringify(savedCities.value));
-    alert("城市已添加到收藏！");
+    localStorage.setItem('savedCities', JSON.stringify(savedCities.value));
 
     let query = Object.assign({}, route.query);
     delete query.adcode;
     router.replace({ query });
-    console.log(savedCities.value);
-
   };
 </script>

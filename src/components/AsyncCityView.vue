@@ -1,64 +1,94 @@
 <template>
-  <div class="flex flex-col flex-1 items-center">
-    <div v-if="route.query.adcode" class="text-white p-4 bg-weather-secondary w-full text-center ">
-      <p>预览中,你当前没有添加该城市到收藏</p>
+  <div class="flex flex-col flex-1 pb-32">
+    <!-- Preview Banner -->
+    <div v-if="route.query.adcode" class="w-full bg-brand-primary text-surface py-3 text-center z-20">
+      <p class="text-xs uppercase tracking-[0.3em] font-bold">Preview Mode — City not saved</p>
     </div>
 
-    <div class="flex container flex-col items-center text-white py-12" v-if="weatherData?.current?.lives?.length">
-      <h1 class="text-4xl mb-2">{{ route.params.city }}</h1>
-      <p class="text-8xl mb-8">
-        {{ weatherData.current.lives[0].temperature }}&deg;
-      </p>
-      <p>
-        湿度: {{ weatherData.current.lives[0].humidity }} %
-      </p>
-      <p>
-        风向: {{ weatherData.current.lives[0].winddirection }}风 {{ weatherData.current.lives[0].windpower }}级
-      </p>
-      <p class="capitalize mt-4 text-xl">
-        天气: {{ weatherData.current.lives[0].weather }}
-      </p>
-      <hr class="border border-white/50 mt-4 w-full" />
-    </div>
+    <!-- Current Weather -->
+    <div class="container relative z-10 pt-24" v-if="weatherData?.current?.lives?.length">
+      <h1 class="text-[12vw] md:text-9xl font-bold tracking-tighter leading-none mb-12 ml-[-4px]">{{ route.params.city
+      }}</h1>
 
-    <div class="max-w-screen-md w-full py-6" v-if="weatherData?.forecast?.forecasts?.length">
-      <div class="mx-8 text-white">
-        <div class="flex items-center justify-between mb-4 text-sm px-2">
-          <h2 class="text-lg">未来几日预报</h2>
-          <span class="text-gray-300">发布时间: {{ weatherData.forecast.forecasts[0].reporttime }}</span>
+      <div
+        class="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 items-start border-t-2 border-brand-primary/10 pt-12">
+
+        <div class="col-span-1 md:col-span-3">
+          <p class="text-[5vw] md:text-5xl font-light tracking-tight pb-4 border-b border-brand-primary/10">{{
+            weatherData.current.lives[0].weather }}</p>
+          <div class="mt-4 flex flex-col gap-2">
+            <p class="text-xs uppercase tracking-[0.2em] font-medium text-brand-muted/50">Current Condition</p>
+            <p class="text-sm font-light mt-4">Humidity: {{ weatherData.current.lives[0].humidity }}%</p>
+            <p class="text-sm font-light">Wind: {{ weatherData.current.lives[0].winddirection }} {{
+              weatherData.current.lives[0].windpower }}</p>
+          </div>
         </div>
 
-        <!-- 左右滑动，隐藏滚动条，支持鼠标拖拽 -->
-        <div ref="scrollContainer" class="flex gap-4 overflow-x-auto pb-4 select-none scrollbar-hide"
-          :class="[isDragging ? 'cursor-grabbing snap-none' : 'cursor-grab snap-x']" @mousedown="startDrag"
-          @mouseleave="stopDrag" @mouseup="stopDrag" @mousemove="doDrag">
-          <div v-for="(cast, index) in weatherData.forecast.forecasts[0].casts" :key="index"
-            class="flex flex-col flex-shrink-0 bg-weather-secondary rounded-xl p-5 text-center shadow-md snap-center border border-white/10"
-            style="min-width: 200px">
-            <p class="font-bold text-lg mb-1">{{ cast.date }} (星期{{ cast.week }})</p>
+        <div class="col-span-1 md:col-span-6 flex justify-center md:justify-end md:pr-16">
+          <p class="text-[25vw] md:text-[15rem] leading-none font-light tracking-tighter select-none">{{
+            weatherData.current.lives[0].temperature }}&deg;</p>
+        </div>
 
-            <div class="my-3 flex justify-around text-sm border-t border-b border-white/20 py-2">
-              <div class="flex flex-col">
-                <span class="text-gray-300 mb-1">白天</span>
-                <span>{{ cast.dayweather }}</span>
-                <span class="text-2xl font-bold my-1">{{ cast.daytemp }}&deg;</span>
-                <span class="text-xs">{{ cast.daywind }}风 {{ cast.daypower }}级</span>
-              </div>
-              <div class="w-px bg-white/20"></div>
-              <div class="flex flex-col">
-                <span class="text-gray-300 mb-1">夜间</span>
-                <span>{{ cast.nightweather }}</span>
-                <span class="text-2xl font-bold my-1">{{ cast.nighttemp }}&deg;</span>
-                <span class="text-xs">{{ cast.nightwind }}风 {{ cast.nightpower }}级</span>
-              </div>
-            </div>
-          </div>
+        <div class="col-span-1 md:col-span-3 flex flex-col justify-end h-full">
+          <p class="text-xs uppercase tracking-widest text-brand-muted/40 mb-2">Location details</p>
+          <p class="text-lg font-light">{{ weatherData.current.lives[0].province }}</p>
+          <p class="text-sm font-light text-brand-muted/60 mt-1">Report Time: {{ weatherData.current.lives[0].reporttime
+          }}</p>
         </div>
       </div>
     </div>
 
-    <div v-else-if="!weatherData?.current?.lives?.length" class=" text-white py-12">
-      <p>暂无该城市天气数据</p>
+    <!-- Forecast Section -->
+    <div class="container mt-32" v-if="weatherData?.forecast?.forecasts?.length">
+      <div class="w-full flex items-center justify-between border-b-2 border-brand-primary pb-6 mb-12">
+        <h2 class="text-xl md:text-3xl font-light tracking-tight">Extended Forecast</h2>
+        <p class="text-xs uppercase tracking-widest text-brand-muted/50 hidden md:block">Next 4 Days</p>
+      </div>
+
+      <div class="flex flex-col w-full">
+        <div v-for="(cast, index) in weatherData.forecast.forecasts[0].casts" :key="index"
+          class="grid grid-cols-2 md:grid-cols-5 gap-4 items-center py-10 border-b border-brand-primary/10 group cursor-default hover:bg-brand-primary/5 transition-colors duration-500 px-4 md:px-8 -mx-4 md:-mx-8">
+
+          <div class="col-span-2 md:col-span-1">
+            <p class="text-xl md:text-2xl font-light tracking-tight">{{ cast.date }}</p>
+            <p class="text-[10px] md:text-xs uppercase tracking-[0.2em] text-brand-muted/40 mt-2">Day {{ cast.week }}
+            </p>
+          </div>
+
+          <div class="col-span-1 hidden md:flex flex-col">
+            <p class="text-lg font-light">{{ cast.dayweather }}</p>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/40 mt-2">Daytime</p>
+          </div>
+
+          <div class="col-span-1 hidden md:flex flex-col">
+            <p class="text-lg font-light">{{ cast.nightweather }}</p>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/40 mt-2">Nighttime</p>
+          </div>
+
+          <div class="col-span-1 flex flex-col items-end md:items-start text-right md:text-left">
+            <p class="text-sm font-light">Wind {{ cast.daywind }} {{ cast.daypower }}</p>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/40 mt-2">Conditions</p>
+          </div>
+
+          <div class="col-span-1 flex justify-end md:justify-end items-center gap-6">
+            <div class="text-right">
+              <span class="text-brand-muted/40 text-sm mr-2">↑</span>
+              <span class="text-3xl font-light">{{ cast.daytemp }}&deg;</span>
+            </div>
+            <div class="text-right">
+              <span class="text-brand-muted/40 text-sm mr-2">↓</span>
+              <span class="text-3xl font-light text-brand-muted/60">{{ cast.nighttemp }}&deg;</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-if="!weatherData?.current?.lives?.length" class="container pt-32 pb-32 flex justify-center">
+      <p class="text-xs uppercase tracking-[0.3em] font-medium text-brand-muted/50">No data available for this region
+      </p>
     </div>
   </div>
 </template>
@@ -66,38 +96,13 @@
 <script setup>
   import axios from 'axios';
   import { useRoute } from 'vue-router';
-  import { ref } from 'vue';
+  import { onMounted } from 'vue';
 
   const gaodeKey = import.meta.env.VITE_GAODE_KEY;
   const route = useRoute();
 
-  // ----- 鼠标拖拽滚动逻辑 -----
-  const scrollContainer = ref(null);
-  const isDragging = ref(false);
-  const startX = ref(0);
-  const scrollLeft = ref(0);
-
-  const startDrag = (e) => {
-    isDragging.value = true;
-    startX.value = e.pageX - scrollContainer.value.offsetLeft;
-    scrollLeft.value = scrollContainer.value.scrollLeft;
-  };
-
-  const stopDrag = () => {
-    isDragging.value = false;
-  };
-
-  const doDrag = (e) => {
-    if (!isDragging.value) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainer.value.offsetLeft;
-    const walk = (x - startX.value) * 1.5; // 控制滑动距离及速度
-    scrollContainer.value.scrollLeft = scrollLeft.value - walk;
-  };
-
   const getWeatherData = async (cityParam) => {
     try {
-      // extensions="base" 获取实况天气，extensions="all" 获取预报天气
       const [currentRes, forecastRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/weather/weatherInfo`, {
           params: { key: gaodeKey, city: cityParam, extensions: 'base' },
@@ -117,23 +122,9 @@
     }
   }
 
-  // 通过路由参数传入城市名称进行查询
   const weatherData = await getWeatherData(route.params.city);
-  console.log(weatherData);
 
+  onMounted(() => {
+    window.scrollTo(0, 0);
+  });
 </script>
-
-<style scoped>
-
-  /* 隐藏滚动条但保留滚动功能 */
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
-  }
-</style>

@@ -1,55 +1,54 @@
 <template>
-  <div v-for="city in savedCities" :key="city.id || city.adcode">
-    <CityCard :city="city" @delete="handleDelete" @click="goToCityView(city)" />
+  <div class="flex-1 flex flex-col gap-0">
+    <CityCard v-for="city in savedData" :key="city.id" :city="city" @click="goToCityView(city)"
+      @delete="handleDelete" />
+
+    <p v-if="savedData.length === 0" class="text-xs uppercase tracking-[0.3em] font-medium text-brand-muted/50 mt-12">
+      No Locations Saved
+    </p>
   </div>
 </template>
 
 <script setup>
-  import { ref } from 'vue';
   import axios from 'axios';
+  import { ref } from 'vue';
   import { useRouter } from 'vue-router';
+  import CityCard from './CityCard.vue';
 
+  const savedData = ref([]);
   const gaodeKey = import.meta.env.VITE_GAODE_KEY;
 
-  const savedCities = ref([]);
-  const getCities = async () => {
+  const getCityData = async () => {
     if (localStorage.getItem('savedCities')) {
-      savedCities.value = JSON.parse(localStorage.getItem('savedCities'));
+      savedData.value = JSON.parse(localStorage.getItem('savedCities'));
+      const requests = [];
+      savedData.value.forEach((city) => {
+        requests.push(
+          axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/weather/weatherInfo`, {
+            params: { key: gaodeKey, city: city.city, extensions: 'base' }
+          })
+        );
+      });
+
+      const weatherData = await Promise.all(requests);
+      weatherData.forEach((value, index) => {
+        savedData.value[index].weather = value.data;
+      });
     }
+  };
 
-    const requests = [];
-    savedCities.value.forEach((city) => {
-      requests.push(
-        axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/weather/weatherInfo`, {
-          params: { key: gaodeKey, city: city.adcode, extensions: "base" },
-        })
-      );
-    });
+  await getCityData();
 
-    const weatherData = await Promise.all(requests);
-
-    weatherData.forEach((value, index) => {
-      savedCities.value[index].weather = value.data;
+  const router = useRouter();
+  const goToCityView = (city) => {
+    router.push({
+      name: 'cityview',
+      params: { province: city.province, city: city.city },
+      query: { id: city.id, adcode: city.adcode },
     });
   };
 
   const handleDelete = (id) => {
-    savedCities.value = savedCities.value.filter(city => city.id !== id);
+    savedData.value = savedData.value.filter(c => c.id !== id);
   };
-
-  await getCities();
-  console.log(savedCities.value);
-
-  const router = useRouter();
-  const goToCityView = (city) => {
-    // 之前你的 router.push params/name 不完全对，确保这些在 router 里面配置正确
-    router.push({
-      name: 'cityview', // HomeView 中的这里用的是全小写 cityview
-      params: {
-        province: city.province,
-        city: city.city,
-      },
-    });
-  }
-
 </script>

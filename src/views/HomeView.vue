@@ -1,31 +1,49 @@
 <template>
-  <main class="container text-white">
-    <div class="pt-4 mb-8 relative">
-      <input type="text" placeholder="搜索你的城市" v-model="searchQuery" @focus="onInputFocus" @blur="onInputBlur"
+  <main class="container relative z-10 pt-32 pb-24 md:pt-48 md:pb-32 min-h-screen flex flex-col justify-between">
+
+    <div class="max-w-4xl mx-auto w-full relative group mb-24 md:mb-32 mt-12">
+      <h1
+        class="text-[15vw] md:text-9xl font-bold tracking-tighter leading-none mb-4 absolute -top-16 -left-8 md:-top-32 md:-left-16 opacity-[0.03] pointer-events-none select-none">
+        FORECAST</h1>
+      <input type="text" placeholder="Enter location..." v-model="searchQuery" @focus="onInputFocus" @blur="onInputBlur"
         @keydown.enter.prevent="selectFirstTip"
-        class="py-2 px-1 w-full bg-transparent border-b focus:border-weather-secondary focus:outline-none transition-colors duration-300 focus:shadow-[0px_1px_0_0_#004e71]">
+        class="py-4 md:py-6 w-full bg-transparent border-b-2 border-brand-primary placeholder:text-brand-muted/30 text-4xl md:text-6xl font-light tracking-tight focus:outline-none focus:border-brand-primary transition-all duration-700" />
 
-      <ul v-if="showTips && searchResults.length"
-        class="absolute left-0 right-0 top-full mt-2 rounded-md border border-white/20 bg-[#0f2d3a] shadow-lg overflow-hidden z-20">
-        <li v-for="tip in searchResults" :key="tip.adcode || tip.name" @mousedown.prevent="selectTip(tip)"
-          class="px-3 py-2 cursor-pointer hover:bg-white/10">
-          <p class="text-sm">{{ tip.name }}</p>
-          <p class="text-xs text-white/70">{{ tip.district || '省/市/区' }}</p>
-        </li>
-      </ul>
+      <div
+        class="absolute right-0 bottom-4 md:bottom-6 pointer-events-none text-brand-primary/40 text-xs md:text-sm uppercase tracking-[0.3em] font-medium hidden md:block">
+        <span v-if="isSearching" class="animate-pulse">Searching</span>
+        <span v-else>Search</span>
+      </div>
 
-      <p v-if="isSearching || isLoading" class="mt-2 text-xs text-white/70">正在搜索...</p>
-      <p v-if="errorMessage" class="mt-2 text-xs text-red-300">{{ errorMessage }}</p>
+      <!-- Search Results Dropdown -->
+      <transition name="fade">
+        <ul v-if="showTips && searchResults.length"
+          class="absolute left-0 right-0 top-full mt-0 bg-surface border border-brand-primary/10 shadow-2xl z-30">
+          <li v-for="tip in searchResults" :key="tip.adcode || tip.name" @mousedown.prevent="selectTip(tip)"
+            class="px-6 py-5 md:py-8 cursor-pointer hover:bg-brand-primary hover:text-surface transition-colors duration-500 flex justify-between items-end border-b border-brand-primary/5 last:border-0 group/item">
+            <p class="text-2xl md:text-4xl font-light tracking-tight">{{ tip.name }}</p>
+            <p
+              class="text-xs md:text-sm uppercase tracking-widest opacity-50 group-hover/item:opacity-80 transition-opacity duration-500">
+              {{ tip.district || 'Location' }}</p>
+          </li>
+        </ul>
+      </transition>
+
+      <p v-if="errorMessage" class="mt-8 text-sm text-red-500 uppercase tracking-widest">{{ errorMessage }}</p>
       <p v-if="!isSearching && !isLoading && !searchResults.length && searchQuery.trim()"
-        class="mt-2 text-xs text-white/70">没有找到相关城市</p>
+        class="mt-8 text-sm text-brand-muted/50 uppercase tracking-widest fade-in">No results found</p>
     </div>
-    <div class="flex flex-col gap-4">
+
+    <div class="flex-1 flex flex-col gap-12 mt-auto">
+      <div class="flex items-center gap-6">
+        <div class="w-16 h-[2px] bg-brand-primary"></div>
+        <p class="text-[10px] md:text-xs uppercase tracking-[0.4em] font-bold">Saved Locations</p>
+      </div>
+
       <Suspense>
-        <!-- 默认插槽：放置需要异步加载的组件 -->
         <template #default>
           <CityList />
         </template>
-        <!-- 后备插槽：在组件加载完成前显示的内容 -->
         <template #fallback>
           <CityCardSkeleton />
         </template>
@@ -35,19 +53,20 @@
 </template>
 
 <script setup>
-  import { ref, watch, onBeforeUnmount } from "vue";
-  import axios from "axios";
-  import { useRouter } from "vue-router";
-  import CityCardSkeleton from "@/components/CityCardSkeleton.vue";
+  import { ref, watch, onBeforeUnmount } from 'vue';
+  import axios from 'axios';
+  import { useRouter } from 'vue-router';
+  import CityCardSkeleton from '@/components/CityCardSkeleton.vue';
+  import CityList from '@/components/CityList.vue';
 
   const router = useRouter();
   const gaodeKey = import.meta.env.VITE_GAODE_KEY;
-  const searchQuery = ref("");
+  const searchQuery = ref('');
   const searchResults = ref([]);
   const showTips = ref(false);
   const isLoading = ref(false);
   const isSearching = ref(false);
-  const errorMessage = ref("");
+  const errorMessage = ref('');
 
   let debounceTimer = null;
   let blurTimer = null;
@@ -56,14 +75,13 @@
     if (!keyword) return (searchResults.value = []);
     isLoading.value = true;
     isSearching.value = true;
-    errorMessage.value = "";
+    errorMessage.value = '';
     try {
       const { data } = await axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/assistant/inputtips`, {
-        params: { key: gaodeKey, keywords: keyword, type: "190102|190103|190104|190105" },
+        params: { key: gaodeKey, keywords: keyword, type: '190102|190103|190104|190105' },
       });
-      console.log(data);
 
-      if (data?.status !== "1") throw new Error(data?.info || "请求异常");
+      if (data?.status !== '1') throw new Error(data?.info || 'Request Error');
       const k = keyword.toLowerCase();
       searchResults.value = Array.from(
         new Map(
@@ -80,48 +98,35 @@
       showTips.value = searchResults.value.length > 0;
     } catch (error) {
       searchResults.value = [];
-      errorMessage.value = error?.message || "搜索失败";
+      errorMessage.value = error?.message || 'Search failed';
     } finally {
       isLoading.value = false;
       isSearching.value = false;
-
     }
   };
 
   const selectTip = (tip) => {
-    // 高德 district 通常格式：[省份][城市][区县]。提取其省份和城市。
-    const districtStr = tip.district || "";
+    const districtStr = tip.district || '';
     let province = tip.name;
     let city = tip.name;
 
-    // 省、自治区、直辖市提取
     const provinceMatch = districtStr.match(/^(.*?(?:省|自治区|市))(.*)$/);
     if (provinceMatch) {
       province = provinceMatch[1];
       const remaining = provinceMatch[2];
-
-      // 有剩余的部分，提取城市（地级市/州/盟）如果没有则用本身 name 作为 city
       if (remaining) {
         const cityMatch = remaining.match(/^(.*?(?:市|州|地区|盟|区|县))(.*)$/);
         city = cityMatch ? cityMatch[1] : tip.name;
       } else {
-        // 直辖市等情况，省市同名
         city = province;
       }
     }
-
-    // 如果最后是区县而且有上级城市，可以传完整的城市，这里以 name 作为目标城市展示是最准确的
     city = tip.name;
 
     router.push({
-      name: "cityview",
-      params: {
-        province: province || city,
-        city: city,
-      },
-      query: {
-        adcode: tip.adcode,
-      }
+      name: 'cityview',
+      params: { province: province || city, city: city },
+      query: { adcode: tip.adcode }
     });
 
     searchQuery.value = tip.name;
@@ -129,9 +134,7 @@
   };
 
   const selectFirstTip = () => {
-    if (searchResults.value.length) {
-      selectTip(searchResults.value[0]);
-    }
+    if (searchResults.value.length) selectTip(searchResults.value[0]);
   };
 
   const onInputFocus = () => {
@@ -139,45 +142,43 @@
       clearTimeout(blurTimer);
       blurTimer = null;
     }
-    if (searchResults.value.length) {
-      showTips.value = true;
-    }
+    if (searchResults.value.length) showTips.value = true;
   };
 
   const onInputBlur = () => {
-    // Delay hiding so click/mousedown on tip can run first.
-    blurTimer = setTimeout(() => {
-      showTips.value = false;
-    }, 120);
+    blurTimer = setTimeout(() => { showTips.value = false; }, 120);
   };
 
   watch(searchQuery, (value) => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-
+    if (debounceTimer) clearTimeout(debounceTimer);
     const keyword = value.trim();
     if (!keyword) {
-      errorMessage.value = "";
+      errorMessage.value = '';
       searchResults.value = [];
       showTips.value = false;
       isSearching.value = false;
       return;
     }
-
     isSearching.value = true;
-
-    debounceTimer = setTimeout(() => {
-      getSearchResults(keyword);
-    }, 400);
+    debounceTimer = setTimeout(() => { getSearchResults(keyword); }, 400);
   });
 
   onBeforeUnmount(() => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-    if (blurTimer) {
-      clearTimeout(blurTimer);
-    }
+    if (debounceTimer) clearTimeout(debounceTimer);
+    if (blurTimer) clearTimeout(blurTimer);
   });
 </script>
+
+<style scoped>
+
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+</style>

@@ -1,15 +1,32 @@
 <template>
   <Teleport to="body">
-    <Transition name="modal-outer">
-      <div v-show="show" class="fixed w-full bg-black/40 h-screen top-0 left-0 flex justify-center px-8">
-        <Transition name="modal-inner" appear>
-          <div class="p-4 bg-white self-start mt-32 max-w-screen-md">
+    <Transition name="modal-fade">
+      <div v-show="show" class="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto">
+
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-surface/90 backdrop-blur-xl" @click="closeModal"></div>
+
+        <!-- Modal Content -->
+        <Transition name="modal-slide" appear>
+          <div v-show="show"
+            class="relative w-full max-w-2xl bg-brand-primary text-surface p-12 md:p-24 shadow-2xl border border-brand-primary/10 mx-4 overflow-hidden">
+            <!-- Decorative Accent line -->
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-brand-text/20"></div>
+
             <slot></slot>
-            <button @click="closeModal" class="text-white mt-8 bg-weather-primary py-2 px-4">
-              Close
+
+            <button @click="closeModal"
+              class="group mt-12 flex items-center gap-4 text-xs font-bold uppercase tracking-[0.3em] overflow-hidden">
+              <span class="group-hover:-translate-y-full absolute transition-transform duration-500">Close</span>
+              <span class="group-hover:translate-y-0 translate-y-full transition-transform duration-500">Close</span>
+              <!-- Layout push space -->
+              <span class="opacity-0">Close</span>
+
+              <div class="w-8 h-[2px] bg-surface group-hover:w-16 transition-all duration-500"></div>
             </button>
           </div>
         </Transition>
+
       </div>
     </Transition>
   </Teleport>
@@ -29,30 +46,31 @@
 
 <style scoped>
 
-  .modal-outer-enter-active,
-  .modal-outer-leave-active {
-    transition: opacity 0.3s cubic-bezier(0.52, 0.02, 0.19, 1.02);
+  .modal-fade-enter-active,
+  .modal-fade-leave-active {
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .modal-outer-enter-from,
-  .modal-outer-leave-to {
+  .modal-fade-enter-from,
+  .modal-fade-leave-to {
     opacity: 0;
   }
 
-  .modal-inner-enter-active {
-    transition: all 0.3s cubic-bezier(0.52, 0.02, 0.19, 1.02) 0.15s;
+  .modal-slide-enter-active {
+    transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
   }
 
-  .modal-inner-leave-active {
-    transition: all 0.3s cubic-bezier(0.52, 0.02, 0.19, 1.02);
+  .modal-slide-leave-active {
+    transition: all 0.5s cubic-bezier(0.7, 0, 0.84, 0);
   }
 
-  .modal-inner-enter-from {
+  .modal-slide-enter-from {
     opacity: 0;
-    transform: scale(0.8);
+    transform: translateY(40px) scale(0.98);
   }
 
-  .modal-inner-leave-to {
-    transform: scale(0.8);
+  .modal-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
   }
 </style>
