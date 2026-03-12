@@ -30,10 +30,10 @@
 
     <!-- Hover Background & Delete Layer -->
     <div
-      class="absolute inset-0 bg-brand-primary text-surface flex items-center justify-end px-8 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none transform origin-right scale-x-0 group-hover:scale-x-100 ease-in-out">
+      class="absolute inset-0 z-20 bg-brand-primary text-surface flex items-center justify-end px-8 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none transform origin-right scale-x-0 group-hover:scale-x-100 ease-in-out">
       <button @click.stop="deleteCity"
-        class="pointer-events-auto !z-9999 flex items-center gap-3 hover:opacity-50 transition-opacity uppercase tracking-[0.3em] text-xs font-bold mixes-blend-difference mt-12 mb-12">
-        <span class>Remove</span>
+        class="pointer-events-auto flex items-center gap-3 hover:opacity-50 transition-opacity uppercase tracking-[0.3em] text-xs font-bold mt-12 mb-12">
+        <span>Remove</span>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
         </svg>
