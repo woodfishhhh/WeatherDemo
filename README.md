@@ -40,3 +40,13 @@ npm run dev
 ```sh
 npm run build
 ```
+
+## Firebase Deployment
+
+```sh
+npm install -g firebase-tools
+firebase login
+npm run build
+firebase deploy
+```
+

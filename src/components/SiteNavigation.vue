@@ -14,15 +14,22 @@
         aria-label="Add City">
         <Plus class="w-5 h-5" stroke-width="1.5" />
       </button>
+      <a href="https://www.woodfishhhh.xyz/" target="_blank" rel="noopener noreferrer"
+        class="hover:opacity-60 transition-opacity duration-300" aria-label="Author Blog">
+        <User class="w-5 h-5" stroke-width="1.5" />
+      </a>
     </div>
 
     <BaseModal :show="showModal" @close-modal="toggleModal">
-      <div class="p-8 pb-12">
-        <h2 class="text-3xl font-light mb-8 tracking-tight text-brand-primary">Concept.</h2>
-        <p class="text-brand-muted leading-relaxed font-light text-lg">
-          A sophisticated weather visualization tool. Accurately delivering atmospheric conditions
-          through a minimalist, avant-garde lens. Built with Vue.js for high-performance interactions.
+      <div class="p-8 pb-12 text-white">
+        <h2 class="text-3xl font-light mb-8 tracking-tight">理念.</h2>
+        <p class="text-gray-300 leading-relaxed font-light text-lg mb-8">
+          一款精致的天气可视化工具。通过极简、不受拘束的视角，准确传达大气状况。基于 Vue.js 构建，为您带来高性能的交互体验。
         </p>
+        <a href="https://www.woodfishhhh.xyz/" target="_blank" rel="noopener noreferrer"
+          class="inline-block px-6 py-2 border border-white rounded-full hover:bg-white hover:text-black transition-colors duration-300">
+          访问作者博客
+        </a>
       </div>
     </BaseModal>
   </header>
@@ -32,10 +39,10 @@
   import { ref } from 'vue';
   import { useRoute, useRouter, RouterLink } from 'vue-router';
   import { uid } from 'uid';
-  import { Info, Plus } from 'lucide-vue-next';
+  import { Info, Plus, User } from 'lucide-vue-next';
+  import { loadSavedCities, saveSavedCities } from '@/services/savedCities';
 
   const showModal = ref(false);
-  const savedCities = ref([]);
   const route = useRoute();
   const router = useRouter();
 
@@ -43,10 +50,8 @@
     showModal.value = !showModal.value;
   }
 
-  const addCity = () => {
-    if (localStorage.getItem('savedCities')) {
-      savedCities.value = JSON.parse(localStorage.getItem('savedCities'));
-    }
+  const addCity = async () => {
+    const savedCities = await loadSavedCities();
 
     const locationObj = {
       id: uid(),
@@ -55,8 +60,18 @@
       adcode: route.query.adcode,
     };
 
-    savedCities.value.push(locationObj)
-    localStorage.setItem('savedCities', JSON.stringify(savedCities.value));
+    const isDuplicated = savedCities.some((city) => {
+      if (city.adcode && locationObj.adcode) {
+        return city.adcode === locationObj.adcode;
+      }
+
+      return city.province === locationObj.province && city.city === locationObj.city;
+    });
+
+    if (!isDuplicated) {
+      savedCities.push(locationObj);
+      await saveSavedCities(savedCities);
+    }
 
     let query = Object.assign({}, route.query);
     delete query.adcode;

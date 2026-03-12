@@ -14,27 +14,30 @@
   import { ref } from 'vue';
   import { useRouter } from 'vue-router';
   import CityCard from './CityCard.vue';
+  import { loadSavedCities, saveSavedCities } from '@/services/savedCities';
 
   const savedData = ref([]);
   const gaodeKey = import.meta.env.VITE_GAODE_KEY;
 
   const getCityData = async () => {
-    if (localStorage.getItem('savedCities')) {
-      savedData.value = JSON.parse(localStorage.getItem('savedCities'));
-      const requests = [];
-      savedData.value.forEach((city) => {
-        requests.push(
-          axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/weather/weatherInfo`, {
-            params: { key: gaodeKey, city: city.city, extensions: 'base' }
-          })
-        );
-      });
-
-      const weatherData = await Promise.all(requests);
-      weatherData.forEach((value, index) => {
-        savedData.value[index].weather = value.data;
-      });
+    savedData.value = await loadSavedCities();
+    if (!savedData.value.length) {
+      return;
     }
+
+    const requests = [];
+    savedData.value.forEach((city) => {
+      requests.push(
+        axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/weather/weatherInfo`, {
+          params: { key: gaodeKey, city: city.city, extensions: 'base' }
+        })
+      );
+    });
+
+    const weatherData = await Promise.all(requests);
+    weatherData.forEach((value, index) => {
+      savedData.value[index].weather = value.data;
+    });
   };
 
   await getCityData();
@@ -48,7 +51,8 @@
     });
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     savedData.value = savedData.value.filter(c => c.id !== id);
+    await saveSavedCities(savedData.value);
   };
 </script>

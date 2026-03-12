@@ -56,9 +56,6 @@
   const emit = defineEmits(['delete']);
 
   const deleteCity = () => {
-    const savedCities = JSON.parse(localStorage.getItem('savedCities') || '[]');
-    const updatedCities = savedCities.filter((c) => c.id !== props.city.id);
-    localStorage.setItem('savedCities', JSON.stringify(updatedCities));
     emit('delete', props.city.id);
   };
 
