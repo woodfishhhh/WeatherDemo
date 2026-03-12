@@ -2,7 +2,7 @@
   <header
     class="fixed top-0 w-full z-50 transition-all duration-500 py-6 px-4 md:px-12 flex justify-between items-center">
     <RouterLink :to="{ name: 'home' }" class="group flex items-center gap-2">
-      <div class="w-3 h-3 rounded-full bg-current transition-transform duration-500 group-hover:scale-150"></div>
+      <img src="/logo.png" alt="Logo" class="h-6 w-auto transition-transform duration-500 group-hover:scale-110" />
       <p class="text-sm font-semibold tracking-widest uppercase ml-2">WTHR.studio</p>
     </RouterLink>
 
