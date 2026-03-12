@@ -1,14 +1,19 @@
 <template>
   <div class="flex flex-col flex-1 pb-32">
     <!-- Preview Banner -->
-    <div v-if="route.query.adcode" class="w-full bg-brand-primary text-surface py-3 text-center z-20">
+    <div v-if="!isSaved" class="w-full bg-brand-primary text-surface py-3 text-center z-20">
       <p class="text-xs uppercase tracking-[0.3em] font-bold">Preview Mode — City not saved</p>
     </div>
 
     <!-- Current Weather -->
     <div class="container relative z-10 pt-24" v-if="weatherData?.current?.lives?.length">
-      <h1 class="text-[12vw] md:text-9xl font-bold tracking-tighter leading-none mb-12 ml-[-4px]">{{ route.params.city
-      }}</h1>
+      <div class="flex items-end justify-between mb-12 ml-[-4px]">
+        <h1 class="text-[12vw] md:text-9xl font-bold tracking-tighter leading-none">{{ route.params.city }}</h1>
+        <button @click="toggleSaveCity"
+          class="mb-2 px-6 py-2 border border-brand-primary rounded-full hover:bg-brand-primary hover:text-surface transition-colors duration-300 text-sm tracking-widest uppercase">
+          {{ isSaved ? '已收藏' : '收藏' }}
+        </button>
+      </div>
 
       <div
         class="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 items-start border-t-2 border-brand-primary/10 pt-12">
@@ -93,15 +98,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import axios from 'axios';
-  import { useRoute } from 'vue-router';
-  import { onMounted } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { computed, onMounted, ref } from 'vue';
+  import { uid } from 'uid';
+  import { getSavedCitiesSnapshot, loadSavedCitiesWithSync, saveSavedCities, type SavedCity } from '@/services/savedCities';
 
   const gaodeKey = import.meta.env.VITE_GAODE_KEY;
   const route = useRoute();
+  const router = useRouter();
 
-  const getWeatherData = async (cityParam) => {
+  const getWeatherData = async (cityParam: string) => {
     try {
       const [currentRes, forecastRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/weather/weatherInfo`, {
@@ -122,9 +130,48 @@
     }
   }
 
-  const weatherData = await getWeatherData(route.params.city);
+  const weatherData = await getWeatherData(route.params.city as string);
+
+  const savedCities = ref<SavedCity[]>(getSavedCitiesSnapshot());
+  const isSaved = computed(() => savedCities.value.some((city: SavedCity) =>
+    (city.adcode && route.query.adcode && city.adcode === route.query.adcode) ||
+    (city.province === route.params.province && city.city === route.params.city)
+  ));
+
+  const toggleSaveCity = async () => {
+    const locationObj: SavedCity = {
+      id: typeof route.query.id === 'string' ? route.query.id : uid(),
+      province: route.params.province as string,
+      city: route.params.city as string,
+      adcode: typeof route.query.adcode === 'string' ? route.query.adcode : undefined,
+    };
+
+    const existingIndex = savedCities.value.findIndex((city: SavedCity) =>
+      (city.adcode && locationObj.adcode && city.adcode === locationObj.adcode) ||
+      (city.province === locationObj.province && city.city === locationObj.city)
+    );
+
+    if (existingIndex !== -1) {
+      const nextCities = savedCities.value.filter((_: SavedCity, index: number) => index !== existingIndex);
+      savedCities.value = nextCities;
+      void saveSavedCities(nextCities);
+    } else {
+      const nextCities = [...savedCities.value, locationObj];
+      savedCities.value = nextCities;
+      void saveSavedCities(nextCities);
+
+      let query = Object.assign({}, route.query);
+      delete query.adcode;
+      router.replace({ query });
+    }
+  };
 
   onMounted(() => {
     window.scrollTo(0, 0);
+    void loadSavedCitiesWithSync({
+      onCloudUpdate: (cities) => {
+        savedCities.value = cities;
+      },
+    });
   });
 </script>

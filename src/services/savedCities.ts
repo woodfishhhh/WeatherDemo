@@ -6,11 +6,15 @@ const STORAGE_KEY = "savedCities";
 const COLLECTION_NAME = "weather_saved_cities";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365 * 2;
 
-type SavedCity = {
+export type SavedCity = {
   id: string;
   province: string;
   city: string;
   adcode?: string;
+};
+
+type LoadSavedCitiesOptions = {
+  onCloudUpdate?: (cities: SavedCity[]) => void;
 };
 
 const parseCookie = (name: string): string | null => {
@@ -105,6 +109,8 @@ export const writeLocalSavedCities = (cities: SavedCity[]): void => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizeSavedCities(cities)));
 };
 
+export const getSavedCitiesSnapshot = (): SavedCity[] => readLocalSavedCities();
+
 const getCitiesDocRef = () => {
   const clientId = getOrCreateClientId();
   return doc(db, COLLECTION_NAME, clientId);
@@ -131,6 +137,12 @@ export const saveSavedCities = async (cities: SavedCity[]): Promise<SavedCity[]>
 };
 
 export const loadSavedCities = async (): Promise<SavedCity[]> => {
+  return loadSavedCitiesWithSync();
+};
+
+export const loadSavedCitiesWithSync = async (
+  options: LoadSavedCitiesOptions = {}
+): Promise<SavedCity[]> => {
   const localCities = readLocalSavedCities();
 
   try {
@@ -139,17 +151,21 @@ export const loadSavedCities = async (): Promise<SavedCity[]> => {
 
     if (cloudCities.length > 0) {
       writeLocalSavedCities(cloudCities);
+      options.onCloudUpdate?.(cloudCities);
       return cloudCities;
     }
 
     if (localCities.length > 0) {
       await saveSavedCities(localCities);
+      options.onCloudUpdate?.(localCities);
       return localCities;
     }
 
+    options.onCloudUpdate?.([]);
     return [];
   } catch (error) {
     console.error("Failed to load saved cities from Firebase:", error);
+    options.onCloudUpdate?.(localCities);
     return localCities;
   }
 };

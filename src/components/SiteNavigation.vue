@@ -10,10 +10,6 @@
       <button @click="toggleModal" class="hover:opacity-60 transition-opacity duration-300" aria-label="About">
         <Info class="w-5 h-5" stroke-width="1.5" />
       </button>
-      <button @click="addCity" v-if="route.query.adcode" class="hover:opacity-60 transition-opacity duration-300"
-        aria-label="Add City">
-        <Plus class="w-5 h-5" stroke-width="1.5" />
-      </button>
       <a href="https://www.woodfishhhh.xyz/" target="_blank" rel="noopener noreferrer"
         class="hover:opacity-60 transition-opacity duration-300" aria-label="Author Blog">
         <User class="w-5 h-5" stroke-width="1.5" />
@@ -37,44 +33,12 @@
 
 <script setup>
   import { ref } from 'vue';
-  import { useRoute, useRouter, RouterLink } from 'vue-router';
-  import { uid } from 'uid';
-  import { Info, Plus, User } from 'lucide-vue-next';
-  import { loadSavedCities, saveSavedCities } from '@/services/savedCities';
+  import { RouterLink } from 'vue-router';
+  import { Info, User } from 'lucide-vue-next';
 
   const showModal = ref(false);
-  const route = useRoute();
-  const router = useRouter();
 
   function toggleModal() {
     showModal.value = !showModal.value;
   }
-
-  const addCity = async () => {
-    const savedCities = await loadSavedCities();
-
-    const locationObj = {
-      id: uid(),
-      province: route.params.province,
-      city: route.params.city,
-      adcode: route.query.adcode,
-    };
-
-    const isDuplicated = savedCities.some((city) => {
-      if (city.adcode && locationObj.adcode) {
-        return city.adcode === locationObj.adcode;
-      }
-
-      return city.province === locationObj.province && city.city === locationObj.city;
-    });
-
-    if (!isDuplicated) {
-      savedCities.push(locationObj);
-      await saveSavedCities(savedCities);
-    }
-
-    let query = Object.assign({}, route.query);
-    delete query.adcode;
-    router.replace({ query });
-  };
 </script>
