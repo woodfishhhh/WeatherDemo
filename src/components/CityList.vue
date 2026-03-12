@@ -9,7 +9,7 @@
   import axios from 'axios';
   import { useRouter } from 'vue-router';
 
-  const gaodeKey = "REMOVED_GAODE_KEY";
+  const gaodeKey = import.meta.env.VITE_GAODE_KEY;
 
   const savedCities = ref([]);
   const getCities = async () => {
@@ -20,7 +20,7 @@
     const requests = [];
     savedCities.value.forEach((city) => {
       requests.push(
-        axios.get("https://restapi.amap.com/v3/weather/weatherInfo", {
+        axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/weather/weatherInfo`, {
           params: { key: gaodeKey, city: city.adcode, extensions: "base" },
         })
       );

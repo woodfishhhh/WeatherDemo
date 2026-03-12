@@ -41,7 +41,7 @@
   import CityCardSkeleton from "@/components/CityCardSkeleton.vue";
 
   const router = useRouter();
-  const gaodeKey = "REMOVED_GAODE_KEY";
+  const gaodeKey = import.meta.env.VITE_GAODE_KEY;
   const searchQuery = ref("");
   const searchResults = ref([]);
   const showTips = ref(false);
@@ -58,7 +58,7 @@
     isSearching.value = true;
     errorMessage.value = "";
     try {
-      const { data } = await axios.get("https://restapi.amap.com/v3/assistant/inputtips", {
+      const { data } = await axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/assistant/inputtips`, {
         params: { key: gaodeKey, keywords: keyword, type: "190102|190103|190104|190105" },
       });
       console.log(data);

@@ -68,7 +68,7 @@
   import { useRoute } from 'vue-router';
   import { ref } from 'vue';
 
-  const gaodeKey = "REMOVED_GAODE_KEY";
+  const gaodeKey = import.meta.env.VITE_GAODE_KEY;
   const route = useRoute();
 
   // ----- 鼠标拖拽滚动逻辑 -----
@@ -99,10 +99,10 @@
     try {
       // extensions="base" 获取实况天气，extensions="all" 获取预报天气
       const [currentRes, forecastRes] = await Promise.all([
-        axios.get('https://restapi.amap.com/v3/weather/weatherInfo', {
+        axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/weather/weatherInfo`, {
           params: { key: gaodeKey, city: cityParam, extensions: 'base' },
         }),
-        axios.get('https://restapi.amap.com/v3/weather/weatherInfo', {
+        axios.get(`${import.meta.env.VITE_AMAP_BASE_URL}/weather/weatherInfo`, {
           params: { key: gaodeKey, city: cityParam, extensions: 'all' },
         })
       ]);
