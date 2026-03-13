@@ -8,7 +8,7 @@ const router = createRouter({
       name: "home",
       component: () => import("../views/HomeView.vue"),
       meta: {
-        title: "天气预报 - 首页"
+        title: "Weather Forecast / 天气预报"
       }
     },
     {
@@ -16,7 +16,23 @@ const router = createRouter({
       name: "cityview",
       component: () => import("../views/CityView.vue")
       , meta: {
-        title: "天气预报 - 城市详情"
+        title: "City Forecast / 城市天气"
+      }
+    },
+    {
+      path: "/workspace",
+      name: "workspace",
+      component: () => import("../views/WorkspaceView.vue"),
+      meta: {
+        title: "Workspace / 工作台"
+      }
+    },
+    {
+      path: "/settings",
+      name: "settings",
+      component: () => import("../views/SettingsView.vue"),
+      meta: {
+        title: "Settings / 设置"
       }
     },
     {
@@ -24,19 +40,18 @@ const router = createRouter({
       name: "not-found",
       component: () => import("../views/NotFoundView.vue"),
       meta: {
-        title: "天气预报 - 页面未找到"
+        title: "Page Missing / 页面未找到"
       }
     },
   ],
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const pageTitle = to.params.province
-    ? `${to.params.province},${to.params.city}`
-    : to.meta.title || "天气预报";
+    ? `${to.params.city} Weather / ${to.params.province} · ${to.params.city}天气`
+    : to.meta.title || "Weather Forecast / 天气预报";
 
   document.title = `${pageTitle}`;
-  next()
-})
+});
 
 export default router;

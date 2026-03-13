@@ -16,11 +16,12 @@
             <slot></slot>
 
             <button @click="closeModal"
+              aria-label="Close dialog / 关闭弹窗"
               class="group mt-12 flex items-center gap-4 text-xs font-bold uppercase tracking-[0.3em] overflow-hidden">
-              <span class="group-hover:-translate-y-full absolute transition-transform duration-500">Close</span>
-              <span class="group-hover:translate-y-0 translate-y-full transition-transform duration-500">Close</span>
+              <span class="group-hover:-translate-y-full absolute transition-transform duration-500">Close / 关闭</span>
+              <span class="group-hover:translate-y-0 translate-y-full transition-transform duration-500">Close / 关闭</span>
               <!-- Layout push space -->
-              <span class="opacity-0">Close</span>
+              <span class="opacity-0">Close / 关闭</span>
 
               <div class="w-8 h-[2px] bg-brand-primary group-hover:w-16 transition-all duration-500"></div>
             </button>

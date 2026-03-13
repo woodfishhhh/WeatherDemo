@@ -14,6 +14,7 @@ declare module 'vue' {
     AnimatedPlaceholder: typeof import('./components/AnimatedPlaceholder.vue')['default']
     AsyncCityView: typeof import('./components/AsyncCityView.vue')['default']
     BaseModal: typeof import('./components/BaseModal.vue')['default']
+    BilingualStack: typeof import('./components/BilingualStack.vue')['default']
     CityCard: typeof import('./components/CityCard.vue')['default']
     CityCardSkeleton: typeof import('./components/CityCardSkeleton.vue')['default']
     CityList: typeof import('./components/CityList.vue')['default']
