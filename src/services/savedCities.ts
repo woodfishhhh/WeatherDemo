@@ -11,6 +11,11 @@ export type SavedCity = {
   province: string;
   city: string;
   adcode?: string;
+  locationId?: string;
+  latitude?: string;
+  longitude?: string;
+  timezone?: string;
+  country?: string;
 };
 
 type LoadSavedCitiesOptions = {
@@ -65,7 +70,20 @@ const normalizeSavedCities = (input: unknown): SavedCity[] => {
       const city = item as Record<string, unknown>;
       const province = typeof city.province === "string" ? city.province.trim() : "";
       const cityName = typeof city.city === "string" ? city.city.trim() : "";
-      const id = typeof city.id === "string" && city.id.trim() ? city.id : createClientId();
+      const locationId =
+        typeof city.locationId === "string" && city.locationId.trim()
+          ? city.locationId.trim()
+          : typeof city.qweatherId === "string" && city.qweatherId.trim()
+            ? city.qweatherId.trim()
+            : undefined;
+      const latitude = typeof city.latitude === "string" ? city.latitude.trim() : undefined;
+      const longitude = typeof city.longitude === "string" ? city.longitude.trim() : undefined;
+      const timezone = typeof city.timezone === "string" ? city.timezone.trim() : undefined;
+      const country = typeof city.country === "string" ? city.country.trim() : undefined;
+      const id =
+        typeof city.id === "string" && city.id.trim()
+          ? city.id
+          : locationId || createClientId();
       const adcode = typeof city.adcode === "string" ? city.adcode : undefined;
 
       if (!province || !cityName) {
@@ -77,13 +95,22 @@ const normalizeSavedCities = (input: unknown): SavedCity[] => {
         province,
         city: cityName,
         adcode,
+        locationId,
+        latitude,
+        longitude,
+        timezone,
+        country,
       } as SavedCity;
     })
     .filter((item): item is SavedCity => item !== null);
 
   const unique = new Map<string, SavedCity>();
   for (const city of mapped) {
-    const key = city.adcode ? `adcode:${city.adcode}` : `${city.province}::${city.city}`;
+    const key = city.locationId
+      ? `location:${city.locationId}`
+      : city.adcode
+        ? `adcode:${city.adcode}`
+        : `${city.province}::${city.city}`;
     if (!unique.has(key)) {
       unique.set(key, city);
     }
