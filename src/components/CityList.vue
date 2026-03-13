@@ -15,86 +15,43 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, ref } from 'vue';
+  import { computed, onMounted, watch } from 'vue';
+  import { storeToRefs } from 'pinia';
   import { useRouter } from 'vue-router';
   import BilingualStack from './BilingualStack.vue';
   import CityCard from './CityCard.vue';
-  import { getSavedCityWeatherSummary, resolveLocation } from '@/features/weather/services/qweather';
-  import type { SavedCityWeatherSummary } from '@/features/weather/types';
-  import { getSavedCitiesSnapshot, loadSavedCitiesWithSync, saveSavedCities, type SavedCity } from '@/services/savedCities';
+  import { useLocationsStore } from '@/features/locations/stores/locations';
+  import { useWeatherStore } from '@/features/weather/stores/weather';
+  import { useWorkspaceStore } from '@/features/workspace/stores/workspace';
+  import type { SavedCity } from '@/services/savedCities';
 
-  type SavedCityWithWeather = SavedCity & {
-    weather?: SavedCityWeatherSummary | null;
-  };
-
-  const savedData = ref<SavedCityWithWeather[]>(getSavedCitiesSnapshot());
   const router = useRouter();
+  const locationsStore = useLocationsStore();
+  const weatherStore = useWeatherStore();
+  const workspaceStore = useWorkspaceStore();
+  const { savedCities } = storeToRefs(locationsStore);
 
-  const hydrateWeather = async () => {
-    if (!savedData.value.length) {
-      return;
-    }
-
-    const nextData = await Promise.all(
-      savedData.value.map(async (city) => {
-        try {
-          const location =
-            city.locationId && city.latitude && city.longitude
-              ? {
-                  id: city.locationId,
-                  name: city.city,
-                  province: city.province,
-                  latitude: city.latitude,
-                  longitude: city.longitude,
-                  timezone: city.timezone,
-                  country: city.country,
-                }
-              : await resolveLocation({
-                  id: city.locationId,
-                  city: city.city,
-                  province: city.province,
-                });
-
-          if (!location) {
-            return city;
-          }
-
-          const weather = await getSavedCityWeatherSummary(location);
-
-          return {
-            ...city,
-            locationId: location.id,
-            latitude: location.latitude,
-            longitude: location.longitude,
-            timezone: location.timezone,
-            country: location.country,
-            weather,
-          };
-        } catch {
-          return {
-            ...city,
-            weather: null,
-          };
-        }
-      })
-    );
-
-    savedData.value = nextData;
-    const persistedCities = nextData.map(({ weather, ...city }) => city);
-    void saveSavedCities(persistedCities);
-  };
+  const savedData = computed(() =>
+    savedCities.value.map((city) => ({
+      ...city,
+      weather: weatherStore.getSavedCitySummary(city),
+    }))
+  );
 
   onMounted(() => {
-    void hydrateWeather();
-    void loadSavedCitiesWithSync({
-      onCloudUpdate: (cities) => {
-        savedData.value = cities;
-        void hydrateWeather();
-      },
-    });
+    void locationsStore.loadSavedCities();
   });
 
+  watch(
+    savedCities,
+    (cities) => {
+      void weatherStore.hydrateSavedCitySummaries(cities);
+    },
+    { immediate: true }
+  );
+
   const goToCityView = (city: SavedCity) => {
+    workspaceStore.rememberRecentLocation(city.locationId || city.id);
     router.push({
       name: 'cityview',
       params: { province: city.province, city: city.city },
@@ -108,8 +65,6 @@
   };
 
   const handleDelete = (id: string) => {
-    savedData.value = savedData.value.filter((city) => city.id !== id);
-    const persistedCities = savedData.value.map(({ weather, ...city }) => city);
-    void saveSavedCities(persistedCities);
+    void locationsStore.removeSavedCityById(id);
   };
 </script>

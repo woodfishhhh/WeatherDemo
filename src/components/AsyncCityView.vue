@@ -183,142 +183,19 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref, shallowRef, watch } from 'vue';
-  import { useRoute, useRouter } from 'vue-router';
-  import { uid } from 'uid';
-  import { getCityWeatherBundle, resolveLocation } from '@/features/weather/services/qweather';
-  import type { CityWeatherBundle, LocationRecord } from '@/features/weather/types';
-  import { getSavedCitiesSnapshot, loadSavedCitiesWithSync, saveSavedCities, type SavedCity } from '@/services/savedCities';
+  import { useCityWeatherView } from '@/features/weather/composables/useCityWeatherView';
 
-  const route = useRoute();
-  const router = useRouter();
-  const weatherData = shallowRef<CityWeatherBundle | null>(null);
-  const resolvedLocation = shallowRef<LocationRecord | null>(null);
-  const errorMessage = shallowRef('');
-
-  const savedCities = ref<SavedCity[]>(getSavedCitiesSnapshot());
-
-  const buildCurrentLocationRecord = (): SavedCity | null => {
-    if (!resolvedLocation.value) {
-      return null;
-    }
-
-    return {
-      id: typeof route.query.id === 'string' ? route.query.id : resolvedLocation.value.id || uid(),
-      province: resolvedLocation.value.province || (route.params.province as string),
-      city: resolvedLocation.value.name || (route.params.city as string),
-      locationId: resolvedLocation.value.id,
-      latitude: resolvedLocation.value.latitude,
-      longitude: resolvedLocation.value.longitude,
-      timezone: resolvedLocation.value.timezone,
-      country: resolvedLocation.value.country,
-    };
-  };
-
-  const isSaved = computed(() =>
-    savedCities.value.some(
-      (city) =>
-        (city.locationId && resolvedLocation.value && city.locationId === resolvedLocation.value.id) ||
-        (city.province === route.params.province && city.city === route.params.city)
-    )
-  );
-
-  const loadWeather = async () => {
-    errorMessage.value = '';
-
-    try {
-      const location = await resolveLocation({
-        id: typeof route.query.qid === 'string' ? route.query.qid : undefined,
-        city: route.params.city as string,
-        province: route.params.province as string,
-      });
-
-      resolvedLocation.value = location;
-
-      if (!location) {
-        weatherData.value = null;
-        errorMessage.value = 'Unable to resolve this location in QWeather. / 无法在和风天气中解析该城市。';
-        return;
-      }
-
-      weatherData.value = await getCityWeatherBundle(location);
-    } catch (error) {
-      weatherData.value = null;
-      errorMessage.value = error instanceof Error ? error.message : 'Failed to load weather data. / 加载天气失败。';
-    }
-  };
-
-  const toggleSaveCity = async () => {
-    const locationObj = buildCurrentLocationRecord();
-    if (!locationObj) {
-      return;
-    }
-
-    const existingIndex = savedCities.value.findIndex(
-      (city) =>
-        (city.locationId && locationObj.locationId && city.locationId === locationObj.locationId) ||
-        (city.province === locationObj.province && city.city === locationObj.city)
-    );
-
-    if (existingIndex !== -1) {
-      const nextCities = savedCities.value.filter((_, index) => index !== existingIndex);
-      savedCities.value = nextCities;
-      void saveSavedCities(nextCities);
-      return;
-    }
-
-    const nextCities = [...savedCities.value, locationObj];
-    savedCities.value = nextCities;
-    void saveSavedCities(nextCities);
-    void router.replace({
-      query: {
-        ...route.query,
-        qid: locationObj.locationId,
-        lat: locationObj.latitude,
-        lon: locationObj.longitude,
-      },
-    });
-  };
-
-  const formatHour = (value: string) =>
-    new Intl.DateTimeFormat('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-
-  const formatDay = (value: string) =>
-    new Intl.DateTimeFormat('zh-CN', {
-      month: 'long',
-      day: 'numeric',
-      weekday: 'short',
-    }).format(new Date(value));
-
-  const formatDateTime = (value: string) =>
-    value
-      ? new Intl.DateTimeFormat('zh-CN', {
-        month: 'numeric',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(new Date(value))
-      : '--';
-
-  onMounted(() => {
-    window.scrollTo(0, 0);
-    void loadSavedCitiesWithSync({
-      onCloudUpdate: (cities) => {
-        savedCities.value = cities;
-      },
-    });
-  });
-
-  watch(
-    () => [route.params.province, route.params.city, route.query.qid],
-    () => {
-      void loadWeather();
-    },
-    { immediate: true }
-  );
+  const {
+    errorMessage,
+    formatDateTime,
+    formatDay,
+    formatHour,
+    isSaved,
+    resolvedLocation,
+    route,
+    toggleSaveCity,
+    weatherData,
+  } = useCityWeatherView();
 </script>
 
 <style scoped>

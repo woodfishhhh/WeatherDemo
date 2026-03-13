@@ -20,10 +20,33 @@
         <p>This route is reserved for the workspace dashboard from the `.sisyphus` plan and keeps a stable smoke target.</p>
         <p>这个页面将承接 `.sisyphus` 计划中的多城市工作台，也为当前验证保留了稳定入口。</p>
       </div>
+      <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+        <div class="border border-brand-primary/10 rounded-[1.6rem] px-5 py-5 bg-brand-accent/18">
+          <p class="text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/70">Saved Cities / 已收藏城市</p>
+          <p class="mt-3 text-2xl font-light tracking-tight">{{ savedCities.length }}</p>
+        </div>
+        <div class="border border-brand-primary/10 rounded-[1.6rem] px-5 py-5 bg-brand-accent/18">
+          <p class="text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/70">Recent Group / 当前分组</p>
+          <p class="mt-3 text-2xl font-light tracking-tight">{{ selectedGroup }}</p>
+        </div>
+      </div>
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
+  import { onMounted } from 'vue';
+  import { storeToRefs } from 'pinia';
   import BilingualStack from '@/components/BilingualStack.vue';
+  import { useLocationsStore } from '@/features/locations/stores/locations';
+  import { useWorkspaceStore } from '@/features/workspace/stores/workspace';
+
+  const locationsStore = useLocationsStore();
+  const workspaceStore = useWorkspaceStore();
+  const { savedCities } = storeToRefs(locationsStore);
+  const { selectedGroup } = storeToRefs(workspaceStore);
+
+  onMounted(() => {
+    void locationsStore.loadSavedCities();
+  });
 </script>

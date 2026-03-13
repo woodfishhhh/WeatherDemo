@@ -119,202 +119,28 @@
 </template>
 
 <script setup lang="ts">
-  import { onBeforeUnmount, ref, shallowRef, watch } from 'vue';
-  import { useRouter } from 'vue-router';
   import BilingualStack from '@/components/BilingualStack.vue';
   import CityCardSkeleton from '@/components/CityCardSkeleton.vue';
   import CityList from '@/components/CityList.vue';
-  import { getSavedCityWeatherSummary, lookupLocationByCoordinates, searchLocations } from '@/features/weather/services/qweather';
-  import type { LocationRecord, SavedCityWeatherSummary } from '@/features/weather/types';
+  import { useHomeLocationSearch } from '@/features/locations/composables/useHomeLocationSearch';
 
-  type CurrentLocationWeather = {
-    location: LocationRecord;
-    weather: SavedCityWeatherSummary;
-  };
-
-  const router = useRouter();
-  const searchQuery = shallowRef('');
-  const searchResults = ref<LocationRecord[]>([]);
-  const showTips = shallowRef(false);
-  const isLoading = shallowRef(false);
-  const isSearching = shallowRef(false);
-  const errorMessage = shallowRef('');
-  const isLocating = shallowRef(false);
-  const locationErrorMessage = shallowRef('');
-  const currentLocation = shallowRef<CurrentLocationWeather | null>(null);
-
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-  let blurTimer: ReturnType<typeof setTimeout> | null = null;
-
-  const getSearchResults = async (keyword: string) => {
-    if (!keyword) {
-      searchResults.value = [];
-      return;
-    }
-
-    isLoading.value = true;
-    isSearching.value = true;
-    errorMessage.value = '';
-
-    try {
-      const locations = await searchLocations(keyword);
-      const lowerKeyword = keyword.toLowerCase();
-
-      searchResults.value = locations
-        .filter((location) => location.name.toLowerCase().includes(lowerKeyword))
-        .sort((a, b) => {
-          const aStarts = a.name.toLowerCase().startsWith(lowerKeyword);
-          const bStarts = b.name.toLowerCase().startsWith(lowerKeyword);
-          return aStarts === bStarts ? 0 : aStarts ? -1 : 1;
-        });
-
-      showTips.value = searchResults.value.length > 0;
-    } catch (error) {
-      searchResults.value = [];
-      errorMessage.value = error instanceof Error ? error.message : 'Search failed / 搜索失败';
-    } finally {
-      isLoading.value = false;
-      isSearching.value = false;
-    }
-  };
-
-  const selectTip = (tip: LocationRecord) => {
-    openLocation(tip);
-    searchQuery.value = tip.name;
-    showTips.value = false;
-  };
-
-  const openLocation = (location: LocationRecord) => {
-    router.push({
-      name: 'cityview',
-      params: {
-        province: location.province || location.name,
-        city: location.name,
-      },
-      query: {
-        qid: location.id,
-        lat: location.latitude,
-        lon: location.longitude,
-      },
-    });
-  };
-
-  const openCurrentLocation = () => {
-    if (currentLocation.value) {
-      openLocation(currentLocation.value.location);
-    }
-  };
-
-  const requestCurrentLocation = async () => {
-    if (!navigator.geolocation) {
-      locationErrorMessage.value = 'Geolocation is not supported in this browser. / 当前浏览器不支持定位。';
-      return;
-    }
-
-    isLocating.value = true;
-    locationErrorMessage.value = '';
-
-    try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 12000,
-          maximumAge: 300000,
-        });
-      });
-
-      const location = await lookupLocationByCoordinates(
-        position.coords.longitude,
-        position.coords.latitude
-      );
-
-      if (!location) {
-        currentLocation.value = null;
-        locationErrorMessage.value = 'Unable to match your coordinates to a QWeather city. / 无法将坐标匹配到和风天气城市。';
-        return;
-      }
-
-      const weather = await getSavedCityWeatherSummary(location);
-      if (!weather) {
-        currentLocation.value = null;
-        locationErrorMessage.value = 'Current location resolved, but weather data is unavailable right now. / 已解析当前位置，但暂时无法获取天气。';
-        return;
-      }
-
-      currentLocation.value = {
-        location,
-        weather,
-      };
-    } catch (error) {
-      if (error instanceof GeolocationPositionError) {
-        const messageMap: Record<number, string> = {
-          [error.PERMISSION_DENIED]: 'Location permission was denied. / 定位权限已被拒绝。',
-          [error.POSITION_UNAVAILABLE]: 'Your location could not be determined. / 无法确定当前位置。',
-          [error.TIMEOUT]: 'Location request timed out. / 定位请求超时。',
-        };
-
-        locationErrorMessage.value = messageMap[error.code] ?? 'Location request failed. / 定位请求失败。';
-      } else {
-        locationErrorMessage.value = error instanceof Error ? error.message : 'Location request failed. / 定位请求失败。';
-      }
-    } finally {
-      isLocating.value = false;
-    }
-  };
-
-  const selectFirstTip = () => {
-    const firstTip = searchResults.value[0];
-    if (firstTip) {
-      selectTip(firstTip);
-    }
-  };
-
-  const onInputFocus = () => {
-    if (blurTimer) {
-      clearTimeout(blurTimer);
-      blurTimer = null;
-    }
-
-    if (searchResults.value.length) {
-      showTips.value = true;
-    }
-  };
-
-  const onInputBlur = () => {
-    blurTimer = setTimeout(() => {
-      showTips.value = false;
-    }, 120);
-  };
-
-  watch(searchQuery, (value) => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-
-    const keyword = value.trim();
-    if (!keyword) {
-      errorMessage.value = '';
-      searchResults.value = [];
-      showTips.value = false;
-      isSearching.value = false;
-      return;
-    }
-
-    isSearching.value = true;
-    debounceTimer = setTimeout(() => {
-      void getSearchResults(keyword);
-    }, 400);
-  });
-
-  onBeforeUnmount(() => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-
-    if (blurTimer) {
-      clearTimeout(blurTimer);
-    }
-  });
+  const {
+    currentLocation,
+    errorMessage,
+    isLoading,
+    isLocating,
+    isSearching,
+    locationErrorMessage,
+    onInputBlur,
+    onInputFocus,
+    openCurrentLocation,
+    requestCurrentLocation,
+    searchQuery,
+    searchResults,
+    selectFirstTip,
+    selectTip,
+    showTips,
+  } = useHomeLocationSearch();
 </script>
 
 <style scoped>
