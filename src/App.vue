@@ -9,20 +9,6 @@
       <div class="wave-line top-[80%]" ref="line3"></div>
     </div>
 
-    <Transition name="theme-ripple">
-      <div
-        v-if="rippleState.visible"
-        class="theme-ripple pointer-events-none fixed inset-0 z-[70]"
-        :style="rippleStyle"
-      >
-        <span class="theme-ripple__wash"></span>
-        <span class="theme-ripple__ring theme-ripple__ring--one"></span>
-        <span class="theme-ripple__ring theme-ripple__ring--two"></span>
-        <span class="theme-ripple__ring theme-ripple__ring--three"></span>
-        <span class="theme-ripple__core"></span>
-      </div>
-    </Transition>
-
     <SiteNavigation :theme="theme" class="z-50" @toggle-theme="handleThemeToggle" />
 
     <div class="flex-1 z-10 w-full relative">
@@ -36,57 +22,85 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, onUnmounted, ref } from 'vue';
+  import { nextTick, onMounted, onUnmounted, ref, shallowRef } from 'vue';
   import { RouterView } from 'vue-router';
   import SiteNavigation from './components/SiteNavigation.vue';
   import Lenis from 'lenis';
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { useTheme, type ThemeMode } from './composables/useTheme';
+import { useTheme } from './composables/useTheme';
 
   gsap.registerPlugin(ScrollTrigger);
 
   const line1 = ref<HTMLElement | null>(null);
   const line2 = ref<HTMLElement | null>(null);
   const line3 = ref<HTMLElement | null>(null);
-  const rippleState = ref({
-    visible: false,
-    x: 0,
-    y: 0,
-    theme: 'dark' as ThemeMode,
-  });
+  const prefersReducedMotion = shallowRef(false);
 
   const { theme, initializeTheme, toggleTheme } = useTheme();
 
-  const rippleStyle = computed(() => ({
-    '--ripple-x': `${rippleState.value.x}px`,
-    '--ripple-y': `${rippleState.value.y}px`,
-  }));
-
   let lenis: Lenis | null = null;
-  let rippleTimer: ReturnType<typeof setTimeout> | null = null;
+  let reduceMotionMedia: MediaQueryList | null = null;
+  let reduceMotionListener: ((event: MediaQueryListEvent) => void) | null = null;
+
+  type ViewTransitionLike = {
+    ready: Promise<void>;
+    finished: Promise<void>;
+    updateCallbackDone?: Promise<void>;
+    skipTransition?: () => void;
+  };
+
+  type DocumentWithViewTransition = Document & {
+    startViewTransition?: (callback: () => void | Promise<void>) => ViewTransitionLike;
+  };
+
+  const setThemeTransitionOrigin = (x: number, y: number) => {
+    const root = document.documentElement;
+    const maxX = Math.max(x, window.innerWidth - x);
+    const maxY = Math.max(y, window.innerHeight - y);
+    const radius = Math.hypot(maxX, maxY);
+
+    root.style.setProperty('--theme-switch-x', `${x}px`);
+    root.style.setProperty('--theme-switch-y', `${y}px`);
+    root.style.setProperty('--theme-switch-radius', `${radius}px`);
+  };
+
+  const clearThemeTransitionOrigin = () => {
+    const root = document.documentElement;
+    root.style.removeProperty('--theme-switch-x');
+    root.style.removeProperty('--theme-switch-y');
+    root.style.removeProperty('--theme-switch-radius');
+  };
 
   const handleThemeToggle = ({ x, y }: { x: number; y: number }) => {
-    rippleState.value = {
-      visible: true,
-      x,
-      y,
-      theme: theme.value === 'dark' ? 'light' : 'dark',
-    };
+    setThemeTransitionOrigin(x, y);
 
-    if (rippleTimer) {
-      clearTimeout(rippleTimer);
+    const transitionApi = (document as DocumentWithViewTransition).startViewTransition;
+    if (!transitionApi || prefersReducedMotion.value) {
+      toggleTheme();
+      clearThemeTransitionOrigin();
+      return;
     }
 
-    toggleTheme();
+    const transition = transitionApi.call(document, async () => {
+      toggleTheme();
+      await nextTick();
+    });
 
-    rippleTimer = setTimeout(() => {
-      rippleState.value.visible = false;
-    }, 1200);
+    transition.finished.finally(() => {
+      clearThemeTransitionOrigin();
+    });
   };
 
   onMounted(() => {
     initializeTheme();
+    setThemeTransitionOrigin(window.innerWidth / 2, window.innerHeight / 2);
+    reduceMotionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
+    prefersReducedMotion.value = reduceMotionMedia.matches;
+    reduceMotionListener = (event: MediaQueryListEvent) => {
+      prefersReducedMotion.value = event.matches;
+    };
+    reduceMotionMedia.addEventListener('change', reduceMotionListener);
 
     lenis = new Lenis({
       duration: 1.2,
@@ -144,8 +158,8 @@
     if (lenis) {
       lenis.destroy();
     }
-    if (rippleTimer) {
-      clearTimeout(rippleTimer);
+    if (reduceMotionMedia && reduceMotionListener) {
+      reduceMotionMedia.removeEventListener('change', reduceMotionListener);
     }
   });
 
@@ -177,56 +191,6 @@
     background: radial-gradient(circle at bottom, var(--app-glow-bottom), transparent 60%);
   }
 
-  .theme-ripple {
-    --theme-ripple-size: 10rem;
-  }
-
-  .theme-ripple__wash,
-  .theme-ripple__ring,
-  .theme-ripple__core {
-    position: absolute;
-    left: var(--ripple-x);
-    top: var(--ripple-y);
-    transform: translate(-50%, -50%);
-    border-radius: 9999px;
-  }
-
-  .theme-ripple__wash {
-    width: 18rem;
-    height: 18rem;
-    background:
-      radial-gradient(circle, var(--theme-ripple-core) 0%, var(--theme-ripple-soft) 34%, transparent 72%);
-    opacity: 0;
-    animation: wash-expand 1.1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-    filter: blur(2px);
-  }
-
-  .theme-ripple__ring {
-    border: 1px solid var(--theme-ripple-line);
-    opacity: 0;
-    backdrop-filter: blur(3px);
-  }
-
-  .theme-ripple__ring--one {
-    animation: ripple-ring 1.1s ease-out forwards;
-  }
-
-  .theme-ripple__ring--two {
-    animation: ripple-ring 1.1s ease-out 0.12s forwards;
-  }
-
-  .theme-ripple__ring--three {
-    animation: ripple-ring 1.1s ease-out 0.24s forwards;
-  }
-
-  .theme-ripple__core {
-    width: 0.85rem;
-    height: 0.85rem;
-    background: var(--theme-ripple-line);
-    opacity: 0.8;
-    animation: ripple-core 0.8s ease-out forwards;
-  }
-
   /* Reset basic router transition as we are doing it via JS/GSAP */
   .page-enter-active,
   .page-leave-active {
@@ -238,60 +202,56 @@
     opacity: 0;
   }
 
-  .theme-ripple-enter-active,
-  .theme-ripple-leave-active {
-    transition: opacity 0.25s ease;
+  ::view-transition-old(*) {
+    animation: none;
   }
 
-  .theme-ripple-enter-from,
-  .theme-ripple-leave-to {
-    opacity: 0;
+  ::view-transition-new(*) {
+    animation: theme-clip-reveal 500ms ease-in both;
   }
 
-  @keyframes wash-expand {
+  ::view-transition-old(root) {
+    z-index: 1;
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-new(root) {
+    z-index: 9999;
+    mix-blend-mode: normal;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--color-brand-primary) 10%, transparent),
+      inset 0 0 12rem color-mix(in srgb, var(--color-brand-primary) 4%, transparent);
+  }
+
+  html[data-theme='dark']::view-transition-old(*) {
+    animation: theme-clip-reveal 500ms ease-in reverse both;
+  }
+
+  html[data-theme='dark']::view-transition-new(*) {
+    animation: none;
+  }
+
+  html[data-theme='dark']::view-transition-old(root) {
+    z-index: 9999;
+  }
+
+  html[data-theme='dark']::view-transition-new(root) {
+    z-index: 1;
+  }
+
+  @keyframes theme-clip-reveal {
     0% {
-      width: 5rem;
-      height: 5rem;
-      opacity: 0.4;
+      clip-path: circle(0 at var(--theme-switch-x) var(--theme-switch-y));
     }
     100% {
-      width: 130vmax;
-      height: 130vmax;
-      opacity: 0.82;
+      clip-path: circle(var(--theme-switch-radius) at var(--theme-switch-x) var(--theme-switch-y));
     }
   }
 
-  @keyframes ripple-ring {
-    0% {
-      width: 1rem;
-      height: 1rem;
-      opacity: 0.8;
-    }
-    100% {
-      width: 42rem;
-      height: 42rem;
-      opacity: 0;
-    }
-  }
-
-  @keyframes ripple-core {
-    0% {
-      width: 0.65rem;
-      height: 0.65rem;
-      opacity: 0.9;
-    }
-    100% {
-      width: 6rem;
-      height: 6rem;
-      opacity: 0;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .theme-ripple__ring--one,
-    .theme-ripple__ring--two,
-    .theme-ripple__ring--three {
-      animation-duration: 0.9s;
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation-duration: 0.01ms !important;
     }
   }
 </style>
