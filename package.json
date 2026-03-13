@@ -8,7 +8,10 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "type-check": "vue-tsc --build",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "mock-server:sync": "msw init public --save"
   },
   "dependencies": {
     "@studio-freight/lenis": "^1.0.42",
@@ -25,20 +28,30 @@
     "vue-router": "^5.0.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.2.1",
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^24.11.0",
     "@vitejs/plugin-vue": "^6.0.4",
+    "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
+    "jsdom": "^27.0.1",
+    "msw": "^2.11.6",
     "npm-run-all2": "^8.0.4",
     "typescript": "~5.9.3",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-vue-components": "^31.0.0",
     "vite": "beta",
     "vite-plugin-vue-devtools": "^8.0.6",
+    "vitest": "^4.0.0",
     "vue-tsc": "^3.2.5"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
