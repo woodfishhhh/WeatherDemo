@@ -1,13 +1,13 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-brand-primary: #000000;
-  --color-brand-secondary: #0a0a0a;
-  --color-brand-text: #ffffff;
-  --color-brand-muted: #111111;
-  --color-brand-accent: #222222;
-  --color-surface: #ffffff;
-  --color-surface-text: #050505;
+  --color-brand-primary: #f5f7fb;
+  --color-brand-secondary: #c4cbd7;
+  --color-brand-text: #0a0f18;
+  --color-brand-muted: #8a95a7;
+  --color-brand-accent: #171d29;
+  --color-surface: #06080d;
+  --color-surface-text: #f5f7fb;
 
   --font-sans: 'Inter', sans-serif;
 
@@ -17,11 +17,41 @@
   --radius-card: 0px;
 }
 
+:root {
+  --app-shell-start: rgba(23, 29, 41, 0.7);
+  --app-shell-end: rgba(6, 8, 13, 0.95);
+  --app-shell-sheen: rgba(255, 255, 255, 0.02);
+  --app-glow-top: rgba(245, 247, 251, 0.16);
+  --app-glow-bottom: rgba(96, 115, 148, 0.14);
+  --theme-ripple-core: rgba(245, 247, 251, 0.92);
+  --theme-ripple-soft: rgba(147, 197, 253, 0.22);
+  --theme-ripple-line: rgba(245, 247, 251, 0.6);
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+  --color-brand-primary: #0a1220;
+  --color-brand-secondary: #445066;
+  --color-brand-text: #f5f7fb;
+  --color-brand-muted: #6b768a;
+  --color-brand-accent: #edf2fb;
+  --color-surface: #f7f9fc;
+  --color-surface-text: #0d1420;
+  --app-shell-start: rgba(233, 238, 246, 0.78);
+  --app-shell-end: rgba(247, 249, 252, 0.98);
+  --app-shell-sheen: rgba(10, 18, 32, 0.03);
+  --app-glow-top: rgba(10, 18, 32, 0.08);
+  --app-glow-bottom: rgba(76, 98, 130, 0.12);
+  --theme-ripple-core: rgba(10, 18, 32, 0.9);
+  --theme-ripple-soft: rgba(103, 132, 176, 0.18);
+  --theme-ripple-line: rgba(10, 18, 32, 0.45);
+}
+
 @utility container {
   margin-inline: auto;
   width: 100%;
   max-width: 90rem;
-  padding-inline: 4rem;
+  padding-inline: clamp(1.25rem, 4vw, 4rem);
 }
 
 html.lenis, html.lenis body {
@@ -56,9 +86,19 @@ body,
   -moz-osx-font-smoothing: grayscale;
 }
 
+body {
+  overflow-x: hidden;
+}
+
 ::selection {
   background: var(--color-brand-primary);
-  color: var(--color-surface);
+  color: var(--color-brand-text);
+}
+
+a,
+button,
+input {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .wave-line {
@@ -66,8 +106,25 @@ body,
   width: 200%;
   height: 1px;
   background: currentColor;
-  opacity: 0.1;
+  opacity: 0.14;
   transform: rotate(-15deg);
   transform-origin: 0 0;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-inline: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 

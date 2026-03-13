@@ -3,7 +3,7 @@
     <CityCard v-for="city in savedData" :key="city.id" :city="city" @click="goToCityView(city)"
       @delete="handleDelete" />
 
-    <p v-if="savedData.length === 0" class="text-xs uppercase tracking-[0.3em] font-medium text-brand-muted/50 mt-12">
+    <p v-if="savedData.length === 0" class="text-xs uppercase tracking-[0.28em] sm:tracking-[0.3em] font-medium text-brand-muted/50 mt-10 sm:mt-12">
       No Locations Saved
     </p>
   </div>

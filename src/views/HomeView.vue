@@ -1,16 +1,16 @@
 <template>
-  <main class="container relative z-10 pt-32 pb-24 md:pt-48 md:pb-32 min-h-screen flex flex-col justify-between">
+  <main class="container relative z-10 pt-28 pb-20 sm:pt-32 md:pt-48 md:pb-32 min-h-screen flex flex-col justify-between">
 
-    <div class="max-w-4xl mx-auto w-full relative group mb-24 md:mb-32 mt-12">
+    <div class="max-w-4xl mx-auto w-full relative group mb-20 md:mb-32 mt-10 sm:mt-12">
       <h1
-        class="text-[15vw] md:text-9xl font-bold tracking-tighter leading-none mb-4 absolute -top-16 -left-8 md:-top-32 md:-left-16 opacity-[0.03] pointer-events-none select-none">
+        class="block text-[17vw] sm:text-[18vw] md:text-9xl font-bold tracking-[-0.06em] md:tracking-tighter leading-[0.86] mb-4 sm:mb-5 md:mb-4 static md:absolute md:-top-32 md:-left-16 opacity-80 pointer-events-none select-none max-w-full">
         FORECAST</h1>
       <input type="text" placeholder="Enter location..." v-model="searchQuery" @focus="onInputFocus" @blur="onInputBlur"
         @keydown.enter.prevent="selectFirstTip"
-        class="py-4 md:py-6 w-full bg-transparent border-b-2 border-brand-primary placeholder:text-brand-muted/30 text-4xl md:text-6xl font-light tracking-tight focus:outline-none focus:border-brand-primary transition-all duration-700" />
+        class="py-3 sm:py-4 md:py-6 w-full bg-transparent border-b-2 border-brand-primary/70 placeholder:text-brand-muted/55 text-[12vw] sm:text-4xl md:text-6xl font-light tracking-tight leading-none focus:outline-none focus:border-brand-primary transition-all duration-700" />
 
       <div
-        class="absolute right-0 bottom-4 md:bottom-6 pointer-events-none text-brand-primary/40 text-xs md:text-sm uppercase tracking-[0.3em] font-medium hidden md:block">
+        class="absolute right-0 bottom-4 md:bottom-6 pointer-events-none text-brand-secondary/60 text-xs md:text-sm uppercase tracking-[0.3em] font-medium hidden md:block">
         <span v-if="isSearching" class="animate-pulse">Searching</span>
         <span v-else>Search</span>
       </div>
@@ -18,26 +18,26 @@
       <!-- Search Results Dropdown -->
       <transition name="fade">
         <ul v-if="showTips && searchResults.length"
-          class="absolute left-0 right-0 top-full mt-0 bg-surface border border-brand-primary/10 shadow-2xl z-30">
+          class="absolute left-0 right-0 top-full mt-3 bg-brand-accent/90 border border-brand-primary/12 shadow-2xl shadow-black/40 z-30 backdrop-blur-xl">
           <li v-for="tip in searchResults" :key="tip.adcode || tip.name" @mousedown.prevent="selectTip(tip)"
-            class="px-6 py-5 md:py-8 cursor-pointer hover:bg-brand-primary hover:text-surface transition-colors duration-500 flex justify-between items-end border-b border-brand-primary/5 last:border-0 group/item">
-            <p class="text-2xl md:text-4xl font-light tracking-tight">{{ tip.name }}</p>
+            class="px-4 py-4 sm:px-5 sm:py-5 md:px-6 md:py-8 cursor-pointer hover:bg-brand-primary hover:text-brand-text transition-colors duration-500 flex flex-col gap-2 md:flex-row md:justify-between md:items-end border-b border-brand-primary/8 last:border-0 group/item">
+            <p class="text-xl sm:text-2xl md:text-4xl font-light tracking-tight">{{ tip.name }}</p>
             <p
-              class="text-xs md:text-sm uppercase tracking-widest opacity-50 group-hover/item:opacity-80 transition-opacity duration-500">
+              class="text-xs md:text-sm uppercase tracking-widest opacity-60 group-hover/item:opacity-80 transition-opacity duration-500">
               {{ tip.district || 'Location' }}</p>
           </li>
         </ul>
       </transition>
 
-      <p v-if="errorMessage" class="mt-8 text-sm text-red-500 uppercase tracking-widest">{{ errorMessage }}</p>
+      <p v-if="errorMessage" class="mt-8 text-sm text-red-400 uppercase tracking-widest">{{ errorMessage }}</p>
       <p v-if="!isSearching && !isLoading && !searchResults.length && searchQuery.trim()"
-        class="mt-8 text-sm text-brand-muted/50 uppercase tracking-widest fade-in">No results found</p>
+        class="mt-8 text-sm text-brand-muted/80 uppercase tracking-widest fade-in">No results found</p>
     </div>
 
     <div class="flex-1 flex flex-col gap-12 mt-auto">
-      <div class="flex items-center gap-6">
-        <div class="w-16 h-[2px] bg-brand-primary"></div>
-        <p class="text-[10px] md:text-xs uppercase tracking-[0.4em] font-bold">Saved Locations</p>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <div class="w-10 sm:w-12 md:w-16 h-[2px] bg-brand-primary"></div>
+        <p class="text-[10px] md:text-xs uppercase tracking-[0.28em] sm:tracking-[0.4em] font-bold">Saved Locations</p>
       </div>
 
       <Suspense>
@@ -170,7 +170,6 @@
 </script>
 
 <style scoped>
-
   .fade-enter-active,
   .fade-leave-active {
     transition: opacity 0.5s ease, transform 0.5s ease;

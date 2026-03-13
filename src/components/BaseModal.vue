@@ -9,9 +9,9 @@
         <!-- Modal Content -->
         <Transition name="modal-slide" appear>
           <div v-show="show"
-            class="relative w-full max-w-2xl bg-brand-primary text-surface p-12 md:p-24 shadow-2xl border border-brand-primary/10 mx-4 overflow-hidden">
+            class="relative w-full max-w-2xl bg-brand-accent/96 text-surface-text p-8 md:p-16 shadow-2xl shadow-black/50 border border-brand-primary/10 mx-4 overflow-hidden rounded-[2rem]">
             <!-- Decorative Accent line -->
-            <div class="absolute top-0 left-0 w-full h-[2px] bg-brand-text/20"></div>
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-brand-primary/20"></div>
 
             <slot></slot>
 
@@ -22,7 +22,7 @@
               <!-- Layout push space -->
               <span class="opacity-0">Close</span>
 
-              <div class="w-8 h-[2px] bg-surface group-hover:w-16 transition-all duration-500"></div>
+              <div class="w-8 h-[2px] bg-brand-primary group-hover:w-16 transition-all duration-500"></div>
             </button>
           </div>
         </Transition>

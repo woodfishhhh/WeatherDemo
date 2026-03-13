@@ -1,16 +1,16 @@
 <template>
   <div class="flex flex-col flex-1 pb-32">
     <!-- Preview Banner -->
-    <div v-if="!isSaved" class="w-full bg-brand-primary text-surface py-3 text-center z-20">
+    <div v-if="!isSaved" class="w-full bg-brand-primary text-brand-text py-3 text-center z-20">
       <p class="text-xs uppercase tracking-[0.3em] font-bold">Preview Mode — City not saved</p>
     </div>
 
     <!-- Current Weather -->
     <div class="container relative z-10 pt-24" v-if="weatherData?.current?.lives?.length">
-      <div class="flex items-end justify-between mb-12 ml-[-4px]">
-        <h1 class="text-[12vw] md:text-9xl font-bold tracking-tighter leading-none">{{ route.params.city }}</h1>
+      <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-12 ml-[-2px] md:ml-[-4px]">
+        <h1 class="text-[18vw] sm:text-[14vw] md:text-9xl font-bold tracking-tighter leading-none break-words">{{ route.params.city }}</h1>
         <button @click="toggleSaveCity"
-          class="mb-2 px-6 py-2 border border-brand-primary rounded-full hover:bg-brand-primary hover:text-surface transition-colors duration-300 text-sm tracking-widest uppercase">
+          class="mb-2 w-full md:w-auto px-6 py-3 border border-brand-primary/30 rounded-full hover:bg-brand-primary hover:text-brand-text transition-colors duration-300 text-sm tracking-widest uppercase">
           {{ isSaved ? '已收藏' : '收藏' }}
         </button>
       </div>
@@ -22,22 +22,22 @@
           <p class="text-[5vw] md:text-5xl font-light tracking-tight pb-4 border-b border-brand-primary/10">{{
             weatherData.current.lives[0].weather }}</p>
           <div class="mt-4 flex flex-col gap-2">
-            <p class="text-xs uppercase tracking-[0.2em] font-medium text-brand-muted/50">Current Condition</p>
-            <p class="text-sm font-light mt-4">Humidity: {{ weatherData.current.lives[0].humidity }}%</p>
-            <p class="text-sm font-light">Wind: {{ weatherData.current.lives[0].winddirection }} {{
+            <p class="text-xs uppercase tracking-[0.2em] font-medium text-brand-muted/80">Current Condition</p>
+            <p class="text-sm font-light mt-4 text-brand-secondary">Humidity: {{ weatherData.current.lives[0].humidity }}%</p>
+            <p class="text-sm font-light text-brand-secondary">Wind: {{ weatherData.current.lives[0].winddirection }} {{
               weatherData.current.lives[0].windpower }}</p>
           </div>
         </div>
 
-        <div class="col-span-1 md:col-span-6 flex justify-center md:justify-end md:pr-16">
-          <p class="text-[25vw] md:text-[15rem] leading-none font-light tracking-tighter select-none">{{
+        <div class="col-span-1 md:col-span-6 flex justify-start md:justify-end md:pr-16">
+          <p class="text-[30vw] sm:text-[24vw] md:text-[15rem] leading-none font-light tracking-tighter select-none">{{
             weatherData.current.lives[0].temperature }}&deg;</p>
         </div>
 
         <div class="col-span-1 md:col-span-3 flex flex-col justify-end h-full">
-          <p class="text-xs uppercase tracking-widest text-brand-muted/40 mb-2">Location details</p>
+          <p class="text-xs uppercase tracking-widest text-brand-muted/75 mb-2">Location details</p>
           <p class="text-lg font-light">{{ weatherData.current.lives[0].province }}</p>
-          <p class="text-sm font-light text-brand-muted/60 mt-1">Report Time: {{ weatherData.current.lives[0].reporttime
+          <p class="text-sm font-light text-brand-secondary mt-1">Report Time: {{ weatherData.current.lives[0].reporttime
           }}</p>
         </div>
       </div>
@@ -47,42 +47,42 @@
     <div class="container mt-32" v-if="weatherData?.forecast?.forecasts?.length">
       <div class="w-full flex items-center justify-between border-b-2 border-brand-primary pb-6 mb-12">
         <h2 class="text-xl md:text-3xl font-light tracking-tight">Extended Forecast</h2>
-        <p class="text-xs uppercase tracking-widest text-brand-muted/50 hidden md:block">Next 4 Days</p>
+        <p class="text-xs uppercase tracking-widest text-brand-muted/75 hidden md:block">Next 4 Days</p>
       </div>
 
       <div class="flex flex-col w-full">
         <div v-for="(cast, index) in weatherData.forecast.forecasts[0].casts" :key="index"
-          class="grid grid-cols-2 md:grid-cols-5 gap-4 items-center py-10 border-b border-brand-primary/10 group cursor-default hover:bg-brand-primary/5 transition-colors duration-500 px-4 md:px-8 -mx-4 md:-mx-8">
+          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-center py-8 md:py-10 border-b border-brand-primary/10 group cursor-default hover:bg-brand-primary/5 transition-colors duration-500 px-4 md:px-8 -mx-4 md:-mx-8 rounded-2xl">
 
-          <div class="col-span-2 md:col-span-1">
+          <div class="col-span-1 sm:col-span-2 md:col-span-1">
             <p class="text-xl md:text-2xl font-light tracking-tight">{{ cast.date }}</p>
-            <p class="text-[10px] md:text-xs uppercase tracking-[0.2em] text-brand-muted/40 mt-2">Day {{ cast.week }}
+            <p class="text-[10px] md:text-xs uppercase tracking-[0.2em] text-brand-muted/75 mt-2">Day {{ cast.week }}
             </p>
           </div>
 
-          <div class="col-span-1 hidden md:flex flex-col">
+          <div class="col-span-1 flex flex-col">
             <p class="text-lg font-light">{{ cast.dayweather }}</p>
-            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/40 mt-2">Daytime</p>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/75 mt-2">Daytime</p>
           </div>
 
-          <div class="col-span-1 hidden md:flex flex-col">
+          <div class="col-span-1 flex flex-col">
             <p class="text-lg font-light">{{ cast.nightweather }}</p>
-            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/40 mt-2">Nighttime</p>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/75 mt-2">Nighttime</p>
           </div>
 
-          <div class="col-span-1 flex flex-col items-end md:items-start text-right md:text-left">
-            <p class="text-sm font-light">Wind {{ cast.daywind }} {{ cast.daypower }}</p>
-            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/40 mt-2">Conditions</p>
+          <div class="col-span-1 flex flex-col items-start text-left">
+            <p class="text-sm font-light text-brand-secondary">Wind {{ cast.daywind }} {{ cast.daypower }}</p>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/75 mt-2">Conditions</p>
           </div>
 
           <div class="col-span-1 flex justify-end md:justify-end items-center gap-6">
             <div class="text-right">
-              <span class="text-brand-muted/40 text-sm mr-2">↑</span>
+              <span class="text-brand-muted/75 text-sm mr-2">↑</span>
               <span class="text-3xl font-light">{{ cast.daytemp }}&deg;</span>
             </div>
             <div class="text-right">
-              <span class="text-brand-muted/40 text-sm mr-2">↓</span>
-              <span class="text-3xl font-light text-brand-muted/60">{{ cast.nighttemp }}&deg;</span>
+              <span class="text-brand-muted/75 text-sm mr-2">↓</span>
+              <span class="text-3xl font-light text-brand-secondary">{{ cast.nighttemp }}&deg;</span>
             </div>
           </div>
 
@@ -92,7 +92,7 @@
 
     <!-- Empty State -->
     <div v-if="!weatherData?.current?.lives?.length" class="container pt-32 pb-32 flex justify-center">
-      <p class="text-xs uppercase tracking-[0.3em] font-medium text-brand-muted/50">No data available for this region
+      <p class="text-xs uppercase tracking-[0.3em] font-medium text-brand-muted/80">No data available for this region
       </p>
     </div>
   </div>

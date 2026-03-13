@@ -19,14 +19,23 @@ const router = createRouter({
         title: "天气预报 - 城市详情"
       }
     },
-
+    {
+      path: "/:pathMatch(.*)*",
+      name: "not-found",
+      component: () => import("../views/NotFoundView.vue"),
+      meta: {
+        title: "天气预报 - 页面未找到"
+      }
+    },
   ],
 });
 
 router.beforeEach((to, from, next) => {
-  document.title = `${to.params.province ?
-    `${to.params.province},${to.params.city}`
-    : to.matched[0]?.meta.title || '天气预报'}`;
+  const pageTitle = to.params.province
+    ? `${to.params.province},${to.params.city}`
+    : to.meta.title || "天气预报";
+
+  document.title = `${pageTitle}`;
   next()
 })
 
