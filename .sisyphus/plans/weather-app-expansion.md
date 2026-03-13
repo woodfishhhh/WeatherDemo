@@ -25,9 +25,12 @@
 - Test strategy locked to **add automated testing from scratch**.
 - UI boundary locked to **same design language may expand with new charts/panels**.
 - State strategy locked to **direct Pinia adoption**.
+- Provider direction locked to **full QWeather migration** for geo/weather capabilities, with the user-provided API key kept out of version control and only referenced through env/config.
 
 ### Metis Review (gaps addressed)
-- Provider capability is a real scope boundary, so the plan standardizes on **AMap for search/location** and **Open-Meteo for expanded forecast, air quality, and historical trend data** behind typed adapters.
+- Provider capability is a real scope boundary, so the plan standardizes on **QWeather** as the single weather/geo provider target behind typed adapters, replacing the earlier AMap/Open-Meteo split.
+- If a capability from the original expansion plan is unavailable in the chosen QWeather-accessible API surface, implementation must prefer an explicit unavailable/fallback state over introducing a second provider.
+- The user-provided QWeather API key is runtime-only input and must never be committed; all access must flow through the typed env/config layer.
 - Current component-local `axios` calls and `SavedCity` persistence are insufficient for platform growth; the plan centralizes network access and defines a canonical location model.
 - Anonymous local/cloud sync stays in scope, but auth, billing, severe-alert integrations, and radar-heavy map work stay out of scope for this plan.
 - Testing must be established early; deterministic mocked network flows are mandatory before feature expansion.
@@ -39,7 +42,7 @@ Transform the app from a search + saved-city viewer into a modular weather platf
 
 ### Deliverables
 - Pinia installation and feature-store architecture
-- Typed weather domain models and provider adapters
+- Typed weather domain models and QWeather-first provider adapters
 - Shared network/config layer with env validation
 - Home search refactor with cancellable suggestions and typed results
 - City intelligence page with current, hourly, daily, air quality, and historical trend modules
@@ -47,7 +50,7 @@ Transform the app from a search + saved-city viewer into a modular weather platf
 - Settings/personalization route for units, timezone, motion, and workspace defaults
 - Reusable monochrome panels, charts, skeletons, and error states
 - Vitest + Playwright + MSW test harness
-- `.env.example` and provider/config documentation artifacts called for by the implementation tasks
+- `.env.example`, provider/config documentation artifacts, and QWeather icon integration called for by the implementation tasks
 
 ### Definition of Done (verifiable conditions with commands)
 - `npm run type-check` exits 0
@@ -170,24 +173,27 @@ Wave 3: platform surface and polish (Tasks 10-13)
 
   **Commit**: YES | Message: `test(platform): add automated verification foundation` | Files: [`package.json`, `vitest.config.ts`, `playwright.config.ts`, `src/test/**`, `tests/e2e/**`, `tsconfig*.json`]
 
-- [ ] 2. Build typed weather domain and provider adapter layer
+- [ ] 2. Build typed weather domain and QWeather adapter layer
 
-  **What to do**: Create feature-first weather modules under `src/features/weather/` with canonical types for `LocationRecord { id, name, province, countryCode, latitude, longitude, timezone, adcode? }`, `CurrentConditions`, `HourlyForecastPoint`, `DailyForecastPoint`, `AirQualitySnapshot`, and `HistoricalTrendPoint`; keep `axios` as the single HTTP client but only behind `src/lib/http/client.ts`; add provider adapters so AMap handles search/geocoding/current daily basics while Open-Meteo provides expanded hourly, AQI, and historical trend datasets.
-  **Must NOT do**: Must not expose raw provider payloads to components or stores; must not keep `axios` calls embedded in views.
+  **What to do**: Create feature-first weather modules under `src/features/weather/` with canonical types for `LocationRecord { id, name, province, countryCode, latitude, longitude, timezone, adcode? }`, `CurrentConditions`, `HourlyForecastPoint`, `DailyForecastPoint`, `AirQualitySnapshot`, and `HistoricalTrendPoint`; keep `axios` as the single HTTP client but only behind `src/lib/http/client.ts`; add QWeather adapters so city lookup/search, current weather, hourly forecast, daily forecast, air-quality-compatible datasets, and any supported historical/trend data normalize into shared domain models. If a planned dataset is not available through the chosen QWeather-accessible API surface, return a typed unavailable state instead of introducing another provider.
+  **Must NOT do**: Must not expose raw QWeather payloads to components or stores; must not keep `axios` calls embedded in views.
 
   **Recommended Agent Profile**:
-  - Category: `deep` — Reason: requires domain modeling, provider normalization, and future-proof API boundaries.
+  - Category: `deep` — Reason: requires domain modeling, QWeather normalization, and future-proof API boundaries.
   - Skills: [`vue-best-practices`, `superpowers/test-driven-development`] — feature boundaries plus normalization tests are the core risk reducers.
   - Omitted: [`frontend-ui-ux`] — this is service/domain work, not interface design.
 
   **Parallelization**: Can Parallel: NO | Wave 1 | Blocks: [3, 4, 6, 7, 8, 9, 10, 11, 12, 13] | Blocked By: [1]
 
   **References**:
-  - Pattern: `src/views/HomeView.vue:74-106` — existing AMap search request path to replace with typed service calls.
+  - Pattern: `src/views/HomeView.vue:74-106` — existing provider search request path to replace with typed service calls.
   - Pattern: `src/components/AsyncCityView.vue:112-131` — current current/forecast fetch flow to normalize.
   - Pattern: `src/components/CityList.vue:26-43` — existing saved-city weather hydration flow that currently suffers from N+1 requests.
   - API/Type: `src/services/savedCities.ts:9-14` — current `SavedCity` contract that must be migrated into a canonical location model.
-  - External: `https://open-meteo.com/en/docs` — hourly/history/air-quality provider capabilities.
+  - External: `https://dev.qweather.com/docs/api/geoapi/` — GeoAPI city lookup/search capabilities.
+  - External: `https://dev.qweather.com/docs/api/weather/weather-now/` — current weather endpoint.
+  - External: `https://dev.qweather.com/docs/api/weather/weather-hourly-forecast/` — hourly forecast endpoint.
+  - External: `https://dev.qweather.com/docs/api/weather/weather-daily-forecast/` — daily forecast endpoint.
 
   **Acceptance Criteria**:
   - [ ] `npm run test:unit -- src/features/weather/**/*.spec.ts` exits 0.
@@ -199,7 +205,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
   Scenario: Provider normalization returns canonical weather models
     Tool: Bash
     Steps: Run `npm run test:unit -- src/features/weather/services/__tests__/normalizeWeather.spec.ts`
-    Expected: Fixture-based tests prove AMap and Open-Meteo payloads normalize into identical internal types.
+    Expected: Fixture-based tests prove QWeather payloads normalize into stable internal types and typed unavailable states where upstream capability is absent.
     Evidence: .sisyphus/evidence/task-2-provider-normalization.txt
 
   Scenario: Malformed payloads surface typed adapter errors
@@ -209,7 +215,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
     Evidence: .sisyphus/evidence/task-2-provider-errors.txt
   ```
 
-  **Commit**: YES | Message: `feat(weather): add typed provider adapter layer` | Files: [`src/features/weather/**`, `src/lib/http/**`, `src/test/fixtures/weather/**`]
+  **Commit**: YES | Message: `feat(weather): add typed qweather adapter layer` | Files: [`src/features/weather/**`, `src/lib/http/**`, `src/test/fixtures/weather/**`]
 
 - [ ] 3. Introduce Pinia and feature store scaffolding
 
@@ -294,7 +300,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
 
 - [ ] 5. Harden env/config and provider access boundaries
 
-  **What to do**: Create a typed env/config access layer, add `.env.example`, isolate provider URLs/keys behind config helpers, and document key variables and expected provider responsibilities so implementation stops reading `import.meta.env` directly from views/components.
+  **What to do**: Create a typed env/config access layer, add `.env.example`, isolate QWeather URLs/keys and icon configuration behind config helpers, and document key variables and expected provider responsibilities so implementation stops reading `import.meta.env` directly from views/components.
   **Must NOT do**: Must not read secrets from runtime components after this change, and must not commit real credentials into new files.
 
   **Recommended Agent Profile**:
@@ -305,7 +311,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
   **Parallelization**: Can Parallel: YES | Wave 1 | Blocks: [6, 7, 8, 9, 10, 11, 12, 13] | Blocked By: [1, 2, 3]
 
   **References**:
-  - Pattern: `src/views/HomeView.vue:63,80-82` — current direct env access for AMap search.
+  - Pattern: `src/views/HomeView.vue:63,80-82` — current direct env access for provider search.
   - Pattern: `src/components/AsyncCityView.vue:108,115-120` — current direct env access for weather requests.
   - Pattern: `src/components/CityList.vue:24,33-35` — current direct env access for card hydration requests.
   - Pattern: `src/firebase.ts:5-13` — existing Firebase env usage that should be aligned with typed config access.
@@ -313,7 +319,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
 
   **Acceptance Criteria**:
   - [ ] `npm run type-check` exits 0 after replacing direct view-level env reads.
-  - [ ] `.env.example` exists and documents all provider + Firebase variables without real values.
+  - [ ] `.env.example` exists and documents all QWeather + Firebase variables without real values.
   - [ ] Feature services import configuration only from the new env module.
 
   **QA Scenarios**:
@@ -417,7 +423,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
 
 - [ ] 8. Add air quality and comfort intelligence modules
 
-  **What to do**: Extend the city experience with AQI, pollutant breakdown, UV/daylight/comfort metrics, and a provider-safe fallback strategy when specific variables are unavailable. Surface these as monochrome secondary panels rather than colorful dashboard widgets.
+  **What to do**: Extend the city experience with AQI, pollutant breakdown, UV/daylight/comfort metrics, and a QWeather-safe fallback strategy when specific variables are unavailable. Surface these as monochrome secondary panels rather than colorful dashboard widgets.
   **Must NOT do**: Must not introduce rainbow AQI styling, and must not hard-fail the page when a secondary metric is missing.
 
   **Recommended Agent Profile**:
@@ -431,7 +437,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
   - Pattern: `src/components/AsyncCityView.vue:18-43` — current three-column hero information balance to extend without clutter.
   - Pattern: `src/style.css:3-18` — keep new metric panels inside the monochrome token system.
   - Pattern: `src/components/CityCard.vue:15-29` — compact metadata labeling style to reuse for secondary stat rows.
-  - External: `https://open-meteo.com/en/docs/air-quality-api` — AQI and pollutant field support.
+  - External: `https://dev.qweather.com/docs/api/airquality/air-now/` — AQI and pollutant field support when available to the chosen QWeather plan.
 
   **Acceptance Criteria**:
   - [ ] `npm run test:unit -- src/features/air-quality/**/*.spec.ts` exits 0.
@@ -457,7 +463,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
 
 - [ ] 9. Add historical trend visualization and reusable chart primitives
 
-  **What to do**: Introduce a monochrome chart system with `Chart.js` + `vue-chartjs`, then expose historical temperature/precipitation/wind trends on the city page. Standardize chart wrappers so future workspace charts reuse the same panel, axis, tooltip, and reduced-motion behavior.
+  **What to do**: Introduce a monochrome chart system with `Chart.js` + `vue-chartjs`, then expose historical temperature/precipitation/wind trends on the city page using QWeather-supported trend/history data where available. Standardize chart wrappers so future workspace charts reuse the same panel, axis, tooltip, and reduced-motion behavior. If the chosen QWeather-accessible API surface does not expose a required historical variable, render a typed unavailable state instead of adding another provider.
   **Must NOT do**: Must not add multiple chart libraries, and must not use colorful stock chart defaults.
 
   **Recommended Agent Profile**:
@@ -471,7 +477,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
   - Pattern: `src/components/AsyncCityView.vue:47-91` — existing forecast list semantics that trend charts should complement rather than duplicate.
   - Pattern: `src/style.css:3-18` — axis, tooltip, and card chrome must derive from existing tokens.
   - Pattern: `src/App.vue:98-108` — chart route transitions must cooperate with page enter/leave motion.
-  - External: `https://open-meteo.com/en/docs/historical-forecast-api` — historical variables and time windows.
+  - External: `https://dev.qweather.com/docs/` — verify historical/trend endpoint availability for the selected QWeather-accessible API surface before implementation.
 
   **Acceptance Criteria**:
   - [ ] `npm run test:unit -- src/components/charts/**/*.spec.ts` exits 0.
@@ -670,6 +676,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
 ## Success Criteria
 - The repo gains a maintainable feature architecture that matches Vue 3 + Pinia best practices.
 - The product surface expands materially without abandoning the current design language.
-- Provider-specific complexity is hidden behind typed adapters.
+- QWeather-specific complexity is hidden behind typed adapters and config boundaries.
+- Weather icon rendering uses QWeather-supported icon assets/package instead of ad hoc icon mapping.
 - Automated tests cover normalization logic, persistence flows, and key end-to-end experiences.
 - Execution can proceed from this document without additional product or architecture decisions.
