@@ -39,3 +39,12 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# Local agent/runtime state
+.omx/
+.sisyphus/boulder.json
+.sisyphus/notepads/
+
+# Local automation outputs
+output/
+test-results/
