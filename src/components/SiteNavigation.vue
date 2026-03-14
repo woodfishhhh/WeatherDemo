@@ -1,74 +1,69 @@
 <template>
   <header
     data-testid="site-navigation"
-    class="fixed top-0 w-full z-50 transition-all duration-500 py-4 px-4 md:px-12 flex justify-between items-center gap-3">
+    class="fixed top-0 w-full z-50 transition-all duration-700 py-6 px-6 md:px-12 flex justify-between items-center mix-blend-difference">
     <RouterLink :to="{ name: 'home' }"
-      class="group min-w-0 flex items-center gap-2 rounded-full border border-brand-primary/10 bg-brand-accent/72 px-3 py-2 md:px-4 md:py-3 backdrop-blur-xl">
-      <img src="/logo.png" alt="Logo" class="h-5 md:h-6 w-auto transition-transform duration-500 group-hover:scale-110" />
-      <p class="text-xs sm:text-sm font-semibold tracking-[0.24em] sm:tracking-widest uppercase ml-1 sm:ml-2 truncate">WTHR.studio</p>
+      class="group flex items-center gap-4">
+      <img src="/logo.png" alt="Logo" class="h-6 md:h-8 w-auto transition-transform duration-700 group-hover:scale-105" />
+      <p class="text-sm md:text-base font-medium tracking-[0.4em] uppercase text-white">WTHR.studio</p>
     </RouterLink>
 
-    <div class="flex items-center gap-2 sm:gap-3">
-      <nav class="flex items-center gap-2">
+    <div class="flex items-center gap-6 md:gap-10">
+      <nav class="hidden sm:flex items-center gap-8">
         <RouterLink
           :to="{ name: 'workspace' }"
           data-testid="nav-workspace-link"
-          :aria-current="route.name === 'workspace' ? 'page' : undefined"
-          class="flex h-11 items-center justify-center rounded-full border border-brand-primary/10 bg-brand-accent/72 px-4 backdrop-blur-xl transition-colors duration-300 hover:border-brand-primary/24"
-          :class="route.name === 'workspace' ? 'text-brand-text border-brand-primary/24' : 'text-brand-muted/88'"
+          class="text-xs uppercase tracking-[0.3em] font-medium transition-all duration-300 text-white opacity-60 hover:opacity-100"
+          :class="$route.name === 'workspace' ? 'opacity-100' : ''"
         >
-          <span class="text-[10px] sm:hidden uppercase tracking-[0.24em] font-bold">WS</span>
-          <span class="hidden sm:inline text-[10px] uppercase tracking-[0.28em] font-bold">Workspace</span>
+          Workspace
         </RouterLink>
         <RouterLink
           :to="{ name: 'settings' }"
           data-testid="nav-settings-link"
-          :aria-current="route.name === 'settings' ? 'page' : undefined"
-          class="flex h-11 items-center justify-center rounded-full border border-brand-primary/10 bg-brand-accent/72 px-4 backdrop-blur-xl transition-colors duration-300 hover:border-brand-primary/24"
-          :class="route.name === 'settings' ? 'text-brand-text border-brand-primary/24' : 'text-brand-muted/88'"
+          class="text-xs uppercase tracking-[0.3em] font-medium transition-all duration-300 text-white opacity-60 hover:opacity-100"
+          :class="$route.name === 'settings' ? 'opacity-100' : ''"
         >
-          <span class="text-[10px] sm:hidden uppercase tracking-[0.24em] font-bold">SET</span>
-          <span class="hidden sm:inline text-[10px] uppercase tracking-[0.28em] font-bold">Settings</span>
+          Settings
         </RouterLink>
       </nav>
-      <button
-        @click="emitThemeToggle"
-        class="flex h-11 w-11 items-center justify-center rounded-full border border-brand-primary/10 bg-brand-accent/72 backdrop-blur-xl hover:opacity-60 transition-opacity duration-300"
-        :aria-label="theme === 'dark' ? 'Switch to light theme / 切换为浅色主题' : 'Switch to dark theme / 切换为深色主题'"
-      >
-        <SunMedium v-if="theme === 'dark'" class="w-5 h-5" stroke-width="1.5" />
-        <MoonStar v-else class="w-5 h-5" stroke-width="1.5" />
-      </button>
-      <button @click="toggleModal"
-        data-testid="nav-about-button"
-        class="flex h-11 w-11 items-center justify-center rounded-full border border-brand-primary/10 bg-brand-accent/72 backdrop-blur-xl hover:opacity-60 transition-opacity duration-300"
-        aria-label="About this project / 关于这个项目">
-        <Info class="w-5 h-5" stroke-width="1.5" />
-      </button>
-      <a href="https://www.woodfishhhh.xyz/" target="_blank" rel="noopener noreferrer"
-        class="flex h-11 w-11 items-center justify-center rounded-full border border-brand-primary/10 bg-brand-accent/72 backdrop-blur-xl hover:opacity-60 transition-opacity duration-300"
-        aria-label="Author journal / 作者博客">
-        <User class="w-5 h-5" stroke-width="1.5" />
-      </a>
+      
+      <div class="flex items-center gap-4">
+        <button
+          @click="emitThemeToggle"
+          class="flex h-10 w-10 items-center justify-center text-white opacity-60 hover:opacity-100 transition-opacity duration-300"
+          :aria-label="theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+        >
+          <SunMedium v-if="theme === 'dark'" class="w-5 h-5" stroke-width="1.5" />
+          <MoonStar v-else class="w-5 h-5" stroke-width="1.5" />
+        </button>
+        <button @click="toggleModal"
+          data-testid="nav-about-button"
+          class="flex h-10 w-10 items-center justify-center text-white opacity-60 hover:opacity-100 transition-opacity duration-300"
+          aria-label="About this project">
+          <Info class="w-5 h-5" stroke-width="1.5" />
+        </button>
+      </div>
     </div>
 
+    <!-- Modal remains the same -->
     <BaseModal :show="showModal" @close-modal="toggleModal">
-      <div class="p-6 md:p-8 pb-10 text-surface-text">
+      <div class="p-8 md:p-12 pb-16 text-surface-text border-l-2 border-brand-primary">
         <BilingualStack
           as="h2"
           en="Concept"
           zh="理念"
-          wrapper-class="flex flex-col gap-3 mb-8"
-          en-class="text-[10px] uppercase tracking-[0.42em] font-bold text-brand-muted/75"
-          zh-class="text-3xl font-light tracking-tight"
+          wrapper-class="flex flex-col gap-4 mb-12"
+          en-class="text-xs uppercase tracking-[0.5em] font-medium text-brand-muted/75"
+          zh-class="text-5xl font-light tracking-tighter"
         />
-        <div class="text-brand-secondary leading-relaxed font-light text-base md:text-lg mb-8 space-y-3">
+        <div class="text-brand-secondary leading-relaxed font-light text-xl md:text-2xl mb-12 space-y-6">
           <p>A weather study in monochrome motion, designed to keep atmosphere legible without losing restraint.</p>
-          <p>一款以黑白留白和克制动效呈现的天气可视化工具，用更安静的方式传达真实气象。</p>
+          <p class="text-lg opacity-80 font-medium">一款以黑白留白和克制动效呈现的天气可视化工具，用更安静的方式传达真实气象。</p>
         </div>
         <a href="https://www.woodfishhhh.xyz/" target="_blank" rel="noopener noreferrer"
-          class="inline-block px-6 py-3 border border-brand-primary/20 rounded-full hover:bg-brand-primary hover:text-brand-text transition-colors duration-300">
-          Visit The Journal / 访问作者博客
+          class="inline-block px-8 py-4 border-b-2 border-brand-primary text-sm uppercase tracking-[0.3em] font-bold hover:text-brand-secondary hover:border-brand-secondary transition-all duration-300">
+          Visit The Journal ↗
         </a>
       </div>
     </BaseModal>
@@ -77,8 +72,8 @@
 
 <script setup lang="ts">
   import { ref } from 'vue';
-  import { RouterLink, useRoute } from 'vue-router';
-  import { Info, MoonStar, SunMedium, User } from 'lucide-vue-next';
+  import { RouterLink } from 'vue-router';
+  import { Info, MoonStar, SunMedium } from 'lucide-vue-next';
   import BilingualStack from '@/components/BilingualStack.vue';
   import type { ThemeMode } from '@/composables/useTheme';
 
@@ -91,7 +86,6 @@
   }>();
 
   const showModal = ref(false);
-  const route = useRoute();
 
   const emitThemeToggle = (event: MouseEvent) => {
     const target = event.currentTarget as HTMLElement | null;
