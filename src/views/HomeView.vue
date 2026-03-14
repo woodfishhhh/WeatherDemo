@@ -250,7 +250,6 @@
     openWorkspace,
     recentLocations,
     requestCurrentLocation,
-    savedCities,
     searchQuery,
     searchResults,
     selectFirstTip,

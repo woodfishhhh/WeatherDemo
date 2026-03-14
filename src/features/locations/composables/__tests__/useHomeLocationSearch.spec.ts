@@ -1,6 +1,9 @@
 import { mount } from "@vue/test-utils";
 import { nextTick, shallowRef } from "vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SavedCity } from "@/features/locations/services/persistence";
+import type { CurrentLocationWeather } from "@/features/locations/stores/locations";
+import type { LocationRecord } from "@/features/weather/types";
 
 const {
   clearSearchMock,
@@ -57,12 +60,12 @@ import { useHomeLocationSearch } from "@/features/locations/composables/useHomeL
 
 let compareLocationIdsRef: ReturnType<typeof shallowRef<string[]>>;
 let currentLocationErrorRef: ReturnType<typeof shallowRef<string>>;
-let currentLocationRef: ReturnType<typeof shallowRef<any>>;
+let currentLocationRef: ReturnType<typeof shallowRef<CurrentLocationWeather | null>>;
 let currentLocationStatusRef: ReturnType<typeof shallowRef<string>>;
 let recentLocationIdsRef: ReturnType<typeof shallowRef<string[]>>;
-let savedCitiesRef: ReturnType<typeof shallowRef<any[]>>;
+let savedCitiesRef: ReturnType<typeof shallowRef<SavedCity[]>>;
 let searchErrorRef: ReturnType<typeof shallowRef<string>>;
-let searchResultsRef: ReturnType<typeof shallowRef<any[]>>;
+let searchResultsRef: ReturnType<typeof shallowRef<LocationRecord[]>>;
 let searchStatusRef: ReturnType<typeof shallowRef<string>>;
 
 const flushComposable = async (): Promise<void> => {
@@ -113,7 +116,7 @@ const setupStores = (): void => {
     },
   ]);
   searchErrorRef = shallowRef("");
-  searchResultsRef = shallowRef<any[]>([]);
+  searchResultsRef = shallowRef<LocationRecord[]>([]);
   searchStatusRef = shallowRef("idle");
 
   routerPushMock.mockResolvedValue(undefined);

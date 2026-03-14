@@ -18,5 +18,23 @@ export default defineConfig({
     clearMocks: true,
     include: ["src/**/*.{spec,test}.ts"],
     exclude: ["tests/e2e/**"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "json-summary"],
+      reportsDirectory: "./coverage",
+      include: [
+        "src/config/**/*.ts",
+        "src/main.ts",
+        "src/router/**/*.ts",
+        "src/features/locations/**/*.{ts,vue}",
+        "src/features/weather/**/*.{ts,vue}",
+        "src/features/workspace/**/*.{ts,vue}",
+      ],
+      exclude: [
+        "**/*.d.ts",
+        "**/__tests__/**",
+        "**/*.{spec,test}.ts",
+      ],
+    },
   },
 });

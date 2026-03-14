@@ -41,6 +41,25 @@ npm run dev
 npm run build
 ```
 
+### Verification
+
+```sh
+npm run lint
+npm run test:unit
+npm run test:coverage
+npm run build
+```
+
+`npm run test:coverage` generates text output plus an HTML report under `coverage/`. The current coverage setup is a report-only MVP for local verification and refactor safety.
+
+### Browser E2E
+
+```sh
+npm run test:e2e
+```
+
+The first CI slice does not run Playwright yet. Keep `npm run test:e2e` as a local or pre-merge verification step when route or UI behavior changes.
+
 ## Firebase Deployment
 
 ```sh

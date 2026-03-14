@@ -303,7 +303,7 @@ const toBilingualWeatherText = (text?: string, icon?: string): BilingualText => 
       };
     }
 
-    if (/^[\x00-\x7F]+$/.test(normalizedText)) {
+    if (Array.from(normalizedText).every((char) => char.charCodeAt(0) <= 0x7f)) {
       return {
         en: normalizedText,
         zh: "天气",
