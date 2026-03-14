@@ -3,10 +3,17 @@ import type { Page } from "@playwright/test";
 
 const cityRoute = "/weather/%E5%8C%97%E4%BA%AC%E5%B8%82/%E5%8C%97%E4%BA%AC?qid=101010100";
 
+const gotoRoute = async (page: Page, url: string) => {
+  await page.goto(url, {
+    waitUntil: "domcontentloaded",
+  });
+};
+
 const installTrendMocks = async (
   page: Page,
   options: {
     invalidHistoricalPayload?: boolean;
+    missingDailyOptionalFields?: boolean;
   } = {}
 ) => {
   await page.route("**/geo/v2/city/lookup**", async (route) => {
@@ -85,9 +92,9 @@ const installTrendMocks = async (
             windScaleDay: "3",
             humidity: "35",
             precip: "0.0",
-            sunrise: "06:22",
-            sunset: "18:11",
-            uvIndex: "5",
+            sunrise: options.missingDailyOptionalFields ? undefined : "06:22",
+            sunset: options.missingDailyOptionalFields ? undefined : "18:11",
+            uvIndex: options.missingDailyOptionalFields ? undefined : "5",
           },
         ],
       },
@@ -165,7 +172,7 @@ const installTrendMocks = async (
 
 test("historical trend chart renders deterministic mocked series", async ({ page }) => {
   await installTrendMocks(page);
-  await page.goto(cityRoute);
+  await gotoRoute(page, cityRoute);
 
   await expect(page.getByTestId("trend-chart-temperature")).toBeVisible();
   await page.locator('[data-testid="trend-chart-temperature"] canvas').hover({ position: { x: 120, y: 120 } });
@@ -173,7 +180,7 @@ test("historical trend chart renders deterministic mocked series", async ({ page
 });
 
 test("reduced-motion mode disables animated chart reveals", async ({ page }) => {
-  await page.goto("/");
+  await gotoRoute(page, "/");
   await page.evaluate(() => {
     window.localStorage.setItem(
       "weather-platform-settings",
@@ -188,16 +195,29 @@ test("reduced-motion mode disables animated chart reveals", async ({ page }) => 
   });
 
   await installTrendMocks(page);
-  await page.goto(cityRoute);
+  await gotoRoute(page, cityRoute);
 
   await expect(page.getByTestId("trend-chart-temperature")).toHaveAttribute("data-motion", "reduced");
 });
 
 test("malformed historical payload falls back to the trend unavailable state", async ({ page }) => {
   await installTrendMocks(page, { invalidHistoricalPayload: true });
-  await page.goto(cityRoute);
+  await gotoRoute(page, cityRoute);
 
   await expect(page.getByTestId("city-current-panel")).toBeVisible();
   await expect(page.getByTestId("trend-unavailable")).toBeVisible();
   await expect(page.getByRole("button", { name: /Retry Trends/i })).toBeVisible();
+});
+
+test("city intelligence degrades gracefully when optional datasets are unavailable", async ({ page }) => {
+  await installTrendMocks(page, {
+    invalidHistoricalPayload: true,
+    missingDailyOptionalFields: true,
+  });
+  await gotoRoute(page, cityRoute);
+
+  await expect(page.getByTestId("city-intelligence-panel")).toBeVisible();
+  await expect(page.getByTestId("city-intelligence-fallback").first()).toBeVisible();
+  await expect(page.getByTestId("trend-unavailable")).toBeVisible();
+  await expect(page.getByTestId("city-current-panel")).toBeVisible();
 });

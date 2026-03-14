@@ -40,6 +40,12 @@ const workspaceState = {
   compareLocationIds: ["101010100", "101020100"],
 };
 
+const gotoRoute = async (page: Page, url: string) => {
+  await page.goto(url, {
+    waitUntil: "domcontentloaded",
+  });
+};
+
 const installCityMocks = async (page: Page) => {
   await page.route("**/geo/v2/city/lookup**", async (route) => {
     await route.fulfill({
@@ -120,6 +126,9 @@ const installCityMocks = async (page: Page) => {
             windScaleDay: "3",
             humidity: "35",
             precip: "0.0",
+            sunrise: "06:22",
+            sunset: "18:11",
+            uvIndex: "5",
           },
           {
             fxDate: "2026-03-15",
@@ -133,6 +142,9 @@ const installCityMocks = async (page: Page) => {
             windScaleDay: "3",
             humidity: "40",
             precip: "0.0",
+            sunrise: "06:21",
+            sunset: "18:12",
+            uvIndex: "4",
           },
         ],
       },
@@ -195,23 +207,25 @@ const installCityMocks = async (page: Page) => {
   });
 };
 
-test("city intelligence page renders current, hourly, and daily modules", async ({ page }) => {
-  await page.goto("/");
+test("city intelligence page renders current, hourly, daily, and intelligence modules", async ({ page }) => {
+  await gotoRoute(page, "/");
   await page.evaluate(() => window.localStorage.clear());
   await installCityMocks(page);
-  await page.goto(cityRoute);
+  await gotoRoute(page, cityRoute);
 
   await expect(page.getByTestId("city-current-panel")).toBeVisible();
   await expect(page.getByTestId("city-hourly-strip")).toBeVisible();
   await expect(page.getByTestId("city-daily-grid")).toBeVisible();
+  await expect(page.getByTestId("city-intelligence-panel")).toBeVisible();
+  await expect(page.getByTestId("city-intelligence-card")).toHaveCount(5);
   await expect(page.getByTestId("city-current-panel")).toContainText("23°C");
 });
 
 test("save toggle persists through reload", async ({ page }) => {
-  await page.goto("/");
+  await gotoRoute(page, "/");
   await page.evaluate(() => window.localStorage.clear());
   await installCityMocks(page);
-  await page.goto(cityRoute);
+  await gotoRoute(page, cityRoute);
 
   await page.getByTestId("save-city-button").click();
   await expect(page.getByTestId("saved-state-badge")).toBeVisible();
@@ -231,7 +245,7 @@ test("city detail continues into workspace with the same journey query", async (
     nextWorkspaceState: workspaceState,
   });
   await installCityMocks(page);
-  await page.goto(cityJourneyRoute);
+  await gotoRoute(page, cityJourneyRoute);
 
   await expect(page.getByTestId("open-workspace-button")).toBeEnabled();
   await page.getByTestId("open-workspace-button").click();

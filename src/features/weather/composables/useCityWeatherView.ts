@@ -13,6 +13,7 @@ import { useSettingsStore } from "@/features/settings/stores/settings";
 import { getHistoricalTrends } from "@/features/weather/services/qweather";
 import { useWeatherStore } from "@/features/weather/stores/weather";
 import type { HistoricalTrendState } from "@/features/weather/types";
+import { buildCityWeatherIntelligence } from "@/features/weather/utils/weatherIntelligence";
 import { useWorkspaceStore, type WorkspaceGroup } from "@/features/workspace/stores/workspace";
 
 const normalizeWorkspaceGroup = (value: unknown): WorkspaceGroup | undefined =>
@@ -243,6 +244,7 @@ export const useCityWeatherView = () => {
 
   return {
     comfortMetrics: computed(() => buildComfortMetrics(activeCityWeather.value)),
+    weatherIntelligence: computed(() => buildCityWeatherIntelligence(activeCityWeather.value)),
     route,
     savedCities,
     weatherData: activeCityWeather,

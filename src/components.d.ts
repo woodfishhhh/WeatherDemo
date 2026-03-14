@@ -19,6 +19,7 @@ declare module 'vue' {
     CityCardSkeleton: typeof import('./components/CityCardSkeleton.vue')['default']
     CityList: typeof import('./components/CityList.vue')['default']
     CityViewSkeleton: typeof import('./components/CityViewSkeleton.vue')['default']
+    LogoIcon: typeof import('./components/LogoIcon.vue')['default']
     MonochromeTrendChart: typeof import('./components/charts/MonochromeTrendChart.vue')['default']
     PlatformChartFrame: typeof import('./components/platform/PlatformChartFrame.vue')['default']
     PlatformEmptyState: typeof import('./components/platform/PlatformEmptyState.vue')['default']

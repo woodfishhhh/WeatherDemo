@@ -1,10 +1,12 @@
 <template>
   <div class="flex flex-col flex-1 pb-32">
-    <div v-if="resolvedLocation && !isSaved"
-      class="w-full bg-brand-primary text-brand-text py-10 text-center z-20 flex flex-col items-center justify-center">
-      <p class="text-sm md:text-2xl tracking-[0.24em] font-bold">Preview Mode / 预览模式</p>
-      <p class="text-lg md:text-2xl mt-4 font-medium">City not saved yet / 当前城市尚未收藏</p>
-    </div>
+    <Transition name="banner-slide">
+      <div v-if="resolvedLocation && !isSaved"
+        class="w-full bg-brand-primary text-brand-text py-10 text-center z-20 flex flex-col items-center justify-center">
+        <p class="text-sm md:text-2xl tracking-[0.24em] font-bold">Preview Mode / 预览模式</p>
+        <p class="text-lg md:text-2xl mt-4 font-medium">City not saved yet / 当前城市尚未收藏</p>
+      </div>
+    </Transition>
 
     <div class="container relative z-10 pt-24" data-testid="city-current-panel" v-if="weatherData?.current">
       <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-12 ml-[-2px] md:ml-[-4px]">
@@ -17,15 +19,12 @@
               class="w-full md:w-auto px-6 py-3 border border-brand-primary/30 rounded-full hover:bg-brand-primary hover:text-brand-text transition-colors duration-300 text-sm tracking-widest uppercase">
               {{ isSaved ? 'Saved / 已收藏' : 'Save / 收藏' }}
             </button>
-            <button
-              type="button"
-              data-testid="open-workspace-button"
-              :disabled="!canOpenWorkspace"
+            <button type="button" data-testid="open-workspace-button" :disabled="!canOpenWorkspace"
               :aria-label="workspaceContinuation.label"
               class="w-full md:w-auto px-6 py-3 border border-brand-primary/18 rounded-full transition-colors duration-300 text-sm tracking-widest uppercase hover:bg-brand-primary hover:text-brand-text disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-transparent disabled:hover:text-inherit"
-              @click="openWorkspace"
-            >
-              {{ workspaceContinuation.label }}
+              @click="openWorkspace">
+              <BilingualStack :en="workspaceContinuation.label" zh="打开工作台" wrapper-class="flex items-center gap-2"
+                en-class="uppercase tracking-[0.3em] font-medium" zh-class="text-xs font-light opacity-80" />
             </button>
           </div>
           <p data-testid="workspace-journey-note" class="max-w-md text-xs leading-6 text-brand-muted/72 md:text-right">
@@ -52,7 +51,8 @@
           </div>
           <div class="mt-4 flex flex-col gap-2">
             <p class="text-xs tracking-[0.18em] font-medium text-brand-muted/80">Current Condition / 当前状况</p>
-            <p class="text-sm font-light mt-4 text-brand-secondary">Feels like: {{ formatTemperature(weatherData.current.feelsLike) }}
+            <p class="text-sm font-light mt-4 text-brand-secondary">Feels like: {{
+              formatTemperature(weatherData.current.feelsLike) }}
             </p>
             <p class="text-sm font-light text-brand-secondary">Humidity: {{ weatherData.current.humidity }}%</p>
             <p class="text-sm font-light text-brand-secondary">Wind: {{ weatherData.current.windDirection }} {{
@@ -71,7 +71,8 @@
           <p class="text-lg font-light">{{ weatherData.location.province }}</p>
           <p class="text-sm font-light text-brand-secondary mt-1">Updated / 更新时间: {{
             formatDateTime(weatherData.current.observationTime) }}</p>
-          <p class="text-sm font-light text-brand-secondary mt-1">TZ / 时区: {{ weatherData.location.timezone || '--' }}</p>
+          <p class="text-sm font-light text-brand-secondary mt-1">TZ / 时区: {{ weatherData.location.timezone || '--' }}
+          </p>
         </div>
       </div>
     </div>
@@ -115,7 +116,8 @@
             <div class="flex items-start gap-3">
               <i :class="`qi-${cast.iconDay}`" class="weather-glyph"></i>
               <div class="flex flex-col gap-1">
-                <p class="text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ cast.textDayBilingual.en }}</p>
+                <p class="text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ cast.textDayBilingual.en }}
+                </p>
                 <p class="text-lg font-light">{{ cast.textDayBilingual.zh }}</p>
               </div>
             </div>
@@ -126,7 +128,8 @@
             <div class="flex items-start gap-3">
               <i :class="`qi-${cast.iconNight}`" class="weather-glyph"></i>
               <div class="flex flex-col gap-1">
-                <p class="text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ cast.textNightBilingual.en }}</p>
+                <p class="text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ cast.textNightBilingual.en
+                  }}</p>
                 <p class="text-lg font-light">{{ cast.textNightBilingual.zh }}</p>
               </div>
             </div>
@@ -134,7 +137,9 @@
           </div>
 
           <div class="col-span-1 flex flex-col items-start text-left">
-            <p class="text-sm font-light text-brand-secondary">Wind {{ cast.windDirectionDay }} {{ formatWind({ scale: cast.windScaleDay }) }}
+            <p class="text-sm font-light text-brand-secondary">Wind {{ cast.windDirectionDay }} {{ formatWind({
+              scale:
+                cast.windScaleDay }) }}
             </p>
             <p class="text-sm font-light text-brand-secondary">Humidity {{ cast.humidity }}%</p>
             <p class="text-[10px] tracking-[0.18em] text-brand-muted/75 mt-2">Conditions / 细节</p>
@@ -154,12 +159,18 @@
       </div>
     </div>
 
-    <div class="container mt-20" data-testid="aqi-panel" v-if="weatherData && weatherData.airQuality.status === 'available' && weatherData.airQuality.data">
+    <div class="container mt-20" v-if="weatherIntelligence.cards.length">
+      <CityIntelligencePanel :intelligence="weatherIntelligence" />
+    </div>
+
+    <div class="container mt-20" data-testid="aqi-panel"
+      v-if="weatherData && weatherData.airQuality.status === 'available' && weatherData.airQuality.data">
       <PlatformPanel tone="wash" class="p-8 md:p-10">
         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
             <p class="text-xs tracking-[0.18em] text-brand-muted/75">Air Quality / 空气质量</p>
-            <p data-testid="aqi-index" class="mt-4 text-6xl md:text-7xl font-light tracking-tighter">{{ weatherData.airQuality.data.aqi }}</p>
+            <p data-testid="aqi-index" class="mt-4 text-6xl md:text-7xl font-light tracking-tighter">{{
+              weatherData.airQuality.data.aqi }}</p>
             <p class="mt-3 text-lg font-light">{{ weatherData.airQuality.data.category }}</p>
           </div>
           <div>
@@ -169,25 +180,17 @@
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mt-10">
-          <PlatformStatRow
-            v-for="pollutant in weatherData.airQuality.data.pollutants"
-            :key="pollutant.label"
-            :label="pollutant.label"
-            :value="pollutant.value"
-            tone="transparent"
-            size="sm"
-          />
+          <PlatformStatRow v-for="pollutant in weatherData.airQuality.data.pollutants" :key="pollutant.label"
+            :label="pollutant.label" :value="pollutant.value" tone="transparent" size="sm" />
         </div>
       </PlatformPanel>
     </div>
 
-    <div class="container mt-20" data-testid="aqi-unavailable" v-if="weatherData && weatherData.airQuality.status === 'unavailable'">
-      <PlatformErrorState
-        eyebrow="Air Quality / 空气质量"
-        title="Unavailable in this session / 当前会话不可用"
+    <div class="container mt-20" data-testid="aqi-unavailable"
+      v-if="weatherData && weatherData.airQuality.status === 'unavailable'">
+      <PlatformErrorState eyebrow="Air Quality / 空气质量" title="Unavailable in this session / 当前会话不可用"
         :description="weatherData.airQuality.reason || 'Air quality data is currently unavailable.'"
-        class="p-8 md:p-10"
-      />
+        class="p-8 md:p-10" />
     </div>
 
     <div class="container mt-20" data-testid="comfort-metrics" v-if="comfortMetrics.length">
@@ -195,23 +198,18 @@
         <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p class="text-xs tracking-[0.18em] text-brand-muted/75">Comfort Snapshot / 舒适度概览</p>
-            <p class="mt-4 text-2xl md:text-3xl font-light tracking-tight">Secondary weather signals stay readable, even when individual upstream fields are missing.</p>
+            <p class="mt-4 text-2xl md:text-3xl font-light tracking-tight">Secondary weather signals stay readable, even
+              when individual upstream fields are missing.</p>
           </div>
           <p class="max-w-xl text-sm leading-7 text-brand-muted/70">
-            Feels like, visibility, pressure, UV, and daylight are surfaced as monochrome utilities rather than dashboard widgets.
+            Feels like, visibility, pressure, UV, and daylight are surfaced as monochrome utilities rather than
+            dashboard widgets.
           </p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mt-10">
-          <PlatformStatRow
-            v-for="metric in comfortMetrics"
-            :key="metric.id"
-            :label="metric.label"
-            :value="metric.value"
-            :detail="metric.detail"
-            tone="wash"
-            size="sm"
-          />
+          <PlatformStatRow v-for="metric in comfortMetrics" :key="metric.id" :label="metric.label" :value="metric.value"
+            :detail="metric.detail" tone="wash" size="sm" />
         </div>
       </PlatformPanel>
     </div>
@@ -223,47 +221,31 @@
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        <MonochromeTrendChart
-          chart-test-id="trend-chart-temperature"
-          eyebrow="Temperature / 温度"
+        <MonochromeTrendChart chart-test-id="trend-chart-temperature" eyebrow="Temperature / 温度"
           title="High / low temperature rhythm"
           description="Historical highs and lows are rendered as quiet dual lines, keeping the city page analytical without turning it into a dashboard."
-          :points="historicalTrends.data"
-          :series="[
+          :points="historicalTrends.data" :series="[
             { key: 'temperatureMax', label: 'Max Temp', color: '#111111' },
             { key: 'temperatureMin', label: 'Min Temp', color: '#6b6b6b' },
-          ]"
-          :reduced-motion="prefersReducedMotion"
-        />
+          ]" :reduced-motion="prefersReducedMotion" />
 
-        <MonochromeTrendChart
-          chart-test-id="trend-chart-climate"
-          eyebrow="Precipitation / Wind"
+        <MonochromeTrendChart chart-test-id="trend-chart-climate" eyebrow="Precipitation / Wind"
           title="Precipitation and wind pressure"
           description="Secondary climate motion is separated into a reusable chart surface that can move into the workspace route later."
-          :points="historicalTrends.data"
-          :series="[
+          :points="historicalTrends.data" :series="[
             { key: 'precipitation', label: 'Precipitation', color: '#2f2f2f' },
             { key: 'windSpeed', label: 'Wind Speed', color: '#8a8a8a' },
-          ]"
-          :reduced-motion="prefersReducedMotion"
-        />
+          ]" :reduced-motion="prefersReducedMotion" />
       </div>
     </div>
 
     <div class="container mt-20" data-testid="trend-unavailable" v-if="historicalTrends.status === 'unavailable'">
-      <PlatformErrorState
-        eyebrow="Historical Trends / 历史趋势"
-        title="Unavailable in this session / 当前会话不可用"
-        :description="historicalTrends.reason"
-        class="p-8 md:p-10"
-      >
+      <PlatformErrorState eyebrow="Historical Trends / 历史趋势" title="Unavailable in this session / 当前会话不可用"
+        :description="historicalTrends.reason" class="p-8 md:p-10">
         <template #actions>
-          <button
-            type="button"
+          <button type="button"
             class="inline-flex items-center justify-center rounded-full border border-brand-primary/18 px-5 py-3 text-xs uppercase tracking-[0.3em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text"
-            @click="retryLoadWeather"
-          >
+            @click="retryLoadWeather">
             Retry Trends / 重试趋势
           </button>
         </template>
@@ -271,17 +253,12 @@
     </div>
 
     <div v-if="errorMessage" class="container pt-20">
-      <PlatformErrorState
-        eyebrow="Weather Data / 数据状态"
-        title="Unable to load this forecast / 当前预报暂不可用"
-        :description="errorMessage"
-      >
+      <PlatformErrorState eyebrow="Weather Data / 数据状态" title="Unable to load this forecast / 当前预报暂不可用"
+        :description="errorMessage">
         <template #actions>
-          <button
-            type="button"
+          <button type="button"
             class="inline-flex items-center justify-center rounded-full border border-brand-primary/18 px-5 py-3 text-xs uppercase tracking-[0.3em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text"
-            @click="retryLoadWeather"
-          >
+            @click="retryLoadWeather">
             Retry Forecast / 重试预报
           </button>
         </template>
@@ -289,16 +266,16 @@
     </div>
 
     <div v-if="!weatherData?.current && !errorMessage" class="container pt-32 pb-32 flex justify-center">
-      <PlatformEmptyState
-        title="No data available for this region / 当前区域暂无可用数据"
-        description="Try another saved city or search for a nearby location to continue the forecast flow."
-      />
+      <PlatformEmptyState title="No data available for this region / 当前区域暂无可用数据"
+        description="Try another saved city or search for a nearby location to continue the forecast flow." />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
   import MonochromeTrendChart from '@/components/charts/MonochromeTrendChart.vue';
+  import BilingualStack from '@/components/BilingualStack.vue';
+  import CityIntelligencePanel from '@/features/weather/components/CityIntelligencePanel.vue';
   import PlatformEmptyState from '@/components/platform/PlatformEmptyState.vue';
   import PlatformErrorState from '@/components/platform/PlatformErrorState.vue';
   import PlatformPanel from '@/components/platform/PlatformPanel.vue';
@@ -322,6 +299,7 @@
     resolvedLocation,
     route,
     toggleSaveCity,
+    weatherIntelligence,
     weatherData,
     workspaceContinuation,
   } = useCityWeatherView();
@@ -330,5 +308,20 @@
 <style scoped>
   .weather-glyph {
     line-height: 1;
+  }
+
+  .banner-slide-enter-active,
+  .banner-slide-leave-active {
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 200px;
+    overflow: hidden;
+  }
+
+  .banner-slide-enter-from,
+  .banner-slide-leave-to {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 </style>

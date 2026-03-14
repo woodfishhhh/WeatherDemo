@@ -116,3 +116,26 @@ export interface SavedCityWeatherSummary {
   windSpeed: string;
   province: string;
 }
+
+export type WeatherIntelligenceCardId =
+  | "precipitation-risk"
+  | "temperature-swing"
+  | "daylight-window"
+  | "comfort-severity"
+  | "weather-watch";
+
+export type WeatherIntelligenceSeverity = "low" | "moderate" | "high";
+
+export interface WeatherIntelligenceCard {
+  id: WeatherIntelligenceCardId;
+  label: string;
+  headline: string;
+  summary: string;
+  detail: string;
+  severity: WeatherIntelligenceSeverity;
+  status: "available" | "unavailable";
+}
+
+export interface CityWeatherIntelligence {
+  cards: WeatherIntelligenceCard[];
+}
