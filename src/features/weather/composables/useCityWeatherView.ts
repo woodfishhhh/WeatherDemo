@@ -9,7 +9,31 @@ import { useSettingsStore } from "@/features/settings/stores/settings";
 import { getHistoricalTrends } from "@/features/weather/services/qweather";
 import { useWeatherStore } from "@/features/weather/stores/weather";
 import type { HistoricalTrendState } from "@/features/weather/types";
-import { useWorkspaceStore } from "@/features/workspace/stores/workspace";
+import { useWorkspaceStore, type WorkspaceGroup } from "@/features/workspace/stores/workspace";
+
+const normalizeWorkspaceGroup = (value: unknown): WorkspaceGroup | undefined =>
+  value === "all" || value === "favorites" || value === "recent" ? value : undefined;
+
+const compareQueryKey = (value: unknown): string | undefined => {
+  if (Array.isArray(value)) {
+    return value.join(",");
+  }
+
+  return typeof value === "string" ? value : undefined;
+};
+
+const parseCompareQuery = (value: unknown): string[] => {
+  const raw = compareQueryKey(value);
+  if (!raw) {
+    return [];
+  }
+
+  return raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item, index, items) => Boolean(item) && items.indexOf(item) === index)
+    .slice(0, 4);
+};
 
 export const useCityWeatherView = () => {
   const route = useRoute();
@@ -20,9 +44,12 @@ export const useCityWeatherView = () => {
   const workspaceStore = useWorkspaceStore();
   const { formatDateTime: formatDateTimeWithPolicy, formatTemperature, formatWind } = useWeatherDisplayPreferences();
 
+  workspaceStore.hydrate();
+
   const { savedCities } = storeToRefs(locationsStore);
   const { activeCityError, activeCityStatus, activeCityWeather, activeLocation } = storeToRefs(weatherStore);
   const { reducedMotion } = storeToRefs(settingsStore);
+  const { compareLocationIds } = storeToRefs(workspaceStore);
   const historicalTrends = shallowRef<HistoricalTrendState>({
     status: "unavailable",
     data: null,
@@ -86,11 +113,13 @@ export const useCityWeatherView = () => {
     }
 
     const existingId = typeof route.query.id === "string" ? route.query.id : undefined;
-    await locationsStore.toggleSavedCity(toSavedCityRecord(activeLocation.value, existingId));
+    const nextCities = await locationsStore.toggleSavedCity(toSavedCityRecord(activeLocation.value, existingId));
+    const nextSavedCity = nextCities.find((city) => (city.locationId || city.id) === activeLocation.value?.id);
 
     void router.replace({
       query: {
         ...route.query,
+        id: nextSavedCity?.id,
         qid: activeLocation.value.id,
         lat: activeLocation.value.latitude,
         lon: activeLocation.value.longitude,
@@ -99,6 +128,57 @@ export const useCityWeatherView = () => {
   };
 
   const isSaved = computed(() => locationsStore.isLocationSaved(activeLocation.value));
+  const compareCount = computed(() => {
+    const routeCompareCount = parseCompareQuery(route.query.compare).length;
+    return routeCompareCount || compareLocationIds.value.length;
+  });
+  const workspaceGroup = computed<WorkspaceGroup>(() => normalizeWorkspaceGroup(route.query.group) ?? "recent");
+  const workspaceCompareQuery = computed(() => {
+    const routeCompare = compareQueryKey(route.query.compare);
+    if (routeCompare) {
+      return routeCompare;
+    }
+
+    return compareLocationIds.value.length ? compareLocationIds.value.join(",") : undefined;
+  });
+  const canOpenWorkspace = computed(() => isSaved.value);
+  const workspaceContinuation = computed(() => {
+    if (!isSaved.value) {
+      return {
+        label: "Save To Continue / 收藏后继续",
+        description:
+          "Save this city first and the workspace recent lane will be able to reopen it. / 先收藏此城市，工作台最近分组才能继续承接。",
+      };
+    }
+
+    if (compareCount.value) {
+      return {
+        label: "Continue In Workspace / 在工作台继续",
+        description:
+          "The active compare set will travel with you into the workspace route. / 当前对比集合会一并带到工作台。",
+      };
+    }
+
+    return {
+      label: "Continue In Workspace / 在工作台继续",
+      description:
+        "This saved city will open inside the workspace recent lane for the next step. / 这座已收藏城市会在工作台最近分组中继续承接。",
+    };
+  });
+
+  const openWorkspace = async (): Promise<void> => {
+    if (!canOpenWorkspace.value) {
+      return;
+    }
+
+    await router.push({
+      name: "workspace",
+      query: {
+        group: workspaceGroup.value,
+        compare: workspaceCompareQuery.value,
+      },
+    });
+  };
 
   const resolveLocationTimezone = (): string | undefined =>
     activeCityWeather.value?.location.timezone ?? activeLocation.value?.timezone;
@@ -175,7 +255,10 @@ export const useCityWeatherView = () => {
     retryLoadWeather,
     formatTemperature,
     formatWind,
+    canOpenWorkspace,
     toggleSaveCity,
+    openWorkspace,
+    workspaceContinuation,
     formatHour,
     formatDay,
     formatDateTime,

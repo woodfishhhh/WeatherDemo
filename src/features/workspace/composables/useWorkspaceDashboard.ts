@@ -332,6 +332,7 @@ export const useWorkspaceDashboard = () => {
   const openCity = async (city: SavedCity): Promise<void> => {
     const locationId = getSavedCityLocationId(city);
     workspaceStore.rememberRecentLocation(locationId);
+    const nextCompare = compareLocationIds.value.length ? compareLocationIds.value.join(",") : undefined;
 
     await router.push({
       name: "cityview",
@@ -341,9 +342,11 @@ export const useWorkspaceDashboard = () => {
       },
       query: {
         id: city.id,
-        qid: city.locationId,
+        qid: locationId,
         lat: city.latitude,
         lon: city.longitude,
+        group: selectedGroup.value,
+        compare: nextCompare,
       },
     });
   };

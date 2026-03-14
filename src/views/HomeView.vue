@@ -137,7 +137,7 @@
               <p class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70">Workspace / 工作台</p>
               <p class="mt-4 text-2xl md:text-4xl font-light tracking-tight">Monitor saved cities without breaking the home rhythm.</p>
               <p class="mt-3 text-sm leading-7 text-brand-muted/72 max-w-2xl">
-                Use the workspace to compare your saved list, reopen recent cities, and keep a lightweight dashboard path ready for the next wave.
+                Use the workspace to compare your saved list, reopen recent cities, and carry the route handoff forward after a city-detail detour.
               </p>
             </div>
             <div class="grid grid-cols-3 gap-3 md:min-w-[16rem]">
@@ -172,7 +172,7 @@
                 :key="city.id"
                 type="button"
                 data-testid="recent-location-chip"
-                @click="openSavedCity(city)"
+                @click="openRecentCity(city)"
                 class="rounded-full border border-brand-primary/12 px-4 py-2 text-xs uppercase tracking-[0.24em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text">
                 {{ city.city }}
               </button>
@@ -192,7 +192,7 @@
                 </div>
                 <button
                   type="button"
-                  @click="openSavedCity(city)"
+                  @click="openCompareCity(city)"
                   class="rounded-full border border-brand-primary/12 px-4 py-2 text-[10px] uppercase tracking-[0.24em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text">
                   Open / 打开
                 </button>
@@ -244,8 +244,9 @@
     locationErrorMessage,
     onInputBlur,
     onInputFocus,
+    openCompareCity,
     openCurrentLocation,
-    openSavedCity,
+    openRecentCity,
     openWorkspace,
     recentLocations,
     requestCurrentLocation,

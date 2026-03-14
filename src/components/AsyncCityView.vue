@@ -11,11 +11,26 @@
         <h1 class="text-[18vw] sm:text-[14vw] md:text-9xl font-bold tracking-tighter leading-none break-words">{{
           route.params.city }}</h1>
         <div class="flex flex-col gap-3 md:items-end">
-          <button @click="toggleSaveCity" data-testid="save-city-button"
-            :aria-label="isSaved ? 'Remove saved city / 取消收藏城市' : 'Save city / 收藏城市'"
-            class="mb-2 w-full md:w-auto px-6 py-3 border border-brand-primary/30 rounded-full hover:bg-brand-primary hover:text-brand-text transition-colors duration-300 text-sm tracking-widest uppercase">
-            {{ isSaved ? 'Saved / 已收藏' : 'Save / 收藏' }}
-          </button>
+          <div class="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
+            <button @click="toggleSaveCity" data-testid="save-city-button"
+              :aria-label="isSaved ? 'Remove saved city / 取消收藏城市' : 'Save city / 收藏城市'"
+              class="w-full md:w-auto px-6 py-3 border border-brand-primary/30 rounded-full hover:bg-brand-primary hover:text-brand-text transition-colors duration-300 text-sm tracking-widest uppercase">
+              {{ isSaved ? 'Saved / 已收藏' : 'Save / 收藏' }}
+            </button>
+            <button
+              type="button"
+              data-testid="open-workspace-button"
+              :disabled="!canOpenWorkspace"
+              :aria-label="workspaceContinuation.label"
+              class="w-full md:w-auto px-6 py-3 border border-brand-primary/18 rounded-full transition-colors duration-300 text-sm tracking-widest uppercase hover:bg-brand-primary hover:text-brand-text disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-transparent disabled:hover:text-inherit"
+              @click="openWorkspace"
+            >
+              {{ workspaceContinuation.label }}
+            </button>
+          </div>
+          <p data-testid="workspace-journey-note" class="max-w-md text-xs leading-6 text-brand-muted/72 md:text-right">
+            {{ workspaceContinuation.description }}
+          </p>
           <span v-if="isSaved" data-testid="saved-state-badge"
             class="text-[10px] uppercase tracking-[0.26em] font-bold text-brand-muted/75">
             Persistent / 已持久保存
@@ -292,6 +307,7 @@
 
   const {
     comfortMetrics,
+    canOpenWorkspace,
     errorMessage,
     formatDateTime,
     formatDay,
@@ -300,12 +316,14 @@
     formatWind,
     historicalTrends,
     isSaved,
+    openWorkspace,
     prefersReducedMotion,
     retryLoadWeather,
     resolvedLocation,
     route,
     toggleSaveCity,
     weatherData,
+    workspaceContinuation,
   } = useCityWeatherView();
 </script>
 

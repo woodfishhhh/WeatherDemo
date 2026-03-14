@@ -50,7 +50,7 @@
               Grouped saved cities, URL-backed filters, compact compare metrics, and mini trend panels now share one restrained monitoring surface.
             </p>
             <p>
-              已收藏城市分组、URL 过滤、快速对比指标和小型趋势面板现在都收敛到同一张克制的监测页面里。
+              打开任意城市卡片时，当前分组和对比集合也会继续带到城市详情页，不会中断这条旅程。
             </p>
           </div>
         </div>

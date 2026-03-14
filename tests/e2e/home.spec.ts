@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 const savedCitiesEnvelope = {
   version: 2,
@@ -40,6 +41,140 @@ const savedCitiesEnvelope = {
       countryCode: "CN",
     },
   ],
+};
+
+const workspaceState = {
+  version: 1,
+  favoriteLocationIds: [],
+  recentLocationIds: ["101010100"],
+  compareLocationIds: ["101010100", "101020100"],
+};
+
+const installCityJourneyMocks = async (page: Page) => {
+  await page.route("**/geo/v2/city/lookup**", async (route) => {
+    await route.fulfill({
+      json: {
+        code: "200",
+        location: [
+          {
+            id: "101010100",
+            name: "Beijing",
+            adm1: "Beijing",
+            adm2: "Beijing",
+            country: "China",
+            lat: "39.90499",
+            lon: "116.40529",
+            adcode: "110000",
+          },
+        ],
+      },
+    });
+  });
+
+  await page.route("**/v7/weather/now**", async (route) => {
+    await route.fulfill({
+      json: {
+        code: "200",
+        now: {
+          obsTime: "2026-03-14T08:00+08:00",
+          temp: "23",
+          feelsLike: "22",
+          text: "晴",
+          icon: "100",
+          humidity: "30",
+          windDir: "北风",
+          windScale: "3",
+          windSpeed: "12",
+          pressure: "1014",
+          vis: "20",
+        },
+      },
+    });
+  });
+
+  await page.route("**/v7/weather/24h**", async (route) => {
+    await route.fulfill({
+      json: {
+        code: "200",
+        hourly: Array.from({ length: 4 }, (_, index) => ({
+          fxTime: `2026-03-14T${String(8 + index).padStart(2, "0")}:00+08:00`,
+          temp: `${20 + index}`,
+          text: "晴",
+          icon: "100",
+          pop: `${index * 5}`,
+          windDir: "北风",
+          windScale: "3",
+        })),
+      },
+    });
+  });
+
+  await page.route("**/v7/weather/7d**", async (route) => {
+    await route.fulfill({
+      json: {
+        code: "200",
+        daily: [
+          {
+            fxDate: "2026-03-14",
+            tempMax: "24",
+            tempMin: "13",
+            textDay: "晴",
+            textNight: "多云",
+            iconDay: "100",
+            iconNight: "101",
+            windDirDay: "北风",
+            windScaleDay: "3",
+            humidity: "35",
+            precip: "0.0",
+          },
+        ],
+      },
+    });
+  });
+
+  await page.route("**/v7/historical/weather**", async (route) => {
+    const url = new URL(route.request().url());
+    const date = url.searchParams.get("date") ?? "20260314";
+    const fxDate = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+
+    await route.fulfill({
+      json: {
+        code: "200",
+        weatherDaily: {
+          fxDate,
+          tempMax: "24",
+          tempMin: "14",
+          humidity: "41",
+          precip: "0.0",
+          textDay: "晴",
+          iconDay: "100",
+          windSpeedDay: "15",
+        },
+        weatherHourly: [
+          {
+            fxTime: `${fxDate}T14:00+08:00`,
+            temp: "24",
+            humidity: "35",
+            precip: "0.0",
+            windSpeed: "15",
+            text: "晴",
+            icon: "100",
+          },
+        ],
+      },
+    });
+  });
+
+  await page.route("**/v7/air/now**", async (route) => {
+    await route.fulfill({
+      status: 403,
+      json: {
+        error: {
+          title: "Forbidden",
+        },
+      },
+    });
+  });
 };
 
 test("typing rapidly only shows the latest suggestion set", async ({ page }) => {
@@ -126,6 +261,31 @@ test("provider failure surfaces a controlled search error state", async ({ page 
 
   await expect(page.getByTestId("search-error")).toBeVisible();
   await expect(page.getByTestId("saved-locations-section")).toBeVisible();
+});
+
+test("opening a saved search result carries workspace continuity into city detail", async ({ page }) => {
+  await page.addInitScript(({ nextSavedCitiesEnvelope, nextWorkspaceState }) => {
+    window.localStorage.setItem("savedCities", JSON.stringify(nextSavedCitiesEnvelope));
+    window.localStorage.setItem("weather-workspace-state", JSON.stringify(nextWorkspaceState));
+  }, {
+    nextSavedCitiesEnvelope: savedCitiesEnvelope,
+    nextWorkspaceState: workspaceState,
+  });
+  await installCityJourneyMocks(page);
+
+  await page.goto("/");
+  await page.getByTestId("home-search-input").fill("beijing");
+
+  await expect(page.getByTestId("search-results")).toBeVisible();
+  await page.getByTestId("search-result-item").first().click();
+
+  await expect(page).toHaveURL(/\/weather\/Beijing\/Beijing\?/);
+  await expect(page).toHaveURL(/id=beijing/);
+  await expect(page).toHaveURL(/qid=101010100/);
+  await expect(page).toHaveURL(/group=recent/);
+  await expect(page).toHaveURL(/compare=101010100,101020100/);
+  await expect(page.getByTestId("save-city-button")).toContainText("Saved / 已收藏");
+  await expect(page.getByTestId("open-workspace-button")).toBeEnabled();
 });
 
 test("saved-location hydration keeps weather summary requests bounded per render", async ({ page }) => {

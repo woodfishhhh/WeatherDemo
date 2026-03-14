@@ -235,6 +235,47 @@ describe("useWorkspaceDashboard", () => {
     ]);
   });
 
+  it("opens city detail without dropping the active workspace group or compare selection", async () => {
+    const beijing = createSavedCity("101010100", "北京");
+    const shanghai = createSavedCity("101020100", "上海");
+    savedCitiesState = [beijing, shanghai];
+    window.localStorage.setItem(
+      WORKSPACE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        favoriteLocationIds: ["101010100", "101020100"],
+        recentLocationIds: [],
+        compareLocationIds: ["101010100", "101020100"],
+      })
+    );
+    setRouteQuery({
+      group: "favorites",
+      compare: "101010100,101020100",
+    });
+
+    const dashboard = useWorkspaceDashboard();
+    await settleWorkspace();
+    await dashboard.openCity(shanghai);
+
+    const workspaceStore = useWorkspaceStore();
+    expect(workspaceStore.recentLocationIds).toEqual(["101020100"]);
+    expect(routerPushMock).toHaveBeenCalledWith({
+      name: "cityview",
+      params: {
+        province: shanghai.province,
+        city: shanghai.city,
+      },
+      query: {
+        id: shanghai.id,
+        qid: "101020100",
+        lat: shanghai.latitude,
+        lon: shanghai.longitude,
+        group: "favorites",
+        compare: "101010100,101020100",
+      },
+    });
+  });
+
   it("backfills the first two saved cities into compare mode on first load", async () => {
     savedCitiesState = [
       createSavedCity("101010100", "北京"),

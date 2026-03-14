@@ -99,6 +99,31 @@ const installWorkspaceMocks = async (page: Page) => {
     }
   );
 
+  await page.route("**/geo/v2/city/lookup**", async (route) => {
+    const url = new URL(route.request().url());
+    const location = url.searchParams.get("location") ?? "101010100";
+    const savedCity = savedCitiesEnvelope.cities.find((city) => city.locationId === location) ?? savedCitiesEnvelope.cities[0];
+
+    await route.fulfill({
+      json: {
+        code: "200",
+        location: [
+          {
+            id: savedCity.locationId,
+            name: savedCity.city,
+            adm1: savedCity.province,
+            adm2: savedCity.city,
+            country: savedCity.country,
+            countryCode: savedCity.countryCode,
+            lat: savedCity.latitude,
+            lon: savedCity.longitude,
+            adcode: savedCity.adcode,
+          },
+        ],
+      },
+    });
+  });
+
   await page.route("**/v7/weather/now**", async (route) => {
     const url = new URL(route.request().url());
     const location = url.searchParams.get("location") ?? "101010100";
@@ -120,6 +145,54 @@ const installWorkspaceMocks = async (page: Page) => {
           pressure: "1014",
           vis: "18",
         },
+      },
+    });
+  });
+
+  await page.route("**/v7/weather/24h**", async (route) => {
+    const url = new URL(route.request().url());
+    const location = url.searchParams.get("location") ?? "101010100";
+    const weather = weatherByLocation[location] ?? weatherByLocation["101010100"];
+
+    await route.fulfill({
+      json: {
+        code: "200",
+        hourly: Array.from({ length: 4 }, (_, index) => ({
+          fxTime: `2026-03-14T${String(8 + index).padStart(2, "0")}:00+08:00`,
+          temp: `${Number.parseInt(weather.temp, 10) + index}`,
+          text: weather.text,
+          icon: weather.icon,
+          pop: `${index * 5}`,
+          windDir: "北风",
+          windScale: weather.windScale,
+        })),
+      },
+    });
+  });
+
+  await page.route("**/v7/weather/7d**", async (route) => {
+    const url = new URL(route.request().url());
+    const location = url.searchParams.get("location") ?? "101010100";
+    const weather = weatherByLocation[location] ?? weatherByLocation["101010100"];
+
+    await route.fulfill({
+      json: {
+        code: "200",
+        daily: [
+          {
+            fxDate: "2026-03-14",
+            tempMax: `${Number.parseInt(weather.temp, 10) + 2}`,
+            tempMin: `${Number.parseInt(weather.temp, 10) - 8}`,
+            textDay: weather.text,
+            textNight: "晴",
+            iconDay: weather.icon,
+            iconNight: "150",
+            windDirDay: "北风",
+            windScaleDay: weather.windScale,
+            humidity: weather.humidity,
+            precip: "0.0",
+          },
+        ],
       },
     });
   });
@@ -168,6 +241,17 @@ const installWorkspaceMocks = async (page: Page) => {
       },
     });
   });
+
+  await page.route("**/v7/air/now**", async (route) => {
+    await route.fulfill({
+      status: 403,
+      json: {
+        error: {
+          title: "Forbidden",
+        },
+      },
+    });
+  });
 };
 
 test("workspace dashboard renders grouped multi-city monitoring", async ({ page }) => {
@@ -195,4 +279,17 @@ test("workspace filters round-trip through the URL query string", async ({ page 
   await expect(page.getByTestId("workspace-filter-group")).toHaveValue("favorites");
   await expect(page).toHaveURL(/group=favorites/);
   await expect(page.getByTestId("workspace-city-card")).toHaveCount(2);
+});
+
+test("opening a workspace card keeps the active group and compare query on city detail", async ({ page }) => {
+  await installWorkspaceMocks(page);
+  await page.goto("/workspace?group=favorites&compare=101010100,101020100");
+
+  await page.getByTestId("workspace-city-card").filter({ hasText: "上海" }).click();
+
+  await expect(page).toHaveURL(/id=shanghai/);
+  await expect(page).toHaveURL(/qid=101020100/);
+  await expect(page).toHaveURL(/group=favorites/);
+  await expect(page).toHaveURL(/compare=101010100,101020100/);
+  await expect(page.getByTestId("open-workspace-button")).toBeEnabled();
 });

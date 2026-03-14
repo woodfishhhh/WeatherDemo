@@ -31,45 +31,6 @@ export const useHomeLocationSearch = () => {
   let activeSearchController: AbortController | null = null;
   let searchRequestId = 0;
 
-  const openLocation = (location: LocationRecord) => {
-    workspaceStore.rememberRecentLocation(location.id);
-    void router.push({
-      name: "cityview",
-      params: {
-        province: location.province || location.name,
-        city: location.name,
-      },
-      query: {
-        qid: location.id,
-        lat: location.latitude,
-        lon: location.longitude,
-      },
-    });
-  };
-
-  const selectTip = (location: LocationRecord) => {
-    openLocation(location);
-    searchQuery.value = location.name;
-    showTips.value = false;
-  };
-
-  const openSavedCity = (city: SavedCity) => {
-    workspaceStore.rememberRecentLocation(city.locationId || city.id);
-    void router.push({
-      name: "cityview",
-      params: {
-        province: city.province,
-        city: city.city,
-      },
-      query: {
-        id: city.id,
-        qid: city.locationId,
-        lat: city.latitude,
-        lon: city.longitude,
-      },
-    });
-  };
-
   const recentLocations = computed(() =>
     recentLocationIds.value
       .map((locationId) => savedCities.value.find((city) => city.locationId === locationId || city.id === locationId))
@@ -94,6 +55,28 @@ export const useHomeLocationSearch = () => {
       ? explicitCompareIds
       : savedCities.value.slice(0, 2).map((city) => city.locationId || city.id);
   });
+  const compareQueryValue = computed(() => compareQueryIds.value.join(",") || undefined);
+
+  const buildCityJourneyQuery = ({
+    savedCityId,
+    locationId,
+    latitude,
+    longitude,
+    group,
+  }: {
+    savedCityId?: string;
+    locationId?: string;
+    latitude?: string;
+    longitude?: string;
+    group: "all" | "recent";
+  }) => ({
+    id: savedCityId,
+    qid: locationId,
+    lat: latitude,
+    lon: longitude,
+    group,
+    compare: compareQueryValue.value,
+  });
 
   const workspaceShortcutSummary = computed(() => ({
     savedCount: savedCities.value.length,
@@ -106,9 +89,63 @@ export const useHomeLocationSearch = () => {
       name: "workspace",
       query: {
         group,
-        compare: compareQueryIds.value.join(","),
+        compare: compareQueryValue.value,
       },
     });
+  };
+
+  const openLocation = (location: LocationRecord, group: "all" | "recent" = "recent") => {
+    const savedCity = savedCities.value.find((city) => (city.locationId || city.id) === location.id);
+
+    workspaceStore.rememberRecentLocation(location.id);
+    void router.push({
+      name: "cityview",
+      params: {
+        province: location.province || location.name,
+        city: location.name,
+      },
+      query: buildCityJourneyQuery({
+        savedCityId: savedCity?.id,
+        locationId: location.id,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        group,
+      }),
+    });
+  };
+
+  const selectTip = (location: LocationRecord) => {
+    openLocation(location);
+    searchQuery.value = location.name;
+    showTips.value = false;
+  };
+
+  const openSavedCity = (city: SavedCity, group: "all" | "recent" = "all") => {
+    const locationId = city.locationId || city.id;
+
+    workspaceStore.rememberRecentLocation(locationId);
+    void router.push({
+      name: "cityview",
+      params: {
+        province: city.province,
+        city: city.city,
+      },
+      query: buildCityJourneyQuery({
+        savedCityId: city.id,
+        locationId,
+        latitude: city.latitude,
+        longitude: city.longitude,
+        group,
+      }),
+    });
+  };
+
+  const openRecentCity = (city: SavedCity) => {
+    openSavedCity(city, "recent");
+  };
+
+  const openCompareCity = (city: SavedCity) => {
+    openSavedCity(city, "all");
   };
 
   const selectFirstTip = () => {
@@ -137,7 +174,7 @@ export const useHomeLocationSearch = () => {
 
   const openCurrentLocation = () => {
     if (currentLocation.value) {
-      openLocation(currentLocation.value.location);
+      openLocation(currentLocation.value.location, "recent");
     }
   };
 
@@ -207,7 +244,9 @@ export const useHomeLocationSearch = () => {
     locationErrorMessage: currentLocationError,
     onInputBlur,
     onInputFocus,
+    openCompareCity,
     openCurrentLocation,
+    openRecentCity,
     openSavedCity,
     openWorkspace,
     recentLocations,

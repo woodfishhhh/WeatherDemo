@@ -2,6 +2,43 @@ import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
 const cityRoute = "/weather/%E5%8C%97%E4%BA%AC%E5%B8%82/%E5%8C%97%E4%BA%AC?qid=101010100";
+const cityJourneyRoute =
+  "/weather/%E5%8C%97%E4%BA%AC%E5%B8%82/%E5%8C%97%E4%BA%AC?id=beijing&qid=101010100&group=recent&compare=101010100,101020100";
+const savedCitiesEnvelope = {
+  version: 2,
+  cities: [
+    {
+      id: "beijing",
+      province: "北京市",
+      city: "北京",
+      adcode: "110000",
+      locationId: "101010100",
+      latitude: "39.90499",
+      longitude: "116.40529",
+      timezone: "Asia/Shanghai",
+      country: "中国",
+      countryCode: "CN",
+    },
+    {
+      id: "shanghai",
+      province: "上海市",
+      city: "上海",
+      adcode: "310000",
+      locationId: "101020100",
+      latitude: "31.23037",
+      longitude: "121.47370",
+      timezone: "Asia/Shanghai",
+      country: "中国",
+      countryCode: "CN",
+    },
+  ],
+};
+const workspaceState = {
+  version: 1,
+  favoriteLocationIds: [],
+  recentLocationIds: ["101010100", "101020100"],
+  compareLocationIds: ["101010100", "101020100"],
+};
 
 const installCityMocks = async (page: Page) => {
   await page.route("**/geo/v2/city/lookup**", async (route) => {
@@ -26,16 +63,19 @@ const installCityMocks = async (page: Page) => {
   });
 
   await page.route("**/v7/weather/now**", async (route) => {
+    const url = new URL(route.request().url());
+    const location = url.searchParams.get("location") ?? "101010100";
+
     await route.fulfill({
       json: {
         code: "200",
         now: {
           obsTime: "2026-03-14T08:00+08:00",
-          temp: "23",
-          feelsLike: "22",
-          text: "晴",
-          icon: "100",
-          humidity: "30",
+          temp: location === "101020100" ? "18" : "23",
+          feelsLike: location === "101020100" ? "17" : "22",
+          text: location === "101020100" ? "多云" : "晴",
+          icon: location === "101020100" ? "101" : "100",
+          humidity: location === "101020100" ? "64" : "30",
           windDir: "北风",
           windScale: "3",
           windSpeed: "12",
@@ -102,19 +142,21 @@ const installCityMocks = async (page: Page) => {
   await page.route("**/v7/historical/weather**", async (route) => {
     const url = new URL(route.request().url());
     const date = url.searchParams.get("date") ?? "20260313";
+    const location = url.searchParams.get("location") ?? "101010100";
     const fxDate = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+    const baseline = location === "101020100" ? 18 : "24";
 
     await route.fulfill({
       json: {
         code: "200",
         weatherDaily: {
           fxDate,
-          tempMax: "24",
-          tempMin: "14",
-          humidity: "41",
+          tempMax: baseline,
+          tempMin: location === "101020100" ? "12" : "14",
+          humidity: location === "101020100" ? "58" : "41",
           precip: "1.2",
-          textDay: "晴",
-          iconDay: "100",
+          textDay: location === "101020100" ? "多云" : "晴",
+          iconDay: location === "101020100" ? "101" : "100",
           windSpeedDay: "15",
         },
         weatherHourly: [
@@ -178,4 +220,23 @@ test("save toggle persists through reload", async ({ page }) => {
 
   await expect(page.getByTestId("save-city-button")).toContainText("Saved / 已收藏");
   await expect(page.getByTestId("saved-state-badge")).toBeVisible();
+});
+
+test("city detail continues into workspace with the same journey query", async ({ page }) => {
+  await page.addInitScript(({ nextSavedCitiesEnvelope, nextWorkspaceState }) => {
+    window.localStorage.setItem("savedCities", JSON.stringify(nextSavedCitiesEnvelope));
+    window.localStorage.setItem("weather-workspace-state", JSON.stringify(nextWorkspaceState));
+  }, {
+    nextSavedCitiesEnvelope: savedCitiesEnvelope,
+    nextWorkspaceState: workspaceState,
+  });
+  await installCityMocks(page);
+  await page.goto(cityJourneyRoute);
+
+  await expect(page.getByTestId("open-workspace-button")).toBeEnabled();
+  await page.getByTestId("open-workspace-button").click();
+
+  await expect(page).toHaveURL(/\/workspace\?group=recent&compare=101010100,101020100/);
+  await expect(page.getByTestId("workspace-heading")).toBeVisible();
+  await expect(page.getByTestId("workspace-filter-group")).toHaveValue("recent");
 });
