@@ -56,6 +56,9 @@ export interface DailyForecastPoint {
   windScaleDay: string;
   humidity: string;
   precip: string;
+  sunrise?: string;
+  sunset?: string;
+  uvIndex?: string;
 }
 
 export interface AirQualitySnapshot {
@@ -68,10 +71,29 @@ export interface AirQualitySnapshot {
   }>;
 }
 
-export interface AirQualityState {
-  status: "available" | "unavailable";
-  data: AirQualitySnapshot | null;
-  reason?: string;
+export type ProviderDatasetState<T> =
+  | {
+      status: "available";
+      data: T;
+    }
+  | {
+      status: "unavailable";
+      data: null;
+      reason: string;
+    };
+
+export type AirQualityState = ProviderDatasetState<AirQualitySnapshot>;
+
+export interface HistoricalTrendPoint {
+  date: string;
+  temperatureMax: string;
+  temperatureMin: string;
+  precipitation: string;
+  humidity: string;
+  windSpeed: string;
+  text: string;
+  textBilingual: BilingualText;
+  icon: string;
 }
 
 export interface CityWeatherBundle {
@@ -82,6 +104,8 @@ export interface CityWeatherBundle {
   airQuality: AirQualityState;
 }
 
+export type HistoricalTrendState = ProviderDatasetState<HistoricalTrendPoint[]>;
+
 export interface SavedCityWeatherSummary {
   temperature: string;
   text: string;
@@ -89,5 +113,6 @@ export interface SavedCityWeatherSummary {
   icon: string;
   humidity: string;
   windScale: string;
+  windSpeed: string;
   province: string;
 }

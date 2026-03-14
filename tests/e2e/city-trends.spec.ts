@@ -3,7 +3,12 @@ import type { Page } from "@playwright/test";
 
 const cityRoute = "/weather/%E5%8C%97%E4%BA%AC%E5%B8%82/%E5%8C%97%E4%BA%AC?qid=101010100";
 
-const installCityMocks = async (page: Page) => {
+const installTrendMocks = async (
+  page: Page,
+  options: {
+    invalidHistoricalPayload?: boolean;
+  } = {}
+) => {
   await page.route("**/geo/v2/city/lookup**", async (route) => {
     await route.fulfill({
       json: {
@@ -80,21 +85,22 @@ const installCityMocks = async (page: Page) => {
             windScaleDay: "3",
             humidity: "35",
             precip: "0.0",
-          },
-          {
-            fxDate: "2026-03-15",
-            tempMax: "25",
-            tempMin: "14",
-            textDay: "多云",
-            textNight: "晴",
-            iconDay: "101",
-            iconNight: "150",
-            windDirDay: "北风",
-            windScaleDay: "3",
-            humidity: "40",
-            precip: "0.0",
+            sunrise: "06:22",
+            sunset: "18:11",
+            uvIndex: "5",
           },
         ],
+      },
+    });
+  });
+
+  await page.route("**/v7/air/now**", async (route) => {
+    await route.fulfill({
+      status: 403,
+      json: {
+        error: {
+          title: "Forbidden",
+        },
       },
     });
   });
@@ -103,6 +109,21 @@ const installCityMocks = async (page: Page) => {
     const url = new URL(route.request().url());
     const date = url.searchParams.get("date") ?? "20260313";
     const fxDate = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+
+    if (options.invalidHistoricalPayload) {
+      await route.fulfill({
+        json: {
+          code: "200",
+          weatherDaily: {
+            fxDate,
+            textDay: "晴",
+            iconDay: "100",
+          },
+          weatherHourly: [],
+        },
+      });
+      return;
+    }
 
     await route.fulfill({
       json: {
@@ -140,42 +161,43 @@ const installCityMocks = async (page: Page) => {
       },
     });
   });
-
-  await page.route("**/v7/air/now**", async (route) => {
-    await route.fulfill({
-      status: 403,
-      json: {
-        error: {
-          title: "Forbidden",
-        },
-      },
-    });
-  });
 };
 
-test("city intelligence page renders current, hourly, and daily modules", async ({ page }) => {
+test("historical trend chart renders deterministic mocked series", async ({ page }) => {
+  await installTrendMocks(page);
+  await page.goto(cityRoute);
+
+  await expect(page.getByTestId("trend-chart-temperature")).toBeVisible();
+  await page.locator('[data-testid="trend-chart-temperature"] canvas').hover({ position: { x: 120, y: 120 } });
+  await expect(page.getByTestId("trend-tooltip")).toBeVisible();
+});
+
+test("reduced-motion mode disables animated chart reveals", async ({ page }) => {
   await page.goto("/");
-  await page.evaluate(() => window.localStorage.clear());
-  await installCityMocks(page);
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      "weather-platform-settings",
+      JSON.stringify({
+        temperatureUnit: "celsius",
+        windUnit: "scale",
+        timezonePolicy: "location",
+        reducedMotion: true,
+        workspaceDefaultGroup: "all",
+      })
+    );
+  });
+
+  await installTrendMocks(page);
+  await page.goto(cityRoute);
+
+  await expect(page.getByTestId("trend-chart-temperature")).toHaveAttribute("data-motion", "reduced");
+});
+
+test("malformed historical payload falls back to the trend unavailable state", async ({ page }) => {
+  await installTrendMocks(page, { invalidHistoricalPayload: true });
   await page.goto(cityRoute);
 
   await expect(page.getByTestId("city-current-panel")).toBeVisible();
-  await expect(page.getByTestId("city-hourly-strip")).toBeVisible();
-  await expect(page.getByTestId("city-daily-grid")).toBeVisible();
-  await expect(page.getByTestId("city-current-panel")).toContainText("23°C");
-});
-
-test("save toggle persists through reload", async ({ page }) => {
-  await page.goto("/");
-  await page.evaluate(() => window.localStorage.clear());
-  await installCityMocks(page);
-  await page.goto(cityRoute);
-
-  await page.getByTestId("save-city-button").click();
-  await expect(page.getByTestId("saved-state-badge")).toBeVisible();
-
-  await page.reload();
-
-  await expect(page.getByTestId("save-city-button")).toContainText("Saved / 已收藏");
-  await expect(page.getByTestId("saved-state-badge")).toBeVisible();
+  await expect(page.getByTestId("trend-unavailable")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Retry Trends/i })).toBeVisible();
 });

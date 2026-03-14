@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 
 const cityRoute = "/weather/%E5%8C%97%E4%BA%AC%E5%B8%82/%E5%8C%97%E4%BA%AC?qid=101010100";
 
-const installCityMocks = async (page: Page) => {
+const installSharedCityMocks = async (page: Page) => {
   await page.route("**/geo/v2/city/lookup**", async (route) => {
     await route.fulfill({
       json: {
@@ -80,19 +80,9 @@ const installCityMocks = async (page: Page) => {
             windScaleDay: "3",
             humidity: "35",
             precip: "0.0",
-          },
-          {
-            fxDate: "2026-03-15",
-            tempMax: "25",
-            tempMin: "14",
-            textDay: "多云",
-            textNight: "晴",
-            iconDay: "101",
-            iconNight: "150",
-            windDirDay: "北风",
-            windScaleDay: "3",
-            humidity: "40",
-            precip: "0.0",
+            sunrise: "06:22",
+            sunset: "18:11",
+            uvIndex: "5",
           },
         ],
       },
@@ -140,42 +130,49 @@ const installCityMocks = async (page: Page) => {
       },
     });
   });
+};
 
+test("AQI panel renders normalized metrics with comfort modules", async ({ page }) => {
+  await installSharedCityMocks(page);
   await page.route("**/v7/air/now**", async (route) => {
     await route.fulfill({
-      status: 403,
       json: {
-        error: {
-          title: "Forbidden",
+        code: "200",
+        now: {
+          aqi: "42",
+          category: "优",
+          primary: "PM2.5",
+          pm2p5: "12",
+          pm10: "21",
+          no2: "9",
+          so2: "4",
+          co: "0.5",
+          o3: "52",
         },
       },
     });
   });
-};
 
-test("city intelligence page renders current, hourly, and daily modules", async ({ page }) => {
-  await page.goto("/");
-  await page.evaluate(() => window.localStorage.clear());
-  await installCityMocks(page);
   await page.goto(cityRoute);
 
-  await expect(page.getByTestId("city-current-panel")).toBeVisible();
-  await expect(page.getByTestId("city-hourly-strip")).toBeVisible();
-  await expect(page.getByTestId("city-daily-grid")).toBeVisible();
-  await expect(page.getByTestId("city-current-panel")).toContainText("23°C");
+  await expect(page.getByTestId("aqi-panel")).toBeVisible();
+  await expect(page.getByTestId("aqi-index")).toContainText("42");
+  await expect(page.getByTestId("comfort-metrics")).toBeVisible();
 });
 
-test("save toggle persists through reload", async ({ page }) => {
-  await page.goto("/");
-  await page.evaluate(() => window.localStorage.clear());
-  await installCityMocks(page);
+test("missing AQI variables surface an explicit unavailable state", async ({ page }) => {
+  await installSharedCityMocks(page);
+  await page.route("**/v7/air/now**", async (route) => {
+    await route.fulfill({
+      json: {
+        code: "200",
+        now: {},
+      },
+    });
+  });
+
   await page.goto(cityRoute);
 
-  await page.getByTestId("save-city-button").click();
-  await expect(page.getByTestId("saved-state-badge")).toBeVisible();
-
-  await page.reload();
-
-  await expect(page.getByTestId("save-city-button")).toContainText("Saved / 已收藏");
-  await expect(page.getByTestId("saved-state-badge")).toBeVisible();
+  await expect(page.getByTestId("aqi-unavailable")).toBeVisible();
+  await expect(page.getByTestId("comfort-metrics")).toBeVisible();
 });

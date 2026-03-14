@@ -6,10 +6,17 @@ import {
   getSavedCityWeatherSummary,
   resolveLocation,
 } from "@/features/weather/services/qweather";
-import type { SavedCity } from "@/services/savedCities";
+import type { SavedCity } from "@/features/locations/services/persistence";
 import { getSavedCityKey } from "@/features/locations/utils/locationKeys";
+import { resolveSavedCityLocation } from "@/features/weather/utils/savedCityLocation";
 
 type RequestStatus = "idle" | "loading" | "ready" | "error";
+const SAVED_CITY_SUMMARY_TTL_MS = 10 * 60 * 1000;
+type SavedCitySummaryLoadResult = {
+  key: string;
+  summary: SavedCityWeatherSummary | null;
+  cacheable: boolean;
+};
 
 export const useWeatherStore = defineStore("weather", () => {
   const activeLocation = shallowRef<LocationRecord | null>(null);
@@ -17,6 +24,15 @@ export const useWeatherStore = defineStore("weather", () => {
   const activeCityStatus = shallowRef<RequestStatus>("idle");
   const activeCityError = shallowRef("");
   const savedCitySummaries = shallowRef<Record<string, SavedCityWeatherSummary | null>>({});
+  const savedCitySummaryFetchedAt = shallowRef<Record<string, number>>({});
+  const pendingSummaryRequests = new Map<string, Promise<SavedCitySummaryLoadResult>>();
+  let activeCityRequestId = 0;
+  let activeSavedCityHydrationRequestId = 0;
+
+  const isSavedCitySummaryFresh = (key: string): boolean => {
+    const fetchedAt = savedCitySummaryFetchedAt.value[key];
+    return typeof fetchedAt === "number" && Date.now() - fetchedAt < SAVED_CITY_SUMMARY_TTL_MS;
+  };
 
   const loadCityWeather = async ({
     id,
@@ -27,11 +43,16 @@ export const useWeatherStore = defineStore("weather", () => {
     city?: string;
     province?: string;
   }): Promise<CityWeatherBundle | null> => {
+    const requestId = ++activeCityRequestId;
     activeCityStatus.value = "loading";
     activeCityError.value = "";
 
     try {
       const location = await resolveLocation({ id, city, province });
+      if (requestId !== activeCityRequestId) {
+        return activeCityWeather.value;
+      }
+
       activeLocation.value = location;
 
       if (!location) {
@@ -42,10 +63,18 @@ export const useWeatherStore = defineStore("weather", () => {
       }
 
       const bundle = await getCityWeatherBundle(location);
+      if (requestId !== activeCityRequestId) {
+        return activeCityWeather.value;
+      }
+
       activeCityWeather.value = bundle;
       activeCityStatus.value = "ready";
       return bundle;
     } catch (error) {
+      if (requestId !== activeCityRequestId) {
+        return activeCityWeather.value;
+      }
+
       activeCityWeather.value = null;
       activeCityStatus.value = "error";
       activeCityError.value =
@@ -54,51 +83,112 @@ export const useWeatherStore = defineStore("weather", () => {
     }
   };
 
-  const hydrateSavedCitySummaries = async (cities: SavedCity[]): Promise<Record<string, SavedCityWeatherSummary | null>> => {
+  const loadSavedCitySummary = async (
+    city: SavedCity
+  ): Promise<SavedCitySummaryLoadResult> => {
+    const summaryKey = getSavedCityKey(city);
+    const pending = pendingSummaryRequests.get(summaryKey);
+    if (pending) {
+      return pending;
+    }
+
+    const request = (async (): Promise<SavedCitySummaryLoadResult> => {
+      try {
+        const location = await resolveSavedCityLocation(city);
+        if (!location) {
+          return {
+            key: summaryKey,
+            summary: null,
+            cacheable: true,
+          };
+        }
+
+        const summary = await getSavedCityWeatherSummary(location);
+        return {
+          key: summaryKey,
+          summary,
+          cacheable: summary !== null,
+        };
+      } catch {
+        return {
+          key: summaryKey,
+          summary: null,
+          cacheable: false,
+        };
+      } finally {
+        pendingSummaryRequests.delete(summaryKey);
+      }
+    })();
+
+    pendingSummaryRequests.set(summaryKey, request);
+    return request;
+  };
+
+  const hydrateSavedCitySummaries = async (
+    cities: SavedCity[],
+    options: {
+      force?: boolean;
+    } = {}
+  ): Promise<Record<string, SavedCityWeatherSummary | null>> => {
+    const requestId = ++activeSavedCityHydrationRequestId;
+
     if (!cities.length) {
       savedCitySummaries.value = {};
+      savedCitySummaryFetchedAt.value = {};
       return savedCitySummaries.value;
     }
 
-    const summaryEntries = await Promise.all(
-      cities.map(async (city) => {
-        try {
-          const location =
-            city.locationId && city.latitude && city.longitude
-              ? {
-                  id: city.locationId,
-                  name: city.city,
-                  province: city.province,
-                  latitude: city.latitude,
-                  longitude: city.longitude,
-                  timezone: city.timezone,
-                  country: city.country,
-                  adcode: city.adcode,
-                }
-              : await resolveLocation({
-                  id: city.locationId,
-                  city: city.city,
-                  province: city.province,
-                });
-
-          if (!location) {
-            return [getSavedCityKey(city), null] as const;
-          }
-
-          const summary = await getSavedCityWeatherSummary(location);
-          return [getSavedCityKey(city), summary] as const;
-        } catch {
-          return [getSavedCityKey(city), null] as const;
-        }
-      })
+    const nextKeys = new Set(cities.map((city) => getSavedCityKey(city)));
+    savedCitySummaries.value = Object.fromEntries(
+      Object.entries(savedCitySummaries.value).filter(([key]) => nextKeys.has(key))
+    );
+    savedCitySummaryFetchedAt.value = Object.fromEntries(
+      Object.entries(savedCitySummaryFetchedAt.value).filter(([key]) => nextKeys.has(key))
     );
 
-    savedCitySummaries.value = Object.fromEntries(summaryEntries);
+    const citiesNeedingRefresh = cities.filter((city) => {
+      const key = getSavedCityKey(city);
+      return (
+        options.force ||
+        !Object.prototype.hasOwnProperty.call(savedCitySummaries.value, key) ||
+        !isSavedCitySummaryFresh(key)
+      );
+    });
+
+    if (!citiesNeedingRefresh.length) {
+      return savedCitySummaries.value;
+    }
+
+    const summaryEntries = await Promise.all(citiesNeedingRefresh.map((city) => loadSavedCitySummary(city)));
+    if (requestId !== activeSavedCityHydrationRequestId) {
+      return savedCitySummaries.value;
+    }
+
+    const fetchedAt = Date.now();
+    const nextSummaries = { ...savedCitySummaries.value };
+    const nextFetchedAt = { ...savedCitySummaryFetchedAt.value };
+
+    for (const { key, summary, cacheable } of summaryEntries) {
+      if (!nextKeys.has(key)) {
+        continue;
+      }
+
+      nextSummaries[key] = summary;
+
+      if (cacheable) {
+        nextFetchedAt[key] = fetchedAt;
+      } else {
+        delete nextFetchedAt[key];
+      }
+    }
+
+    savedCitySummaries.value = nextSummaries;
+    savedCitySummaryFetchedAt.value = nextFetchedAt;
     return savedCitySummaries.value;
   };
 
-  const getSavedCitySummary = (city: SavedCity): SavedCityWeatherSummary | null =>
-    savedCitySummaries.value[getSavedCityKey(city)] ?? null;
+  const getSavedCitySummary = (city: SavedCity): SavedCityWeatherSummary | null | undefined =>
+    savedCitySummaries.value[getSavedCityKey(city)];
 
   return {
     activeLocation,
