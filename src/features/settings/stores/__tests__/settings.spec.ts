@@ -46,4 +46,26 @@ describe("useSettingsStore", () => {
     expect(store.reducedMotion).toBeNull();
     expect(store.workspaceDefaultGroup).toBe("all");
   });
+
+  it("normalizes parseable but invalid persisted settings back to safe defaults", () => {
+    window.localStorage.setItem(
+      "weather-platform-settings",
+      JSON.stringify({
+        temperatureUnit: "kelvin",
+        windUnit: "mph",
+        timezonePolicy: "utc",
+        reducedMotion: "yes",
+        workspaceDefaultGroup: "archive",
+      })
+    );
+
+    const store = useSettingsStore();
+    store.hydrate();
+
+    expect(store.temperatureUnit).toBe("celsius");
+    expect(store.windUnit).toBe("scale");
+    expect(store.timezonePolicy).toBe("location");
+    expect(store.reducedMotion).toBeNull();
+    expect(store.workspaceDefaultGroup).toBe("all");
+  });
 });

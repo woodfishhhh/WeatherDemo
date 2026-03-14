@@ -50,4 +50,27 @@ describe("useWorkspaceStore", () => {
       compareLocationIds: [],
     });
   });
+
+  it("resets to defaults and rewrites storage when persisted workspace JSON is malformed", () => {
+    window.localStorage.setItem("weather-workspace-state", "{ invalid-json");
+
+    const store = useWorkspaceStore();
+    const snapshot = store.hydrate();
+
+    expect(snapshot).toEqual({
+      version: 1,
+      favoriteLocationIds: [],
+      recentLocationIds: [],
+      compareLocationIds: [],
+    });
+    expect(store.favoriteLocationIds).toEqual([]);
+    expect(store.recentLocationIds).toEqual([]);
+    expect(store.compareLocationIds).toEqual([]);
+    expect(JSON.parse(window.localStorage.getItem("weather-workspace-state") || "{}")).toEqual({
+      version: 1,
+      favoriteLocationIds: [],
+      recentLocationIds: [],
+      compareLocationIds: [],
+    });
+  });
 });

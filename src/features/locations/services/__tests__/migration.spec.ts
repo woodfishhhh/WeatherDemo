@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { docMock, getDocMock, serverTimestampMock, setDocMock } = vi.hoisted(() => ({
+const { docMock, getDocMock, hasFirebaseConfigMock, serverTimestampMock, setDocMock } = vi.hoisted(() => ({
   docMock: vi.fn(() => "cities-doc-ref"),
   getDocMock: vi.fn(),
+  hasFirebaseConfigMock: vi.fn(() => true),
   setDocMock: vi.fn(),
   serverTimestampMock: vi.fn(() => "SERVER_TIMESTAMP"),
 }));
 
 vi.mock("@/firebase", () => ({
   db: {},
+  hasFirebaseConfig: hasFirebaseConfigMock,
 }));
 
 vi.mock("firebase/firestore", () => ({
@@ -64,5 +66,14 @@ describe("saved city migration", () => {
         }),
       ],
     });
+  });
+
+  it("falls back safely when persisted localStorage data is malformed JSON", () => {
+    window.localStorage.setItem("savedCities", "{ invalid-json");
+
+    const snapshot = getSavedCitiesSnapshot();
+
+    expect(snapshot).toEqual([]);
+    expect(window.localStorage.getItem("savedCities")).toBe("{ invalid-json");
   });
 });
