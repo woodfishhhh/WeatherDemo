@@ -265,6 +265,27 @@ test.describe("home", () => {
     await expect(page.getByTestId("saved-locations-section")).toBeVisible();
   });
 
+  test("denied current location keeps home fallback intact", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window.navigator, "geolocation", {
+        configurable: true,
+        value: {
+          getCurrentPosition: (_success: unknown, reject: (error: Error) => void) => {
+            reject(new Error("Location permission was denied."));
+          },
+        },
+      });
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: "Use current location / 使用当前位置" }).click();
+
+    await expect(page.getByText("Location permission was denied.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Use current location / 使用当前位置" })).toBeVisible();
+    await expect(page.getByTestId("workspace-shortcuts")).toBeVisible();
+    await expect(page.getByTestId("saved-locations-section")).toBeVisible();
+  });
+
   test("opening a saved search result carries workspace continuity into city detail", async ({ page }) => {
     await page.addInitScript(({ nextSavedCitiesEnvelope, nextWorkspaceState }) => {
       window.localStorage.setItem("savedCities", JSON.stringify(nextSavedCitiesEnvelope));
@@ -287,6 +308,29 @@ test.describe("home", () => {
     await expect(page).toHaveURL(/group=recent/);
     await expect(page).toHaveURL(/compare=101010100,101020100/);
     await expect(page.getByTestId("save-city-button")).toContainText("Saved / 已收藏");
+    await expect(page.getByTestId("open-workspace-button")).toBeEnabled();
+  });
+
+  test("opening a saved location card preserves home continuity into city detail", async ({ page }) => {
+    await page.addInitScript(({ nextSavedCitiesEnvelope, nextWorkspaceState }) => {
+      window.localStorage.setItem("savedCities", JSON.stringify(nextSavedCitiesEnvelope));
+      window.localStorage.setItem("weather-workspace-state", JSON.stringify(nextWorkspaceState));
+    }, {
+      nextSavedCitiesEnvelope: savedCitiesEnvelope,
+      nextWorkspaceState: workspaceState,
+    });
+
+    await installCityJourneyMocks(page);
+    await page.goto("/");
+
+    await expect(page.getByTestId("saved-locations-section")).toContainText("北京");
+    await page.getByTestId("saved-locations-section").getByText("北京").first().click();
+
+    await expect.poll(() => decodeURIComponent(new URL(page.url()).pathname)).toBe("/weather/北京市/北京");
+    await expect(page).toHaveURL(/id=beijing/);
+    await expect(page).toHaveURL(/qid=101010100/);
+    await expect(page).toHaveURL(/group=all/);
+    await expect(page).toHaveURL(/compare=101010100,101020100/);
     await expect(page.getByTestId("open-workspace-button")).toBeEnabled();
   });
 
