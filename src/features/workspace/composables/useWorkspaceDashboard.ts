@@ -3,7 +3,11 @@ import { storeToRefs } from "pinia";
 import { useRoute, useRouter } from "vue-router";
 import type { SavedCity } from "@/features/locations/services/persistence";
 import { useLocationsStore } from "@/features/locations/stores/locations";
-import { useWeatherDisplayPreferences } from "@/features/settings/composables/useWeatherDisplayPreferences";
+import { useSystemReducedMotionPreference } from "@/features/settings/composables/useSystemReducedMotionPreference";
+import {
+  resolveReducedMotionPreference,
+  useWeatherDisplayPreferences,
+} from "@/features/settings/composables/useWeatherDisplayPreferences";
 import { useSettingsStore } from "@/features/settings/stores/settings";
 import type { WorkspaceGroup } from "@/features/workspace/stores/workspace";
 import { useWorkspaceStore, WORKSPACE_STORAGE_KEY } from "@/features/workspace/stores/workspace";
@@ -95,9 +99,9 @@ export const useWorkspaceDashboard = () => {
   const settingsStore = useSettingsStore();
   const weatherStore = useWeatherStore();
   const workspaceStore = useWorkspaceStore();
+  const systemReducedMotion = useSystemReducedMotionPreference();
   const { formatTemperature, formatWind, temperatureUnit } = useWeatherDisplayPreferences();
 
-  settingsStore.hydrate();
   workspaceStore.hydrate();
 
   const { savedCities, syncErrorReason, syncStatus } = storeToRefs(locationsStore);
@@ -113,15 +117,10 @@ export const useWorkspaceDashboard = () => {
   let trendRequestId = 0;
 
   const prefersReducedMotion = computed(() => {
-    if (reducedMotion.value !== null) {
-      return reducedMotion.value;
-    }
-
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return resolveReducedMotionPreference({
+      reducedMotion: reducedMotion.value,
+      systemPrefersReducedMotion: systemReducedMotion.value,
+    });
   });
 
   const cityById = computed(() => cityByIdFrom(savedCities.value));

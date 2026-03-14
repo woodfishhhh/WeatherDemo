@@ -32,6 +32,7 @@
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
   import { useTheme } from './composables/useTheme';
+  import { resolveReducedMotionPreference } from '@/features/settings/composables/useWeatherDisplayPreferences';
   import { useSettingsStore } from '@/features/settings/stores/settings';
 
   gsap.registerPlugin(ScrollTrigger);
@@ -43,9 +44,13 @@
 
   const { theme, initializeTheme, toggleTheme } = useTheme();
   const settingsStore = useSettingsStore();
-  settingsStore.hydrate();
   const { reducedMotion } = storeToRefs(settingsStore);
-  const prefersReducedMotion = computed(() => systemReducedMotion.value || reducedMotion.value === true);
+  const prefersReducedMotion = computed(() =>
+    resolveReducedMotionPreference({
+      reducedMotion: reducedMotion.value,
+      systemPrefersReducedMotion: systemReducedMotion.value,
+    })
+  );
 
   let lenis: Lenis | null = null;
   let lenisTicker: ((time: number) => void) | null = null;

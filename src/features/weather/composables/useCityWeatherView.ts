@@ -4,7 +4,11 @@ import { useRoute, useRouter } from "vue-router";
 import { buildComfortMetrics } from "@/features/air-quality/utils/comfortMetrics";
 import { useLocationsStore } from "@/features/locations/stores/locations";
 import { toSavedCityRecord } from "@/features/locations/utils/locationKeys";
-import { useWeatherDisplayPreferences } from "@/features/settings/composables/useWeatherDisplayPreferences";
+import { useSystemReducedMotionPreference } from "@/features/settings/composables/useSystemReducedMotionPreference";
+import {
+  resolveReducedMotionPreference,
+  useWeatherDisplayPreferences,
+} from "@/features/settings/composables/useWeatherDisplayPreferences";
 import { useSettingsStore } from "@/features/settings/stores/settings";
 import { getHistoricalTrends } from "@/features/weather/services/qweather";
 import { useWeatherStore } from "@/features/weather/stores/weather";
@@ -42,6 +46,7 @@ export const useCityWeatherView = () => {
   const settingsStore = useSettingsStore();
   const weatherStore = useWeatherStore();
   const workspaceStore = useWorkspaceStore();
+  const systemReducedMotion = useSystemReducedMotionPreference();
   const { formatDateTime: formatDateTimeWithPolicy, formatTemperature, formatWind } = useWeatherDisplayPreferences();
 
   workspaceStore.hydrate();
@@ -217,15 +222,10 @@ export const useCityWeatherView = () => {
     );
 
   const prefersReducedMotion = computed(() => {
-    if (reducedMotion.value !== null) {
-      return reducedMotion.value;
-    }
-
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return resolveReducedMotionPreference({
+      reducedMotion: reducedMotion.value,
+      systemPrefersReducedMotion: systemReducedMotion.value,
+    });
   });
 
   onMounted(() => {

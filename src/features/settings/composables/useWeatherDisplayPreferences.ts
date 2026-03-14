@@ -14,6 +14,14 @@ type WindDisplayInput = {
 
 type DateFormatOptions = Intl.DateTimeFormatOptions;
 
+export const resolveReducedMotionPreference = ({
+  reducedMotion,
+  systemPrefersReducedMotion,
+}: {
+  reducedMotion: boolean | null;
+  systemPrefersReducedMotion: boolean;
+}): boolean => systemPrefersReducedMotion || reducedMotion === true;
+
 const parseNumeric = (value: string | undefined): number | null => {
   if (!value) {
     return null;
@@ -70,8 +78,6 @@ export const formatDateWithTimezonePolicy = (
 
 export const useWeatherDisplayPreferences = () => {
   const settingsStore = useSettingsStore();
-  settingsStore.hydrate();
-
   const { temperatureUnit, timezonePolicy, windUnit } = storeToRefs(settingsStore);
 
   return {

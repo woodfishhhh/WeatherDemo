@@ -158,13 +158,13 @@ describe("main bootstrap contract", () => {
     expect(operationLog).toEqual(["use:pinia", "use:router", "hydrate", "mount"]);
   });
 
-  it("keeps the app shell hydration call in place as a guarded follow-up bootstrap surface", async () => {
+  it("lets the app shell consume reduced-motion state without owning hydration", async () => {
     const { shallowRef } = await import("vue");
 
     useSettingsStoreMock.mockReturnValue({
       hydrate: hydrateMock,
-      reducedMotion: shallowRef(null),
-    });
+      reducedMotion: shallowRef(true),
+    } as never);
 
     vi.doUnmock("../../App.vue");
     vi.resetModules();
@@ -183,7 +183,8 @@ describe("main bootstrap contract", () => {
     });
 
     expect(useSettingsStoreMock).toHaveBeenCalledTimes(1);
-    expect(hydrateMock).toHaveBeenCalledTimes(1);
+    expect(hydrateMock).not.toHaveBeenCalled();
+    expect(document.documentElement.dataset.motion).toBe("reduced");
 
     wrapper.unmount();
   });

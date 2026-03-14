@@ -92,8 +92,6 @@ const workspaceGroupOptions: SelectOption[] = [
 
 export const useSettingsDashboard = () => {
   const settingsStore = useSettingsStore();
-  settingsStore.hydrate();
-
   const { formatDateTime, formatTemperature, formatWind } = useWeatherDisplayPreferences();
   const {
     hasHydrated,

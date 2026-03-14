@@ -1,11 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   formatDateWithTimezonePolicy,
   formatTemperatureValue,
   formatWindValue,
+  resolveReducedMotionPreference,
+  useWeatherDisplayPreferences,
 } from "@/features/settings/composables/useWeatherDisplayPreferences";
+import { useSettingsStore } from "@/features/settings/stores/settings";
 
 describe("useWeatherDisplayPreferences helpers", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    window.localStorage.clear();
+  });
+
   it("formats temperatures and wind using the selected units", () => {
     expect(formatTemperatureValue("23", "celsius")).toBe("23°C");
     expect(formatTemperatureValue("23", "fahrenheit")).toBe("73°F");
@@ -40,5 +49,49 @@ describe("useWeatherDisplayPreferences helpers", () => {
 
     expect(locationTime).toBe("19:00");
     expect(deviceTime).toBe(expectedDeviceTime);
+  });
+
+  it("reads the active settings store without re-owning hydration", () => {
+    const store = useSettingsStore();
+    store.updateSettings({
+      temperatureUnit: "fahrenheit",
+      windUnit: "kph",
+      timezonePolicy: "device",
+    });
+    const hydrateSpy = vi.spyOn(store, "hydrate");
+
+    const preferences = useWeatherDisplayPreferences();
+
+    expect(hydrateSpy).not.toHaveBeenCalled();
+    expect(preferences.temperatureUnit.value).toBe("fahrenheit");
+    expect(preferences.windUnit.value).toBe("kph");
+    expect(preferences.timezonePolicy.value).toBe("device");
+  });
+
+  it("keeps browser reduced-motion preference authoritative unless the user explicitly forces reduction on", () => {
+    expect(
+      resolveReducedMotionPreference({
+        reducedMotion: false,
+        systemPrefersReducedMotion: true,
+      })
+    ).toBe(true);
+    expect(
+      resolveReducedMotionPreference({
+        reducedMotion: null,
+        systemPrefersReducedMotion: true,
+      })
+    ).toBe(true);
+    expect(
+      resolveReducedMotionPreference({
+        reducedMotion: true,
+        systemPrefersReducedMotion: false,
+      })
+    ).toBe(true);
+    expect(
+      resolveReducedMotionPreference({
+        reducedMotion: false,
+        systemPrefersReducedMotion: false,
+      })
+    ).toBe(false);
   });
 });

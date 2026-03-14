@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import BilingualStack from "@/components/BilingualStack.vue";
   import PlatformEmptyState from "@/components/platform/PlatformEmptyState.vue";
   import PlatformStatRow from "@/components/platform/PlatformStatRow.vue";
   import WorkspaceCityCard from "@/features/workspace/components/WorkspaceCityCard.vue";
