@@ -33,4 +33,17 @@ describe("useSettingsStore", () => {
       timezonePolicy: "device",
     });
   });
+
+  it("falls back to safe defaults when persisted settings are malformed", () => {
+    window.localStorage.setItem("weather-platform-settings", "{ invalid-json");
+
+    const store = useSettingsStore();
+    store.hydrate();
+
+    expect(store.temperatureUnit).toBe("celsius");
+    expect(store.windUnit).toBe("scale");
+    expect(store.timezonePolicy).toBe("location");
+    expect(store.reducedMotion).toBeNull();
+    expect(store.workspaceDefaultGroup).toBe("all");
+  });
 });
