@@ -29,7 +29,7 @@ vi.mock("@/features/weather/services/qweather", () => ({
   getSavedCityWeatherSummary: getSavedCityWeatherSummaryMock,
 }));
 
-vi.mock("@/services/savedCities", () => ({
+vi.mock("@/features/locations/services/persistence", () => ({
   getSavedCitiesSnapshot: getSavedCitiesSnapshotMock,
   loadSavedCitiesWithSync: loadSavedCitiesWithSyncMock,
   saveSavedCities: saveSavedCitiesMock,
@@ -53,11 +53,17 @@ describe("useLocationsStore", () => {
     getSavedCitiesSnapshotMock.mockImplementation(() => savedCitiesState.cities);
     loadSavedCitiesWithSyncMock.mockImplementation(async ({ onCloudUpdate } = {}) => {
       onCloudUpdate?.(savedCitiesState.cities);
-      return savedCitiesState.cities;
+      return {
+        cities: savedCitiesState.cities,
+        syncStatus: "ready",
+      };
     });
     saveSavedCitiesMock.mockImplementation(async (cities) => {
       savedCitiesState.cities = cities;
-      return cities;
+      return {
+        cities,
+        syncStatus: "ready",
+      };
     });
   });
 
@@ -92,6 +98,7 @@ describe("useLocationsStore", () => {
       icon: "100",
       humidity: "26",
       windScale: "3",
+      windSpeed: "11",
       province: "北京市",
     });
 
@@ -116,5 +123,30 @@ describe("useLocationsStore", () => {
 
     expect(result?.location.name).toBe("北京");
     expect(store.currentLocationStatus).toBe("ready");
+  });
+
+  it("marks sync failures as recoverable without dropping local data", async () => {
+    savedCitiesState.cities = [
+      {
+        id: "beijing",
+        province: "北京市",
+        city: "北京",
+        adcode: "110000",
+      },
+    ];
+
+    getSavedCitiesSnapshotMock.mockImplementation(() => savedCitiesState.cities);
+    loadSavedCitiesWithSyncMock.mockResolvedValue({
+      cities: savedCitiesState.cities,
+      syncStatus: "recoverable-error",
+      reason: "Cloud sync failed",
+    });
+
+    const store = useLocationsStore();
+    const cities = await store.loadSavedCities(true);
+
+    expect(cities).toHaveLength(1);
+    expect(store.syncStatus).toBe("recoverable-error");
+    expect(store.syncErrorReason).toBe("Cloud sync failed");
   });
 });

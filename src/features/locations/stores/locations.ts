@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { computed, shallowRef } from "vue";
 import { defineStore } from "pinia";
 import type { LocationRecord, SavedCityWeatherSummary } from "@/features/weather/types";
@@ -10,8 +11,9 @@ import {
   getSavedCitiesSnapshot,
   loadSavedCitiesWithSync,
   saveSavedCities,
+  type SavedCitiesSyncStatus,
   type SavedCity,
-} from "@/services/savedCities";
+} from "@/features/locations/services/persistence";
 import { getLocationRecordKey, getSavedCityKey } from "@/features/locations/utils/locationKeys";
 
 export type CurrentLocationWeather = {
@@ -20,12 +22,13 @@ export type CurrentLocationWeather = {
 };
 
 type SearchStatus = "idle" | "loading" | "ready" | "error";
-type SyncStatus = "idle" | "syncing" | "ready" | "recoverable-error";
+type SyncStatus = "idle" | "syncing" | SavedCitiesSyncStatus;
 
 export const useLocationsStore = defineStore("locations", () => {
   const savedCities = shallowRef<SavedCity[]>(getSavedCitiesSnapshot());
   const hasLoadedSavedCities = shallowRef(savedCities.value.length > 0);
   const syncStatus = shallowRef<SyncStatus>("idle");
+  const syncErrorReason = shallowRef("");
 
   const searchResults = shallowRef<LocationRecord[]>([]);
   const searchStatus = shallowRef<SearchStatus>("idle");
@@ -43,25 +46,30 @@ export const useLocationsStore = defineStore("locations", () => {
     }
 
     syncStatus.value = "syncing";
-    const cities = await loadSavedCitiesWithSync({
+    syncErrorReason.value = "";
+
+    const result = await loadSavedCitiesWithSync({
       onCloudUpdate: (nextCities) => {
         savedCities.value = nextCities;
         hasLoadedSavedCities.value = true;
-        syncStatus.value = "ready";
       },
     });
 
-    savedCities.value = cities;
+    savedCities.value = result.cities;
     hasLoadedSavedCities.value = true;
-    syncStatus.value = "ready";
-    return cities;
+    syncStatus.value = result.syncStatus;
+    syncErrorReason.value = result.reason ?? "";
+    return result.cities;
   };
 
   const persistSavedCities = async (cities: SavedCity[]): Promise<SavedCity[]> => {
-    const persisted = await saveSavedCities(cities);
-    savedCities.value = persisted;
+    syncErrorReason.value = "";
+    const result = await saveSavedCities(cities);
+    savedCities.value = result.cities;
     hasLoadedSavedCities.value = true;
-    return persisted;
+    syncStatus.value = result.syncStatus;
+    syncErrorReason.value = result.reason ?? "";
+    return result.cities;
   };
 
   const removeSavedCityById = async (id: string): Promise<SavedCity[]> =>
@@ -86,7 +94,12 @@ export const useLocationsStore = defineStore("locations", () => {
     return savedLocationKeys.value.has(getLocationRecordKey(location));
   };
 
-  const searchByKeyword = async (keyword: string): Promise<LocationRecord[]> => {
+  const searchByKeyword = async (
+    keyword: string,
+    options: {
+      signal?: AbortSignal;
+    } = {}
+  ): Promise<LocationRecord[]> => {
     const normalizedKeyword = keyword.trim();
     if (!normalizedKeyword) {
       searchResults.value = [];
@@ -99,7 +112,9 @@ export const useLocationsStore = defineStore("locations", () => {
     searchError.value = "";
 
     try {
-      const results = await searchLocations(normalizedKeyword);
+      const results = await searchLocations(normalizedKeyword, {
+        signal: options.signal,
+      });
       const lowerKeyword = normalizedKeyword.toLowerCase();
 
       searchResults.value = results
@@ -112,6 +127,10 @@ export const useLocationsStore = defineStore("locations", () => {
       searchStatus.value = "ready";
       return searchResults.value;
     } catch (error) {
+      if (isAxiosError(error) && error.code === "ERR_CANCELED") {
+        return searchResults.value;
+      }
+
       searchResults.value = [];
       searchError.value = error instanceof Error ? error.message : "Search failed / 搜索失败";
       searchStatus.value = "error";
@@ -199,6 +218,7 @@ export const useLocationsStore = defineStore("locations", () => {
     savedCities,
     hasLoadedSavedCities,
     syncStatus,
+    syncErrorReason,
     searchResults,
     searchStatus,
     searchError,

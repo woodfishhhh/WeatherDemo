@@ -21,9 +21,9 @@
   import BilingualStack from './BilingualStack.vue';
   import CityCard from './CityCard.vue';
   import { useLocationsStore } from '@/features/locations/stores/locations';
+  import type { SavedCity } from '@/features/locations/services/persistence';
   import { useWeatherStore } from '@/features/weather/stores/weather';
   import { useWorkspaceStore } from '@/features/workspace/stores/workspace';
-  import type { SavedCity } from '@/services/savedCities';
 
   const router = useRouter();
   const locationsStore = useLocationsStore();
