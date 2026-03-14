@@ -42,8 +42,8 @@ __screenshots__/
 
 # Local agent/runtime state
 .omx/
-.sisyphus/boulder.json
-.sisyphus/notepads/
+.sisyphus/
+
 
 # Local automation outputs
 output/
