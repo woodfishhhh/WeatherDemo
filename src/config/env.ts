@@ -1,5 +1,14 @@
 type EnvValue = string | undefined;
 
+const FIREBASE_PLACEHOLDER_VALUES = new Set([
+  "your-firebase-api-key",
+  "your-project.firebaseapp.com",
+  "your-project-id",
+  "your-project.appspot.com",
+  "your-messaging-sender-id",
+  "your-firebase-app-id",
+]);
+
 const trimEnv = (value: EnvValue): string | undefined => {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
@@ -44,5 +53,24 @@ export const appEnv = {
       "https://icons.qweather.com/assets/icons",
   },
 };
+
+export const isPlaceholderFirebaseValue = (value: string | undefined): boolean =>
+  Boolean(value && FIREBASE_PLACEHOLDER_VALUES.has(value.trim().toLowerCase()));
+
+export const hasFirebaseConfig = (): boolean =>
+  Boolean(
+    appEnv.firebase.apiKey &&
+      !isPlaceholderFirebaseValue(appEnv.firebase.apiKey) &&
+      appEnv.firebase.authDomain &&
+      !isPlaceholderFirebaseValue(appEnv.firebase.authDomain) &&
+      appEnv.firebase.projectId &&
+      !isPlaceholderFirebaseValue(appEnv.firebase.projectId) &&
+      appEnv.firebase.storageBucket &&
+      !isPlaceholderFirebaseValue(appEnv.firebase.storageBucket) &&
+      appEnv.firebase.messagingSenderId &&
+      !isPlaceholderFirebaseValue(appEnv.firebase.messagingSenderId) &&
+      appEnv.firebase.appId &&
+      !isPlaceholderFirebaseValue(appEnv.firebase.appId)
+  );
 
 export const hasQWeatherApiKey = (): boolean => Boolean(appEnv.qweather.apiKey);

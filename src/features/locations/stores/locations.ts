@@ -29,6 +29,7 @@ export const useLocationsStore = defineStore("locations", () => {
   const hasLoadedSavedCities = shallowRef(savedCities.value.length > 0);
   const syncStatus = shallowRef<SyncStatus>("idle");
   const syncErrorReason = shallowRef("");
+  let savedCitiesMutationVersion = 0;
 
   const searchResults = shallowRef<LocationRecord[]>([]);
   const searchStatus = shallowRef<SearchStatus>("idle");
@@ -47,24 +48,45 @@ export const useLocationsStore = defineStore("locations", () => {
 
     syncStatus.value = "syncing";
     syncErrorReason.value = "";
+    const loadMutationVersion = savedCitiesMutationVersion;
+
+    const applyLoadedCities = (nextCities: SavedCity[]): boolean => {
+      if (savedCitiesMutationVersion !== loadMutationVersion) {
+        return false;
+      }
+
+      savedCities.value = nextCities;
+      hasLoadedSavedCities.value = true;
+      return true;
+    };
 
     const result = await loadSavedCitiesWithSync({
       onCloudUpdate: (nextCities) => {
-        savedCities.value = nextCities;
-        hasLoadedSavedCities.value = true;
+        applyLoadedCities(nextCities);
       },
     });
 
-    savedCities.value = result.cities;
-    hasLoadedSavedCities.value = true;
+    if (!applyLoadedCities(result.cities)) {
+      return savedCities.value;
+    }
+
     syncStatus.value = result.syncStatus;
     syncErrorReason.value = result.reason ?? "";
     return result.cities;
   };
 
   const persistSavedCities = async (cities: SavedCity[]): Promise<SavedCity[]> => {
+    const mutationVersion = ++savedCitiesMutationVersion;
     syncErrorReason.value = "";
+    savedCities.value = cities;
+    hasLoadedSavedCities.value = true;
+
     const result = await saveSavedCities(cities);
+
+    if (savedCitiesMutationVersion !== mutationVersion) {
+      return savedCities.value;
+    }
+
     savedCities.value = result.cities;
     hasLoadedSavedCities.value = true;
     syncStatus.value = result.syncStatus;

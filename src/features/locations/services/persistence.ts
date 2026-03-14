@@ -1,5 +1,5 @@
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
-import { db } from "@/firebase";
+import { db, hasFirebaseConfig } from "@/firebase";
 
 const COOKIE_KEY = "weather_client_id";
 const STORAGE_KEY = "savedCities";
@@ -161,6 +161,10 @@ export const getOrCreateClientId = (): string => {
 };
 
 const getCitiesDocRef = () => {
+  if (db === null) {
+    throw new Error("Firebase cloud sync is unavailable.");
+  }
+
   const clientId = getOrCreateClientId();
   return doc(db, COLLECTION_NAME, clientId);
 };
@@ -206,6 +210,16 @@ const createSyncResult = (
   reason,
 });
 
+const isCloudSyncEnabled = (): boolean => hasFirebaseConfig() && db !== null;
+
+const sanitizeSavedCityForFirestore = (city: SavedCity): SavedCity => {
+  const sanitized = Object.fromEntries(
+    Object.entries(city).filter(([, value]) => value !== undefined)
+  );
+
+  return sanitized as SavedCity;
+};
+
 export const writeLocalSavedCities = (cities: SavedCity[]): SavedCity[] => {
   const envelope = createEnvelope(cities);
   writeLocalEnvelope(envelope);
@@ -217,12 +231,18 @@ export const getSavedCitiesSnapshot = (): SavedCity[] => readLocalEnvelope().cit
 export const saveSavedCities = async (cities: SavedCity[]): Promise<SavedCitiesSyncResult> => {
   const normalized = writeLocalSavedCities(cities);
 
+  if (!isCloudSyncEnabled()) {
+    return createSyncResult(normalized, "ready");
+  }
+
+  const firestoreCities = normalized.map(sanitizeSavedCityForFirestore);
+
   try {
     await setDoc(
       getCitiesDocRef(),
       {
         version: STORAGE_SCHEMA_VERSION,
-        cities: normalized,
+        cities: firestoreCities,
         updatedAt: serverTimestamp(),
       },
       { merge: true }
@@ -245,6 +265,11 @@ export const loadSavedCitiesWithSync = async (
   options: LoadSavedCitiesOptions = {}
 ): Promise<SavedCitiesSyncResult> => {
   const localCities = getSavedCitiesSnapshot();
+
+  if (!isCloudSyncEnabled()) {
+    options.onCloudUpdate?.(localCities);
+    return createSyncResult(localCities, "ready");
+  }
 
   try {
     const snap = await getDoc(getCitiesDocRef());

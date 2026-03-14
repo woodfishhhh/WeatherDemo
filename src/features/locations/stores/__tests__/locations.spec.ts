@@ -149,4 +149,77 @@ describe("useLocationsStore", () => {
     expect(store.syncStatus).toBe("recoverable-error");
     expect(store.syncErrorReason).toBe("Cloud sync failed");
   });
+
+  it("does not let initial saved-city hydration overwrite a new save", async () => {
+    type DeferredLoadResult = {
+      cities: Array<Record<string, string>>;
+      syncStatus: "ready";
+    };
+
+    let resolveLoad: ((value: DeferredLoadResult) => void) | null = null;
+
+    loadSavedCitiesWithSyncMock.mockImplementation(
+      () => new Promise<DeferredLoadResult>((resolve) => {
+        resolveLoad = resolve;
+      })
+    );
+
+    const store = useLocationsStore();
+    const loadPromise = store.loadSavedCities();
+
+    await store.toggleSavedCity({
+      id: beijingLocation.id,
+      province: beijingLocation.province,
+      city: beijingLocation.name,
+      locationId: beijingLocation.id,
+      latitude: beijingLocation.latitude,
+      longitude: beijingLocation.longitude,
+    });
+
+    expect(store.isLocationSaved(beijingLocation)).toBe(true);
+
+    if (resolveLoad) {
+      (resolveLoad as (value: DeferredLoadResult) => void)({
+        cities: [],
+        syncStatus: "ready",
+      });
+    }
+    await loadPromise;
+
+    expect(store.isLocationSaved(beijingLocation)).toBe(true);
+    expect(store.savedCities).toHaveLength(1);
+  });
+
+  it("reflects a saved city immediately while persistence is still in flight", async () => {
+    let resolveSave: ((value: { cities: Array<Record<string, string>>; syncStatus: "ready" }) => void) | null = null;
+
+    saveSavedCitiesMock.mockImplementation(
+      () => new Promise<{ cities: Array<Record<string, string>>; syncStatus: "ready" }>((resolve) => {
+        resolveSave = resolve;
+      })
+    );
+
+    const store = useLocationsStore();
+    const togglePromise = store.toggleSavedCity({
+      id: beijingLocation.id,
+      province: beijingLocation.province,
+      city: beijingLocation.name,
+      locationId: beijingLocation.id,
+      latitude: beijingLocation.latitude,
+      longitude: beijingLocation.longitude,
+    });
+
+    expect(store.isLocationSaved(beijingLocation)).toBe(true);
+    expect(store.savedCities).toHaveLength(1);
+
+    if (resolveSave) {
+      (resolveSave as (value: { cities: Array<Record<string, string>>; syncStatus: "ready" }) => void)({
+        cities: store.savedCities,
+        syncStatus: "ready",
+      });
+    }
+
+    await togglePromise;
+    expect(store.isLocationSaved(beijingLocation)).toBe(true);
+  });
 });

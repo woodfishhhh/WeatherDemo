@@ -1,5 +1,5 @@
 import { isAxiosError } from "axios";
-import { appEnv, hasQWeatherApiKey } from "@/config/env";
+import { appEnv } from "@/config/env";
 import { httpClient } from "@/lib/http/client";
 import type {
   AirQualityState,
@@ -275,12 +275,6 @@ export const __resetQWeatherRequestCache = (): void => {
 
   if (typeof window !== "undefined") {
     window.sessionStorage.removeItem(AIR_QUALITY_CAPABILITY_KEY);
-  }
-};
-
-const ensureQWeatherReady = (): void => {
-  if (!hasQWeatherApiKey()) {
-    throw new Error("Missing QWeather API key. Please set VITE_QWEATHER_API_KEY.");
   }
 };
 
@@ -597,8 +591,6 @@ export const searchLocations = async (
     return [];
   }
 
-  ensureQWeatherReady();
-
   try {
     const { data } = await httpClient.get<QWeatherResponse<QWeatherLocation>>(
       `${appEnv.qweather.geoBaseUrl}/v2/city/lookup`,
@@ -625,8 +617,6 @@ export const lookupLocationByCoordinates = async (
   longitude: number | string,
   latitude: number | string
 ): Promise<LocationRecord | null> => {
-  ensureQWeatherReady();
-
   try {
     const { data } = await httpClient.get<QWeatherResponse<QWeatherLocation>>(
       `${appEnv.qweather.geoBaseUrl}/v2/city/lookup`,
@@ -681,8 +671,6 @@ const getLocationQuery = (location: Pick<LocationRecord, "id" | "latitude" | "lo
 
 export const getCurrentWeather = async (location: LocationRecord): Promise<CurrentConditions | null> => {
   return withDatasetCache("current", [getLocationQuery(location)], async () => {
-    ensureQWeatherReady();
-
     try {
       const { data } = await httpClient.get<QWeatherResponse<never>>(`${appEnv.qweather.weatherBaseUrl}/v7/weather/now`, {
         params: {
@@ -700,8 +688,6 @@ export const getCurrentWeather = async (location: LocationRecord): Promise<Curre
 
 export const getHourlyForecast = async (location: LocationRecord): Promise<HourlyForecastPoint[]> => {
   return withDatasetCache("hourly", [getLocationQuery(location)], async () => {
-    ensureQWeatherReady();
-
     try {
       const { data } = await httpClient.get<QWeatherResponse<never>>(
         `${appEnv.qweather.weatherBaseUrl}/v7/weather/24h`,
@@ -722,8 +708,6 @@ export const getHourlyForecast = async (location: LocationRecord): Promise<Hourl
 
 export const getDailyForecast = async (location: LocationRecord): Promise<DailyForecastPoint[]> => {
   return withDatasetCache("daily", [getLocationQuery(location)], async () => {
-    ensureQWeatherReady();
-
     try {
       const { data } = await httpClient.get<QWeatherResponse<never>>(
         `${appEnv.qweather.weatherBaseUrl}/v7/weather/7d`,
@@ -744,8 +728,6 @@ export const getDailyForecast = async (location: LocationRecord): Promise<DailyF
 
 export const getAirQuality = async (location: LocationRecord): Promise<AirQualityState> => {
   return withDatasetCache("air-quality", [getLocationQuery(location)], async () => {
-    ensureQWeatherReady();
-
     if (readAirQualityCapability() === "unauthorized") {
       return {
         status: "unavailable",
@@ -810,8 +792,6 @@ export const getHistoricalTrends = async (
   const dates = buildHistoricalDateRange(options.days, options.endDate);
 
   return withDatasetCache("historical-trends", [getLocationQuery(location), dates.join(",")], async () => {
-    ensureQWeatherReady();
-
     try {
       const responses = await Promise.all(
         dates.map((date) =>
