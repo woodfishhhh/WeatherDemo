@@ -2,7 +2,9 @@
   <div
     class="app-shell flex flex-col min-h-screen bg-surface text-surface-text font-sans selection:bg-brand-primary selection:text-brand-text relative overflow-hidden">
     <div class="app-shell__glow app-shell__glow--top pointer-events-none absolute inset-x-0 top-0 z-0 h-[34rem]"></div>
-    <div class="app-shell__glow app-shell__glow--bottom pointer-events-none absolute inset-x-0 bottom-[-12rem] z-0 h-[28rem]"></div>
+    <div
+      class="app-shell__glow app-shell__glow--bottom pointer-events-none absolute inset-x-0 bottom-[-12rem] z-0 h-[28rem]">
+    </div>
     <div class="wave-lines pointer-events-none fixed inset-0 z-0 opacity-30">
       <div class="wave-line top-[20%]" ref="line1"></div>
       <div class="wave-line top-[50%]" ref="line2"></div>
@@ -22,26 +24,34 @@
 </template>
 
 <script setup lang="ts">
-  import { nextTick, onMounted, onUnmounted, ref, shallowRef } from 'vue';
+  import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
+  import { storeToRefs } from 'pinia';
   import { RouterView } from 'vue-router';
   import SiteNavigation from './components/SiteNavigation.vue';
   import Lenis from 'lenis';
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useTheme } from './composables/useTheme';
+  import { useTheme } from './composables/useTheme';
+  import { useSettingsStore } from '@/features/settings/stores/settings';
 
   gsap.registerPlugin(ScrollTrigger);
 
   const line1 = ref<HTMLElement | null>(null);
   const line2 = ref<HTMLElement | null>(null);
   const line3 = ref<HTMLElement | null>(null);
-  const prefersReducedMotion = shallowRef(false);
+  const systemReducedMotion = shallowRef(false);
 
   const { theme, initializeTheme, toggleTheme } = useTheme();
+  const settingsStore = useSettingsStore();
+  settingsStore.hydrate();
+  const { reducedMotion } = storeToRefs(settingsStore);
+  const prefersReducedMotion = computed(() => systemReducedMotion.value || reducedMotion.value === true);
 
   let lenis: Lenis | null = null;
+  let lenisTicker: ((time: number) => void) | null = null;
   let reduceMotionMedia: MediaQueryList | null = null;
   let reduceMotionListener: ((event: MediaQueryListEvent) => void) | null = null;
+  let waveTweens: gsap.core.Tween[] = [];
 
   type ViewTransitionLike = {
     ready: Promise<void>;
@@ -72,6 +82,64 @@ import { useTheme } from './composables/useTheme';
     root.style.removeProperty('--theme-switch-radius');
   };
 
+  const clearWaveTweens = () => {
+    for (const tween of waveTweens) {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    }
+
+    waveTweens = [];
+    gsap.set([line1.value, line2.value, line3.value], {
+      clearProps: 'transform',
+    });
+  };
+
+  const syncMotionMode = () => {
+    document.documentElement.dataset.motion = prefersReducedMotion.value ? 'reduced' : 'full';
+
+    if (prefersReducedMotion.value) {
+      lenis?.stop();
+      clearWaveTweens();
+      return;
+    }
+
+    lenis?.start();
+    clearWaveTweens();
+
+    waveTweens = [
+      gsap.to(line1.value, {
+        y: '-200px',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: 'body',
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 1,
+        },
+      }),
+      gsap.to(line2.value, {
+        y: '100px',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: 'body',
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 1.5,
+        },
+      }),
+      gsap.to(line3.value, {
+        y: '-150px',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: 'body',
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.5,
+        },
+      }),
+    ];
+  };
+
   const handleThemeToggle = ({ x, y }: { x: number; y: number }) => {
     setThemeTransitionOrigin(x, y);
 
@@ -95,10 +163,11 @@ import { useTheme } from './composables/useTheme';
   onMounted(() => {
     initializeTheme();
     setThemeTransitionOrigin(window.innerWidth / 2, window.innerHeight / 2);
+
     reduceMotionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
-    prefersReducedMotion.value = reduceMotionMedia.matches;
+    systemReducedMotion.value = reduceMotionMedia.matches;
     reduceMotionListener = (event: MediaQueryListEvent) => {
-      prefersReducedMotion.value = event.matches;
+      systemReducedMotion.value = event.matches;
     };
     reduceMotionMedia.addEventListener('change', reduceMotionListener);
 
@@ -115,56 +184,39 @@ import { useTheme } from './composables/useTheme';
 
     lenis.on('scroll', ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
+    lenisTicker = (time) => {
       lenis?.raf(time * 1000);
-    });
+    };
 
+    gsap.ticker.add(lenisTicker);
     gsap.ticker.lagSmoothing(0, 0);
+    syncMotionMode();
+  });
 
-    // Parallax waves
-    gsap.to(line1.value, {
-      y: '-200px',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: 'body',
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: 1
-      }
-    });
-    gsap.to(line2.value, {
-      y: '100px',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: 'body',
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: 1.5
-      }
-    });
-    gsap.to(line3.value, {
-      y: '-150px',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: 'body',
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: 0.5
-      }
-    });
+  watch(prefersReducedMotion, () => {
+    syncMotionMode();
   });
 
   onUnmounted(() => {
+    clearWaveTweens();
     if (lenis) {
       lenis.destroy();
+    }
+    if (lenisTicker) {
+      gsap.ticker.remove(lenisTicker);
     }
     if (reduceMotionMedia && reduceMotionListener) {
       reduceMotionMedia.removeEventListener('change', reduceMotionListener);
     }
   });
 
-  // Page transition animations
   const onEnter = (el: Element, done: () => void) => {
+    if (prefersReducedMotion.value) {
+      gsap.set(el, { opacity: 1, y: 0, scale: 1 });
+      done();
+      return;
+    }
+
     gsap.fromTo(el,
       { opacity: 0, y: 30, scale: 0.98 },
       { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: 'power4.out', onComplete: done }
@@ -172,6 +224,12 @@ import { useTheme } from './composables/useTheme';
   };
 
   const onLeave = (el: Element, done: () => void) => {
+    if (prefersReducedMotion.value) {
+      gsap.set(el, { opacity: 0, y: 0, scale: 1 });
+      done();
+      return;
+    }
+
     gsap.to(el, { opacity: 0, y: -20, scale: 0.98, duration: 0.8, ease: 'power3.inOut', onComplete: done });
   };
 </script>
@@ -239,16 +297,27 @@ import { useTheme } from './composables/useTheme';
     z-index: 1;
   }
 
+  html[data-motion='reduced'] .wave-lines {
+    opacity: 0.08;
+  }
+
+  html[data-motion='reduced']::view-transition-old(*),
+  html[data-motion='reduced']::view-transition-new(*) {
+    animation: none;
+  }
+
   @keyframes theme-clip-reveal {
     0% {
       clip-path: circle(0 at var(--theme-switch-x) var(--theme-switch-y));
     }
+
     100% {
       clip-path: circle(var(--theme-switch-radius) at var(--theme-switch-x) var(--theme-switch-y));
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
+
     ::view-transition-old(*),
     ::view-transition-new(*) {
       animation-duration: 0.01ms !important;

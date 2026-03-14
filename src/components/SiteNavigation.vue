@@ -1,5 +1,6 @@
 <template>
   <header
+    data-testid="site-navigation"
     class="fixed top-0 w-full z-50 transition-all duration-500 py-4 px-4 md:px-12 flex justify-between items-center gap-3">
     <RouterLink :to="{ name: 'home' }"
       class="group min-w-0 flex items-center gap-2 rounded-full border border-brand-primary/10 bg-brand-accent/72 px-3 py-2 md:px-4 md:py-3 backdrop-blur-xl">
@@ -8,6 +9,28 @@
     </RouterLink>
 
     <div class="flex items-center gap-2 sm:gap-3">
+      <nav class="flex items-center gap-2">
+        <RouterLink
+          :to="{ name: 'workspace' }"
+          data-testid="nav-workspace-link"
+          :aria-current="route.name === 'workspace' ? 'page' : undefined"
+          class="flex h-11 items-center justify-center rounded-full border border-brand-primary/10 bg-brand-accent/72 px-4 backdrop-blur-xl transition-colors duration-300 hover:border-brand-primary/24"
+          :class="route.name === 'workspace' ? 'text-brand-text border-brand-primary/24' : 'text-brand-muted/88'"
+        >
+          <span class="text-[10px] sm:hidden uppercase tracking-[0.24em] font-bold">WS</span>
+          <span class="hidden sm:inline text-[10px] uppercase tracking-[0.28em] font-bold">Workspace</span>
+        </RouterLink>
+        <RouterLink
+          :to="{ name: 'settings' }"
+          data-testid="nav-settings-link"
+          :aria-current="route.name === 'settings' ? 'page' : undefined"
+          class="flex h-11 items-center justify-center rounded-full border border-brand-primary/10 bg-brand-accent/72 px-4 backdrop-blur-xl transition-colors duration-300 hover:border-brand-primary/24"
+          :class="route.name === 'settings' ? 'text-brand-text border-brand-primary/24' : 'text-brand-muted/88'"
+        >
+          <span class="text-[10px] sm:hidden uppercase tracking-[0.24em] font-bold">SET</span>
+          <span class="hidden sm:inline text-[10px] uppercase tracking-[0.28em] font-bold">Settings</span>
+        </RouterLink>
+      </nav>
       <button
         @click="emitThemeToggle"
         class="flex h-11 w-11 items-center justify-center rounded-full border border-brand-primary/10 bg-brand-accent/72 backdrop-blur-xl hover:opacity-60 transition-opacity duration-300"
@@ -17,6 +40,7 @@
         <MoonStar v-else class="w-5 h-5" stroke-width="1.5" />
       </button>
       <button @click="toggleModal"
+        data-testid="nav-about-button"
         class="flex h-11 w-11 items-center justify-center rounded-full border border-brand-primary/10 bg-brand-accent/72 backdrop-blur-xl hover:opacity-60 transition-opacity duration-300"
         aria-label="About this project / 关于这个项目">
         <Info class="w-5 h-5" stroke-width="1.5" />
@@ -53,7 +77,7 @@
 
 <script setup lang="ts">
   import { ref } from 'vue';
-  import { RouterLink } from 'vue-router';
+  import { RouterLink, useRoute } from 'vue-router';
   import { Info, MoonStar, SunMedium, User } from 'lucide-vue-next';
   import BilingualStack from '@/components/BilingualStack.vue';
   import type { ThemeMode } from '@/composables/useTheme';
@@ -67,6 +91,7 @@
   }>();
 
   const showModal = ref(false);
+  const route = useRoute();
 
   const emitThemeToggle = (event: MouseEvent) => {
     const target = event.currentTarget as HTMLElement | null;
