@@ -1,7 +1,10 @@
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { httpClient } from "@/lib/http/client";
 import { server } from "@/test/msw/server";
 import {
+  __resetQWeatherRequestCache,
+  getAirQuality,
   getCurrentWeather,
   getHistoricalTrends,
   QWeatherAdapterError,
@@ -9,6 +12,11 @@ import {
 } from "@/features/weather/services/qweather";
 
 describe("QWeather provider error handling", () => {
+  beforeEach(() => {
+    __resetQWeatherRequestCache();
+    vi.restoreAllMocks();
+  });
+
   it("throws typed adapter errors for malformed current weather payloads", async () => {
     server.use(
       http.get("https://mock-api.qweather.test/v7/weather/now", () =>
@@ -97,5 +105,87 @@ describe("QWeather provider error handling", () => {
       dataset: "historical-trends",
       code: "invalid-payload",
     });
+  });
+
+  it("falls back to a recoverable unavailable AQI state until capability is reset", async () => {
+    server.use(
+      http.get("https://mock-api.qweather.test/v7/air/now", () =>
+        HttpResponse.json(
+          {
+            error: {
+              status: 403,
+              title: "Forbidden",
+            },
+          },
+          { status: 403 }
+        )
+      )
+    );
+
+    const [location] = await searchLocations("北京");
+    expect(location).toBeDefined();
+
+    if (!location) {
+      throw new Error("Expected a normalized location result.");
+    }
+
+    const getSpy = vi.spyOn(httpClient, "get");
+    const firstAttempt = await getAirQuality(location);
+
+    expect(firstAttempt).toMatchObject({
+      status: "unavailable",
+      data: null,
+    });
+    expect(firstAttempt.status === "unavailable" ? firstAttempt.reason : "").toContain("空气质量");
+    expect(getSpy).toHaveBeenCalledTimes(1);
+
+    server.use(
+      http.get("https://mock-api.qweather.test/v7/air/now", () =>
+        HttpResponse.json({
+          code: "200",
+          now: {
+            aqi: "52",
+            category: "良",
+            primary: "PM10",
+            pm2p5: "16",
+            pm10: "35",
+            no2: "12",
+            so2: "5",
+            co: "0.7",
+            o3: "61",
+          },
+        })
+      )
+    );
+
+    const cachedCapabilityFallback = await getAirQuality(location);
+
+    expect(cachedCapabilityFallback).toMatchObject({
+      status: "unavailable",
+      data: null,
+    });
+    expect(getSpy).toHaveBeenCalledTimes(1);
+
+    __resetQWeatherRequestCache();
+
+    const recoveredAttempt = await getAirQuality(location);
+
+    expect(recoveredAttempt).toEqual({
+      status: "available",
+      data: {
+        aqi: "52",
+        category: "良",
+        primary: "PM10",
+        pollutants: [
+          { label: "PM2.5", value: "16" },
+          { label: "PM10", value: "35" },
+          { label: "NO2", value: "12" },
+          { label: "SO2", value: "5" },
+          { label: "CO", value: "0.7" },
+          { label: "O3", value: "61" },
+        ],
+      },
+    });
+    expect(getSpy).toHaveBeenCalledTimes(2);
   });
 });
