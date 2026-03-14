@@ -501,7 +501,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
 
   **Commit**: YES | Message: `feat(weather): add historical trend charts` | Files: [`src/components/charts/**`, `src/features/trends/**`, `tests/e2e/city-trends.spec.ts`]
 
-- [ ] 10. Add the multi-city workspace dashboard route
+- [x] 10. Add the multi-city workspace dashboard route
 
   **What to do**: Create a new route-level workspace at `/workspace` with route name `workspace` for multi-city monitoring, grouped saved locations, quick compare modules, and route-deep-linked dashboard filters. Default groups are `all`, `favorites`, and `recent`. Reuse the chart/panel system from Tasks 8-9 and the persistence model from Task 4.
   **Must NOT do**: Must not turn the app into a dense admin dashboard, and must not duplicate city-detail widgets instead of composing reusable modules.
@@ -541,7 +541,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
 
   **Commit**: YES | Message: `feat(workspace): add multi-city monitoring route` | Files: [`src/router/index.ts`, `src/views/WorkspaceView.vue`, `src/features/workspace/**`, `tests/e2e/workspace.spec.ts`]
 
-- [ ] 11. Add settings and personalization controls
+- [x] 11. Add settings and personalization controls
 
   **What to do**: Create a settings route at `/settings` with route name `settings` and a settings store for temperature units, wind units, timezone display policy (`location` vs `device`), reduced motion preference, dashboard defaults, and provider-safe personalization toggles; persist only durable preferences.
   **Must NOT do**: Must not persist temporary panel-open state, and must not bypass the browser’s reduced-motion preference.
@@ -581,7 +581,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
 
   **Commit**: YES | Message: `feat(settings): add platform personalization controls` | Files: [`src/views/SettingsView.vue`, `src/features/settings/**`, `tests/e2e/settings.spec.ts`]
 
-- [ ] 12. Expand the reusable monochrome UI system and navigation shell
+- [x] 12. Expand the reusable monochrome UI system and navigation shell
 
   **What to do**: Add reusable panel, stat row, chart frame, empty-state, skeleton, and error-state components so all new routes share one visual grammar; extend navigation to surface the workspace and settings routes while preserving the existing restrained brand behavior.
   **Must NOT do**: Must not redesign the shell into a generic sidebar app, and must not break the existing `SiteNavigation` modal/about behavior.
@@ -622,7 +622,7 @@ Wave 3: platform surface and polish (Tasks 10-13)
 
   **Commit**: YES | Message: `feat(ui): add reusable platform panels and navigation updates` | Files: [`src/components/platform/**`, `src/components/SiteNavigation.vue`, `tests/e2e/navigation.spec.ts`]
 
-- [ ] 13. Perform caching, resilience, and performance hardening
+- [x] 13. Perform caching, resilience, and performance hardening
 
   **What to do**: Add cache TTL policy by dataset (`current`: 10 min, `hourly`: 30 min, `daily`: 60 min, `air quality`: 60 min, `historical trends`: 24 h, `search suggestions`: no cache), request deduplication, home-search cancellation, saved-location hydration batching, reduced-motion-safe animation guards, and route-level loading/error recovery so the platform behaves credibly under real usage.
   **Must NOT do**: Must not reintroduce direct component fetches, and must not leave N+1 saved-city hydration unresolved.

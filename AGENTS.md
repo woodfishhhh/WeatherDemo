@@ -1,25 +1,76 @@
-# Repository Guidelines
+# PROJECT KNOWLEDGE BASE
 
-## Project Structure & Module Organization
-This repository is a Vite + Vue 3 weather app written in TypeScript-flavored Vue files. Application code lives in `src/`: `views/` holds route-level pages, `components/` contains reusable UI, `router/` defines navigation, and `services/` stores browser-side data helpers such as saved cities. Global bootstrapping starts in `src/main.ts`, shared styling lives in `src/style.css`, and static assets belong in `public/`. Build output is generated in `dist/` and should not be edited manually.
+**Generated:** 2026-03-14
+**Commit:** 42ad8a0
+**Branch:** main
 
-## Build, Test, and Development Commands
-- `npm install`: install dependencies.
-- `npm run dev`: start the Vite dev server on port `4173`.
-- `npm run build`: run `vue-tsc --build` and then create the production bundle.
-- `npm run preview`: serve the built app locally for a production-like check.
-- `npm run type-check`: run Vue/TypeScript type checking without bundling.
+## OVERVIEW
+Vue 3 + Vite weather app with Pinia stores, Vue Router routes, QWeather-backed data services, and Firebase-backed saved-location sync. App code is concentrated in `src/`; browser E2E coverage lives in `tests/e2e`.
 
-Run `npm run build` before opening a PR so both type checks and production bundling are exercised.
+## STRUCTURE
+```text
+weather/
+├── src/                  # app source, generated Vue d.ts files, shared test harness
+├── tests/e2e/            # Playwright browser flows
+├── public/               # static assets only
+├── dist/                 # generated build output; deploy target
+├── vite.config.ts        # alias + auto-import/component generation + chunking
+├── vitest.config.ts      # unit test scope under src/
+├── playwright.config.ts  # e2e scope + dev-server contract
+└── .env.example          # env contract for QWeather + Firebase
+```
 
-## Coding Style & Naming Conventions
-Follow the existing Vue 3 structure: prefer single-file components, keep reusable UI in `src/components`, and reserve `src/views` for route pages. Use PascalCase for component filenames (`CityCard.vue`), camelCase for utilities (`savedCities.ts`), and keep route names and URL segments consistent with existing patterns. Match the surrounding file style when editing; this codebase currently mixes quote styles and spacing, so consistency within a file matters more than reformatting unrelated code. No ESLint or Prettier config is committed yet, so keep diffs focused and readable.
+## WHERE TO LOOK
+| Task | Location | Notes |
+|------|----------|-------|
+| App bootstrap | `src/main.ts`, `src/App.vue` | installs Pinia/router, hydrates settings, wires global shell |
+| Route contracts | `src/router/index.ts`, `src/views/` | route files are mostly thin wrappers |
+| Shared UI | `src/components/` | reusable Vue components and charts |
+| Domain logic | `src/features/` | real feature code lives here |
+| Env + infra | `src/config/env.ts`, `src/lib/http/client.ts`, `src/firebase.ts` | QWeather/Firebase boundaries |
+| Legacy compatibility | `src/services/savedCities.ts` | re-export shim into locations persistence |
+| Unit/integration tests | `src/**/__tests__`, `src/test/` | Vitest + MSW setup under `src/test` |
+| Browser E2E | `tests/e2e/` | Playwright specs against `127.0.0.1:4173` |
 
-## Testing Guidelines
-There is no dedicated unit-test suite yet. Until one is added, treat `npm run type-check`, `npm run build`, and a quick manual browser pass through the home and city detail views as the minimum verification set. If you add tests later, place them next to the feature or under a `tests/` folder and use `*.spec.ts` naming.
+## CODE MAP
+| Symbol | Type | Location | Role |
+|--------|------|----------|------|
+| `app` | constant | `src/main.ts` | Vue bootstrap |
+| `router` | constant | `src/router/index.ts` | route table + title hook |
+| `useLocationsStore` | store | `src/features/locations/stores/locations.ts` | search, geolocation, saved-city sync |
+| `useWorkspaceDashboard` | composable | `src/features/workspace/composables/useWorkspaceDashboard.ts` | cross-feature workspace orchestration |
+| `getCityWeatherBundle` | service fn | `src/features/weather/services/qweather.ts` | main weather aggregation entry point |
 
-## Commit & Pull Request Guidelines
-Recent history uses short, imperative commits such as `chore: remove hardcoded api keys to .env`; follow that pattern and prefer prefixes like `feat:`, `fix:`, and `chore:`. Keep each commit scoped to one change. PRs should include a brief summary, note any environment or Firebase changes, link related issues, and attach screenshots or short recordings for UI updates.
+## CONVENTIONS
+- Use `@` for `src` imports.
+- `src/views` stays route-facing; heavy page logic usually lives in `src/features/*` or shared components.
+- `src/services/` is not the main service layer anymore; new domain services usually belong under `src/features/*/services`.
+- `src/auto-imports.d.ts` and `src/components.d.ts` are generated by Vite plugins.
+- Component filenames use PascalCase; utilities and stores use camelCase within surrounding file style.
 
-## Security & Configuration Tips
-Secrets currently load from `.env`. Never commit real API keys or Firebase credentials, and document any new environment variables in the PR description until a checked-in `.env.example` is added.
+## ANTI-PATTERNS (THIS PROJECT)
+- Do not edit `dist/` manually.
+- Do not hand-edit generated declaration files in `src/auto-imports.d.ts` or `src/components.d.ts`.
+- Do not commit real `.env` secrets or Firebase credentials.
+- Do not place Playwright specs under `src`; keep browser flows in `tests/e2e`.
+
+## UNIQUE STYLES
+- Hybrid structure: classic `views/components/router` layout plus feature-sliced domains under `src/features`.
+- Thin-route pattern: `src/views/*` often delegate into feature-local composables or feature components.
+- Weather payloads are normalized into bilingual domain types before UI consumption.
+
+## COMMANDS
+```bash
+npm install
+npm run dev         # Vite on :4173
+npm run type-check  # vue-tsc --build
+npm run build       # type-check + vite build
+npm run test:unit   # vitest run
+npm run test:e2e    # playwright test
+npm run preview
+```
+
+## NOTES
+- `npm run build` is the main pre-PR verification gate.
+- Firebase hosting and Netlify both publish from `dist/`.
+- Supported Node version: `^20.19.0 || >=22.12.0`.
