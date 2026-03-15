@@ -1,6 +1,6 @@
 <template>
   <main class="w-full relative z-10">
-    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-24">
+    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-12">
       <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full gap-24">
         <HomeSearchHero v-model="searchQuery" :error-message="errorMessage" :is-loading="isLoading"
           :is-searching="isSearching" :search-results="searchResults" :show-tips="showTips" @blur-input="onInputBlur"
@@ -8,7 +8,7 @@
       </div>
     </section>
 
-    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-24">
+    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-12">
       <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full">
         <HomeCurrentLocationSection :current-location="currentLocation" :format-temperature="formatTemperature"
           :format-wind="formatWind" :is-locating="isLocating" :location-error-message="locationErrorMessage"
@@ -16,13 +16,13 @@
       </div>
     </section>
 
-    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-24">
+    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-12">
       <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full">
         <HomeSavedLocationsSection @open-saved-city="openSavedCity" />
       </div>
     </section>
 
-    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-24">
+    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-12">
       <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full">
         <HomeWorkspaceShortcutsSection :compare-preview="comparePreview" :recent-locations="recentLocations"
           :workspace-shortcut-summary="workspaceShortcutSummary" @open-compare-city="openCompareCity"
