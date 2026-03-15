@@ -1,59 +1,73 @@
 <template>
-  <div class="max-w-4xl mx-auto w-full relative group mb-20 md:mb-32 mt-10 sm:mt-12">
-    <h1
-      class="block text-[17vw] sm:text-[18vw] md:text-9xl font-bold tracking-[-0.06em] md:tracking-tighter leading-[0.86] mb-4 sm:mb-5 md:mb-4 static md:absolute md:-top-32 md:-left-16 opacity-80 pointer-events-none select-none max-w-full">
-      FORECAST
-    </h1>
-    <input
-      v-model="searchQuery"
-      data-testid="home-search-input"
-      type="text"
-      placeholder="Enter location / 输入城市"
-      aria-label="Search location / 搜索城市"
-      @focus="emit('focus-input')"
-      @blur="emit('blur-input')"
-      @keydown.enter.prevent="emit('select-first-tip')"
-      class="py-3 sm:py-4 md:py-6 w-full bg-transparent border-b-2 border-brand-primary/70 placeholder:text-brand-muted/55 text-[8vw] sm:text-4xl md:text-6xl font-light tracking-tight leading-none focus:outline-none focus:border-brand-primary transition-all duration-700"
-    />
-
-    <div
-      class="absolute right-0 bottom-4 md:bottom-6 pointer-events-none text-brand-secondary/60 text-xs md:text-sm uppercase tracking-[0.3em] font-medium hidden md:block">
-      <span v-if="isSearching" class="animate-pulse">Searching / 搜索中</span>
-      <span v-else>Search / 搜索</span>
+  <div class="w-full relative group mb-32 mt-16 sm:mt-24">
+    <div class="mb-8 pointer-events-none select-none -ml-2 sm:-ml-4 relative">
+      <BilingualStack en="Forecast" zh="气象探索" wrapper-class="absolute -top-12 left-2 sm:left-4 z-10"
+        en-class="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-brand-muted/60"
+        zh-class="text-sm md:text-base font-light tracking-[0.1em]" />
+      <h1
+        class="block text-[22vw] sm:text-[20vw] md:text-[180px] font-bold tracking-tighter leading-[0.8] opacity-90 uppercase">
+        FORECAST.
+      </h1>
     </div>
 
-    <transition name="fade">
-      <ul
-        v-if="showTips && searchResults.length"
-        data-testid="search-results"
-        class="absolute left-0 right-0 top-full mt-3 bg-brand-accent/90 border border-brand-primary/12 shadow-2xl shadow-black/40 z-30 backdrop-blur-xl">
-        <li
-          v-for="tip in searchResults"
-          :key="tip.id"
-          data-testid="search-result-item"
-          @mousedown.prevent="emit('select-tip', tip)"
-          class="px-4 py-4 sm:px-5 sm:py-5 md:px-6 md:py-8 cursor-pointer hover:bg-brand-primary hover:text-brand-text transition-colors duration-500 flex flex-col gap-2 md:flex-row md:justify-between md:items-end border-b border-brand-primary/8 last:border-0 group/item">
-          <p class="text-xl sm:text-2xl md:text-4xl font-light tracking-tight">{{ tip.name }}</p>
-          <p
-            class="text-xs md:text-sm uppercase tracking-widest opacity-60 group-hover/item:opacity-80 transition-opacity duration-500">
-            {{ tip.province }}{{ tip.district ? ` · ${tip.district}` : '' }}
-          </p>
-        </li>
-      </ul>
-    </transition>
+    <div class="relative w-full md:w-3/4 lg:w-2/3 ml-auto border-t-2 border-brand-primary pt-8 mt-12 pr-4 md:pr-0">
+      <div class="flex items-end justify-between w-full">
+        <input v-model="searchQuery" data-testid="home-search-input" type="text" placeholder="SEARCH LOCATION"
+          aria-label="Search location" @focus="emit('focus-input')" @blur="emit('blur-input')"
+          @keydown.enter.prevent="emit('select-first-tip')"
+          class="w-full bg-transparent placeholder:text-brand-muted/30 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight leading-none focus:outline-none transition-all duration-700 uppercase" />
+        <div class="hidden sm:block text-brand-secondary/80 shrink-0 transition-opacity">
+          <BilingualStack v-if="isSearching" en="Locating..." zh="定位中..." class="animate-pulse"
+            en-class="text-xs uppercase tracking-widest" zh-class="text-xs opacity-60 text-right" />
+          <BilingualStack v-else en="Search ↗" zh="搜索" en-class="text-xs uppercase tracking-widest"
+            zh-class="text-xs opacity-60 text-right" />
+        </div>
+      </div>
 
-    <p v-if="errorMessage" data-testid="search-error" class="mt-8 text-sm text-red-400 tracking-[0.18em]">
-      {{ errorMessage }}
-    </p>
-    <p
-      v-if="!isSearching && !isLoading && !searchResults.length && searchQuery.trim()"
-      class="mt-8 text-sm text-brand-muted/80 tracking-[0.18em] fade-in">
-      NO RESULTS FOUND / 未找到匹配城市
-    </p>
+      <transition name="fade">
+        <ul v-if="showTips && searchResults.length" data-testid="search-results"
+          class="absolute left-0 right-0 top-full mt-8 bg-surface border-y-2 border-brand-primary shadow-2xl z-30 py-4">
+          <li v-for="(tip, index) in searchResults" :key="tip.id" data-testid="search-result-item"
+            :style="{ transitionDelay: `${index * 50}ms` }" @mousedown.prevent="emit('select-tip', tip)"
+            class="px-6 py-6 sm:px-10 sm:py-8 cursor-pointer hover:bg-brand-primary hover:text-brand-text transition-all duration-500 flex flex-col md:flex-row md:justify-between border-b border-brand-primary/10 last:border-0 group/item items-start md:items-center">
+            <BilingualStack :en="tip.name" :zh="tip.name" as="span"
+              wrapper-class="flex flex-col-reverse md:flex-row md:items-baseline md:gap-4"
+              en-class="text-3xl sm:text-5xl font-semibold tracking-tighter uppercase"
+              zh-class="text-xl md:text-2xl font-light opacity-60" />
+            <BilingualStack :en="tip.province || tip.name"
+              :zh="tip.district ? tip.province + ' — ' + tip.district : tip.province" as="span"
+              wrapper-class="flex flex-col items-start md:items-end mt-4 md:mt-0"
+              en-class="text-sm md:text-base uppercase tracking-[0.2em] opacity-50 group-hover/item:opacity-100 transition-opacity duration-500 font-light"
+              zh-class="text-sm font-light opacity-40 group-hover/item:opacity-80" />
+          </li>
+        </ul>
+      </transition>
+
+      <p v-if="errorMessage" data-testid="search-error" class="mt-12">
+        <BilingualStack en="System Error" :zh="errorMessage"
+          en-class="text-xs text-red-500 uppercase font-bold tracking-[0.2em]" zh-class="text-sm text-red-400 mt-2" />
+      </p>
+      <p v-if="!isSearching && !isLoading && !searchResults.length && searchQuery.trim()" class="mt-12">
+        <BilingualStack en="Location Uncharted" zh="未找到该位置"
+          en-class="text-xs text-brand-muted/60 uppercase tracking-[0.2em] font-medium"
+          zh-class="text-sm text-brand-muted/40 mt-2" />
+      </p>
+
+      <div v-show="!searchQuery" class="mt-8 flex items-center gap-4">
+        <button v-for="city in randomCities" :key="city.id" type="button"
+          @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
+          class="px-4 py-2 border border-brand-primary/10 rounded-full hover:border-brand-primary hover:bg-brand-primary/5 transition-all duration-300 flex items-center gap-2 group">
+          <span class="text-sm font-light tracking-wide group-hover:text-brand-secondary transition-colors">{{ city.name }}</span>
+          <span class="text-[10px] uppercase tracking-[0.2em] font-medium text-brand-muted/40">{{ city.enName }}</span>
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+  import { ref, onMounted } from 'vue';
+  import BilingualStack from '@/components/BilingualStack.vue';
   import type { LocationRecord } from '@/features/weather/types';
 
   const searchQuery = defineModel<string>({
@@ -74,9 +88,40 @@
     (event: 'select-first-tip'): void;
     (event: 'select-tip', tip: LocationRecord): void;
   }>();
+
+  const allPopularCities = [
+    { id: "101010100", name: "北京", enName: "Beijing", province: "北京市" },
+    { id: "101020100", name: "上海", enName: "Shanghai", province: "上海市" },
+    { id: "101280101", name: "广州", enName: "Guangzhou", province: "广东省" },
+    { id: "101280601", name: "深圳", enName: "Shenzhen", province: "广东省" },
+    { id: "101270101", name: "成都", enName: "Chengdu", province: "四川省" },
+    { id: "101040100", name: "重庆", enName: "Chongqing", province: "重庆市" },
+    { id: "101210101", name: "杭州", enName: "Hangzhou", province: "浙江省" },
+    { id: "101200101", name: "武汉", enName: "Wuhan", province: "湖北省" },
+    { id: "101110101", name: "西安", enName: "Xi'an", province: "陕西省" },
+    { id: "101030100", name: "天津", enName: "Tianjin", province: "天津市" },
+    { id: "101190401", name: "苏州", enName: "Suzhou", province: "江苏省" },
+    { id: "101190101", name: "南京", enName: "Nanjing", province: "江苏省" },
+    { id: "101250101", name: "长沙", enName: "Changsha", province: "湖南省" },
+    { id: "101180101", name: "郑州", enName: "Zhengzhou", province: "河南省" },
+    { id: "101281601", name: "东莞", enName: "Dongguan", province: "广东省" },
+    { id: "101120201", name: "青岛", enName: "Qingdao", province: "山东省" },
+    { id: "101220101", name: "合肥", enName: "Hefei", province: "安徽省" },
+    { id: "101280800", name: "佛山", enName: "Foshan", province: "广东省" },
+    { id: "101070101", name: "沈阳", enName: "Shenyang", province: "辽宁省" },
+    { id: "101240101", name: "南昌", enName: "Nanchang", province: "江西省" }
+  ];
+
+  const randomCities = ref<typeof allPopularCities>([]);
+
+  onMounted(() => {
+    const shuffled = [...allPopularCities].sort(() => 0.5 - Math.random());
+    randomCities.value = shuffled.slice(0, 5);
+  });
 </script>
 
 <style scoped>
+
   .fade-enter-active,
   .fade-leave-active {
     transition: opacity 0.5s ease, transform 0.5s ease;

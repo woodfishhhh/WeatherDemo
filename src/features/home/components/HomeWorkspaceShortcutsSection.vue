@@ -1,88 +1,77 @@
 <template>
-  <div class="flex items-center gap-4 sm:gap-6">
-    <div class="w-10 sm:w-12 md:w-16 h-[2px] bg-brand-primary"></div>
-    <p class="text-[10px] md:text-xs tracking-[0.26em] sm:tracking-[0.34em] font-bold">PLATFORM ENTRY / 平台入口</p>
+  <div class="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 mb-10 w-full lg:w-2/3">
+    <div class="flex-1 h-[1px] bg-brand-primary/20 w-full md:w-auto"></div>
+    <BilingualStack en="WORKSPACE PLATFORM" zh="工作区平台" wrapper-class="flex items-center gap-3" en-class="text-xs md:text-sm tracking-[0.4em] font-medium uppercase shrink-0" zh-class="text-sm font-light shrink-0 opacity-60" />
   </div>
 
-  <section data-testid="workspace-shortcuts" class="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-5 md:gap-6">
-    <PlatformPanel tone="elevated" class="px-5 py-6 md:px-8 md:py-8">
-      <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70">Workspace / 工作台</p>
-          <p class="mt-4 text-2xl md:text-4xl font-light tracking-tight">Monitor saved cities without breaking the home rhythm.</p>
-          <p class="mt-3 text-sm leading-7 text-brand-muted/72 max-w-2xl">
-            Use the workspace to compare your saved list, reopen recent cities, and carry the route handoff forward after a city-detail detour.
-          </p>
+  <section data-testid="workspace-shortcuts"
+    class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start w-full mx-auto md:w-5/6">
+    <div class="border-t-2 border-brand-primary/20 pt-8 flex flex-col h-full group">
+      <div>
+        <BilingualStack en="Orchestration" zh="气象调度场" wrapper-class="flex flex-col gap-1 mb-6" en-class="text-[10px] uppercase tracking-[0.4em] font-medium text-brand-muted/70" zh-class="text-xs font-light opacity-60" />
+        <BilingualStack en="The strategic overview of your monitored ecosystems." zh="掌控并对比您关注的全球气象动态" wrapper-class="flex flex-col gap-4 mt-4" en-class="text-3xl md:text-5xl font-medium tracking-tighter leading-[1.1]" zh-class="text-xl font-light opacity-80" />
+        <BilingualStack en="Seamlessly navigate between saved coordinates, reopen recent analyses, and maintain global atmospheric awareness." zh="在已保存的城市和历史记录间无缝切换，建立全球气象认知。" wrapper-class="flex flex-col gap-2 mt-6" en-class="text-base font-light leading-relaxed text-brand-secondary" zh-class="text-sm font-light opacity-60 text-brand-secondary" />
+      </div>
+
+      <div class="mt-12 mb-12 flex gap-8">
+        <div class="flex flex-col gap-2">
+          <span class="text-5xl font-light tracking-tighter">{{ workspaceShortcutSummary.savedCount }}</span>
+          <BilingualStack en="Saved" zh="已收藏" en-class="text-[10px] uppercase tracking-[0.3em] text-brand-muted" zh-class="text-xs font-light opacity-60" />
         </div>
-        <div class="grid grid-cols-3 gap-3 md:min-w-[16rem]">
-          <PlatformStatRow label="Saved" :value="workspaceShortcutSummary.savedCount" tone="transparent" />
-          <PlatformStatRow label="Recent" :value="workspaceShortcutSummary.recentCount" tone="transparent" />
-          <PlatformStatRow label="Compare" :value="workspaceShortcutSummary.compareCount" tone="transparent" />
+        <div class="flex flex-col gap-2">
+          <span class="text-5xl font-light tracking-tighter opacity-70">{{ workspaceShortcutSummary.recentCount }}</span>
+          <BilingualStack en="Recent" zh="最近访问" en-class="text-[10px] uppercase tracking-[0.3em] text-brand-muted" zh-class="text-xs font-light opacity-60" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-5xl font-light tracking-tighter opacity-40">{{ workspaceShortcutSummary.compareCount }}</span>
+          <BilingualStack en="Compare" zh="对比分析" en-class="text-[10px] uppercase tracking-[0.3em] text-brand-muted" zh-class="text-xs font-light opacity-60" />
         </div>
       </div>
 
-      <div class="mt-8 flex flex-col md:flex-row gap-3">
-        <button
-          type="button"
-          @click="emit('open-workspace', 'all')"
-          class="inline-flex items-center justify-center rounded-full border border-brand-primary/18 px-5 py-3 text-xs uppercase tracking-[0.3em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text">
-          Open Workspace / 打开工作台
-        </button>
-        <button
-          type="button"
-          @click="emit('open-workspace', 'recent')"
-          class="inline-flex items-center justify-center rounded-full border border-brand-primary/12 px-5 py-3 text-xs uppercase tracking-[0.3em] font-bold text-brand-muted/85 transition-colors duration-300 hover:border-brand-primary/28 hover:text-brand-primary">
-          View Recent / 查看最近
+      <div class="mt-auto flex flex-col gap-6 pt-8 border-t border-brand-primary/10">
+        <button type="button" @click="emit('open-workspace', 'all')"
+          class="text-left transition-all duration-300 hover:text-brand-secondary flex items-center justify-between group-hover:pl-4">
+          <BilingualStack en="Enter Workspace" zh="进入工作台" wrapper-class="flex flex-col gap-1" en-class="text-sm uppercase tracking-[0.3em] font-medium" zh-class="text-xs font-light opacity-60" />
+          <span class="ml-4 text-xl">↗</span>
         </button>
       </div>
-    </PlatformPanel>
+    </div>
 
-    <div class="grid grid-cols-1 gap-5">
-      <PlatformPanel tone="elevated" class="px-5 py-6 md:px-7 md:py-7">
-        <p class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70">Recent Locations / 最近查看</p>
-        <div v-if="recentLocations.length" class="mt-5 flex flex-wrap gap-3">
-          <button
-            v-for="city in recentLocations"
-            :key="city.id"
-            type="button"
-            data-testid="recent-location-chip"
+    <div class="flex flex-col gap-16 lg:mt-32">
+      <div class="border-b border-brand-primary/20 pb-8">
+        <BilingualStack en="Recent Atlas" zh="历史访问轨迹" wrapper-class="flex flex-col gap-1 mb-8" en-class="text-[10px] uppercase tracking-[0.4em] font-medium text-brand-muted/70" zh-class="text-xs font-light opacity-60" />
+        
+        <div v-if="recentLocations.length" class="flex flex-wrap gap-4">
+          <button v-for="city in recentLocations" :key="city.id" type="button" data-testid="recent-location-chip"
             @click="emit('open-recent-city', city)"
-            class="rounded-full border border-brand-primary/12 px-4 py-2 text-xs uppercase tracking-[0.24em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text">
-            {{ city.city }}
+            class="pb-1 border-b border-brand-primary/30 transition-all duration-300 hover:border-brand-primary hover:text-brand-secondary">
+            <BilingualStack :en="city.city" :zh="city.city" wrapper-class="flex flex-col items-start gap-1" en-class="text-sm uppercase tracking-[0.2em] font-medium" zh-class="text-xs font-light opacity-60" />
           </button>
         </div>
-        <p v-else class="mt-5 text-sm leading-7 text-brand-muted/68">
-          Recent locations appear here after you open city forecasts from search or saved cards.
-        </p>
-      </PlatformPanel>
+        <BilingualStack v-else en="The history slate remains unmarked." zh="尚无气象访问记录" en-class="text-lg font-light text-brand-muted/68" zh-class="text-sm font-light text-brand-muted/40 mt-1" />
+      </div>
 
-      <PlatformPanel tone="elevated" class="px-5 py-6 md:px-7 md:py-7">
-        <p class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70">Quick Compare / 快速对比</p>
-        <div v-if="comparePreview.length" class="mt-5 space-y-3">
-          <div v-for="city in comparePreview" :key="city.id" class="flex items-center justify-between gap-4">
+      <div>
+        <BilingualStack en="Comparative Analysis" zh="气象对比分析" wrapper-class="flex flex-col gap-1 mb-8" en-class="text-[10px] uppercase tracking-[0.4em] font-medium text-brand-muted/70" zh-class="text-xs font-light opacity-60" />
+        <div v-if="comparePreview.length" class="space-y-6">
+          <div v-for="city in comparePreview" :key="city.id"
+            class="flex items-end justify-between gap-6 group/city cursor-pointer"
+            @click="emit('open-compare-city', city)">
             <div>
-              <p class="text-xl font-light tracking-tight">{{ city.city }}</p>
-              <p class="mt-1 text-[10px] uppercase tracking-[0.22em] text-brand-muted/68">{{ city.province }}</p>
+              <BilingualStack :en="city.city" :zh="city.city" wrapper-class="group-hover/city:translate-x-2 transition-transform duration-500 flex items-center gap-3" en-class="text-3xl font-medium tracking-tight uppercase" zh-class="text-xl font-light opacity-60" />
+              <BilingualStack :en="city.province" :zh="city.province" wrapper-class="mt-2" en-class="text-[10px] uppercase tracking-[0.3em] text-brand-muted/68" zh-class="hidden" />
             </div>
-            <button
-              type="button"
-              @click="emit('open-compare-city', city)"
-              class="rounded-full border border-brand-primary/12 px-4 py-2 text-[10px] uppercase tracking-[0.24em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text">
-              Open / 打开
-            </button>
+            <BilingualStack en="Compare ↗" zh="分析" wrapper-class="opacity-0 group-hover/city:opacity-100 transition-opacity duration-300 flex items-center gap-2" en-class="text-xs uppercase tracking-[0.3em] font-light" zh-class="text-xs font-light opacity-60" />
           </div>
         </div>
-        <p v-else class="mt-5 text-sm leading-7 text-brand-muted/68">
-          Save two cities and the compare launch surface will stay ready here.
-        </p>
-      </PlatformPanel>
+        <BilingualStack v-else en="Select multiple coordinates to initiate comparative telemetry." zh="尚未选择对比城市" en-class="text-lg font-light text-brand-muted/68" zh-class="text-sm font-light text-brand-muted/40 mt-1" />
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-  import PlatformPanel from '@/components/platform/PlatformPanel.vue';
-  import PlatformStatRow from '@/components/platform/PlatformStatRow.vue';
+  import BilingualStack from '@/components/BilingualStack.vue';
   import type { SavedCity } from '@/features/locations/services/persistence';
 
   defineProps<{

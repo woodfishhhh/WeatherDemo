@@ -1,64 +1,61 @@
 <template>
   <div
-    class="relative group grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 md:gap-4 items-start sm:items-center py-6 md:py-8 border-b border-brand-primary/10 cursor-pointer hover:border-brand-primary/55 transition-colors duration-500 overflow-hidden"
-  >
-    <div class="flex flex-col col-span-1 sm:col-span-2 md:col-span-1 z-10">
-      <h2 class="text-3xl md:text-4xl font-light tracking-tight group-hover:translate-x-4 transition-transform duration-700 ease-out">
-        {{ city.city }}
-      </h2>
-      <p v-if="weatherData" class="text-[10px] md:text-xs uppercase tracking-[0.3em] font-bold text-brand-muted/85 mt-2">
-        {{ weatherData.province }}
+    class="relative group flex flex-col md:flex-row items-start md:items-end justify-between py-10 md:py-16 border-b border-brand-primary/20 cursor-pointer overflow-hidden transition-all duration-700 hover:border-brand-primary">
+    <div
+      class="flex flex-col z-10 w-full md:w-1/2 group-hover:translate-x-6 transition-transform duration-700 ease-out">
+      <p v-if="weatherData"
+        class="flex flex-col gap-1 mb-4 md:mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <span class="text-[10px] md:text-sm uppercase tracking-[0.4em] font-medium text-brand-muted/70">{{
+          weatherData.province }} — DOMAIN</span>
       </p>
-    </div>
-
-    <div v-if="weatherData" class="col-span-1 flex flex-col z-10">
-      <div class="flex items-start gap-3">
-        <i :class="`qi-${weatherData.icon}`" class="weather-glyph text-lg"></i>
-        <div class="flex flex-col gap-1">
-          <p class="text-[10px] uppercase tracking-[0.24em] font-bold text-brand-secondary/85">
-            {{ weatherData.textBilingual.en }}
-          </p>
-          <p class="text-sm font-medium tracking-[0.08em]">{{ weatherData.textBilingual.zh }}</p>
-        </div>
-      </div>
-      <p class="text-[10px] md:text-xs tracking-[0.24em] font-bold text-brand-muted/85 mt-2">Conditions / 天气概况</p>
-    </div>
-
-    <div v-if="weatherData" class="col-span-1 flex flex-col z-10">
-      <p class="text-sm uppercase tracking-widest font-medium">H: {{ weatherData.humidity }}% / Wind: {{ formatWind({ scale: weatherData.windScale }) }}</p>
-      <p class="text-[10px] md:text-xs tracking-[0.24em] font-bold text-brand-muted/85 mt-2">Details / 细节</p>
-    </div>
-
-    <div class="flex justify-between sm:justify-end items-center col-span-1 sm:col-span-2 md:col-span-1 z-10 gap-4">
-      <p v-if="weatherData" class="text-5xl md:text-7xl font-light tracking-tighter">{{ formatTemperature(weatherData.temperature) }}</p>
-      <button
-        @click.stop="deleteCity"
-        aria-label="Remove saved location / 移除已收藏城市"
-        class="remove-action md:hidden pointer-events-auto flex items-center gap-2 border border-brand-primary/15 rounded-full px-4 py-2 text-[10px] uppercase tracking-[0.28em] font-bold hover:bg-brand-primary hover:text-brand-text transition-colors duration-300"
-      >
-        <span class="remove-label">Remove / 移除</span>
-      </button>
+      <BilingualStack :en="city.city" :zh="city.city" wrapper-class="flex flex-col gap-2"
+        en-class="text-4xl md:text-7xl font-bold tracking-tighter leading-none uppercase"
+        zh-class="text-2xl md:text-4xl font-light opacity-60" />
     </div>
 
     <div
-      class="city-card-hover-overlay absolute inset-y-0 right-0 z-20 text-brand-text flex items-center justify-end px-6 md:px-8 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none transform origin-right scale-x-0 group-hover:scale-x-100 ease-in-out"
-    >
-      <button
-        @click.stop="deleteCity"
-        aria-label="Remove saved location / 移除已收藏城市"
-        class="remove-action pointer-events-auto flex items-center gap-3 hover:opacity-50 transition-opacity uppercase tracking-[0.3em] text-xs font-bold mt-12 mb-12"
-      >
-        <span class="remove-label">Remove / 移除</span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="remove-icon h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      class="flex flex-col md:flex-row md:items-end gap-8 md:gap-16 z-10 mt-8 md:mt-0 w-full md:w-auto justify-between md:justify-end">
+      <div v-if="weatherData" class="flex items-center gap-6">
+        <i :class="`qi-${weatherData.icon}`" class="weather-glyph text-3xl md:text-5xl opacity-80"></i>
+        <div class="flex flex-col">
+          <p class="text-sm md:text-lg font-medium tracking-tight uppercase">
+            {{ weatherData.textBilingual.en }}
+          </p>
+          <p class="text-xs md:text-sm font-light text-brand-secondary mt-1 tracking-wider">{{
+            weatherData.textBilingual.zh || 'Details' }}</p>
+        </div>
+      </div>
+
+      <div v-if="weatherData"
+        class="flex flex-col items-start md:items-end gap-2 border-l border-brand-primary/10 pl-6 md:pl-10">
+        <p class="text-5xl md:text-8xl font-medium tracking-tighter tabular-nums leading-none">{{
+          formatTemperature(weatherData.temperature).replace('°', '') }}<span
+            class="text-2xl md:text-4xl align-top text-brand-primary/50">°</span></p>
+        <p class="text-xs uppercase tracking-[0.3em] font-light text-brand-muted mt-2">
+          H:{{ weatherData.humidity }}%<span class="mx-3 opacity-30">|</span>W:{{ formatWind({
+            scale:
+              weatherData.windScale }) }}
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="absolute right-0 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none pr-8">
+      <button @click.stop="deleteCity" aria-label="Remove location"
+        class="pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-brand-primary/20 bg-surface hover:bg-brand-primary hover:text-brand-text transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
+      <span
+        class="text-[10px] uppercase tracking-[0.3em] font-medium text-brand-muted rotate-90 origin-right translate-y-12">REMOVE</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
   import { computed } from 'vue';
+  import BilingualStack from '@/components/BilingualStack.vue';
   import type { SavedCity } from '@/features/locations/services/persistence';
   import { useWeatherDisplayPreferences } from '@/features/settings/composables/useWeatherDisplayPreferences';
   import type { SavedCityWeatherSummary } from '@/features/weather/types';
@@ -86,51 +83,5 @@
 <style scoped>
   .weather-glyph {
     line-height: 1;
-  }
-
-  .remove-label {
-    display: inline-block;
-    transition:
-      transform 0.3s ease,
-      font-size 0.3s ease;
-  }
-
-  .remove-action:hover .remove-label,
-  .remove-label:hover {
-    transform: scale(1.08);
-    font-size: 1.08em;
-  }
-
-  .remove-icon {
-    transition: transform 0.3s ease;
-    transform-origin: center;
-  }
-
-  .remove-action:hover .remove-icon,
-  .remove-icon:hover {
-    transform: scale(1.24);
-  }
-
-  .city-card-hover-overlay {
-    left: 0;
-    background: linear-gradient(
-      to left,
-      rgb(0 0 0 / 1) 0%,
-      rgb(0 0 0 / 0.94) 28%,
-      rgb(0 0 0 / 0.56) 58%,
-      rgb(0 0 0 / 0) 100%
-    );
-  }
-
-  @media (min-width: 640px) {
-    .city-card-hover-overlay {
-      left: 18%;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .city-card-hover-overlay {
-      left: 38%;
-    }
   }
 </style>

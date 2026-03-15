@@ -1,23 +1,30 @@
 <template>
   <header data-testid="site-navigation"
     class="fixed top-0 w-full z-50 transition-all duration-700 py-6 px-6 md:px-12 flex justify-between items-center mix-blend-difference">
-    <RouterLink :to="{ name: 'home' }" class="group flex items-center gap-4">
-      <img src="/logo.png" alt="Logo"
-        class="h-6 md:h-8 w-auto transition-transform duration-700 group-hover:scale-105" />
-      <p class="text-sm md:text-base font-medium tracking-[0.4em] uppercase text-white">WTHR.studio</p>
+    <RouterLink :to="{ name: 'home' }" class="group flex items-center gap-4 text-white">
+      <LogoIcon class="h-6 md:h-8 w-auto transition-transform duration-700 group-hover:scale-105" />
+      <p class="text-sm md:text-base font-medium tracking-[0.4em] uppercase">WOODFISH.STUDIO</p>
     </RouterLink>
 
     <div class="flex items-center gap-6 md:gap-10">
-      <nav class="hidden sm:flex items-center gap-8">
-        <RouterLink :to="{ name: 'workspace' }" data-testid="nav-workspace-link"
-          class="text-xs uppercase tracking-[0.3em] font-medium transition-all duration-300 text-white opacity-60 hover:opacity-100"
-          :class="$route.name === 'workspace' ? 'opacity-100' : ''">
-          Workspace
-        </RouterLink>
-        <RouterLink :to="{ name: 'settings' }" data-testid="nav-settings-link"
-          class="text-xs uppercase tracking-[0.3em] font-medium transition-all duration-300 text-white opacity-60 hover:opacity-100"
-          :class="$route.name === 'settings' ? 'opacity-100' : ''">
-          Settings
+      <nav class="hidden sm:flex items-center gap-8 relative" @mouseleave="hoverIndex = null">
+        <!-- Animated Underline -->
+        <div
+          class="absolute -bottom-2 h-[2px] bg-white transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+          :style="underlineStyle"
+        ></div>
+
+        <RouterLink
+          v-for="(link, index) in navLinks"
+          :key="link.name"
+          :to="{ name: link.name }"
+          :data-testid="`nav-${link.name}-link`"
+          :ref="el => setNavRef(el, index)"
+          @mouseenter="hoverIndex = index"
+          class="text-xs uppercase tracking-[0.3em] font-medium transition-all duration-300 text-white"
+          :class="($route.name === link.name || hoverIndex === index) ? 'opacity-100' : 'opacity-60'"
+        >
+          {{ link.label }}
         </RouterLink>
       </nav>
 
@@ -56,11 +63,14 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue';
-  import { RouterLink } from 'vue-router';
+  import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+  import { RouterLink, useRoute } from 'vue-router';
   import { Info, MoonStar, SunMedium } from 'lucide-vue-next';
   import BilingualStack from '@/components/BilingualStack.vue';
+  import LogoIcon from '@/components/LogoIcon.vue';
   import type { ThemeMode } from '@/composables/useTheme';
+
+  const route = useRoute();
 
   const { theme } = defineProps<{
     theme: ThemeMode;
@@ -71,6 +81,57 @@
   }>();
 
   const showModal = ref(false);
+
+  const navLinks = [
+    { name: 'home', label: 'Home' },
+    { name: 'workspace', label: 'Workspace' },
+    { name: 'settings', label: 'Settings' }
+  ];
+
+  const navElements = ref<(HTMLElement | null)[]>([]);
+  const setNavRef = (el: unknown, index: number) => {
+    if (el) navElements.value[index] = (el as any).$el || el;
+  };
+
+  const hoverIndex = ref<number | null>(null);
+
+  const activeIndex = computed(() => {
+    if (hoverIndex.value !== null) return hoverIndex.value;
+    const idx = navLinks.findIndex(l => l.name === route.name);
+    return idx >= 0 ? idx : null;
+  });
+
+  const underlineStyle = ref({ left: '0px', width: '0px', opacity: 0 });
+
+  const updateUnderline = async () => {
+    await nextTick();
+    if (activeIndex.value === null) {
+      underlineStyle.value.opacity = 0;
+      return;
+    }
+    const target = navElements.value[activeIndex.value];
+    if (target) {
+      underlineStyle.value = {
+        left: `${target.offsetLeft}px`,
+        width: `${target.offsetWidth}px`,
+        opacity: 1
+      };
+    } else {
+      underlineStyle.value.opacity = 0;
+    }
+  };
+
+  watch(activeIndex, updateUnderline, { immediate: true });
+  watch(() => route.name, updateUnderline);
+
+  onMounted(() => {
+    setTimeout(updateUnderline, 100);
+    window.addEventListener('resize', updateUnderline);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', updateUnderline);
+  });
 
   const emitThemeToggle = (event: MouseEvent) => {
     const target = event.currentTarget as HTMLElement | null;

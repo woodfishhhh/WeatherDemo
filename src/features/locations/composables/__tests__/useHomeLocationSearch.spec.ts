@@ -86,6 +86,7 @@ const setupStores = (): void => {
     },
     weather: {
       temperature: "23",
+      text: "晴",
       textBilingual: {
         en: "Sunny",
         zh: "晴",
@@ -93,6 +94,8 @@ const setupStores = (): void => {
       icon: "100",
       humidity: "35",
       windScale: "3",
+      windSpeed: "12",
+      province: "Beijing",
     },
   });
   currentLocationStatusRef = shallowRef("ready");
@@ -229,6 +232,8 @@ describe("useHomeLocationSearch", () => {
         id: "450500",
         name: "Beihai",
         province: "Guangxi",
+        latitude: "21.48",
+        longitude: "109.12",
       },
     ];
     const beijingResults = [
@@ -236,6 +241,8 @@ describe("useHomeLocationSearch", () => {
         id: "101010100",
         name: "Beijing",
         province: "Beijing",
+        latitude: "39.90",
+        longitude: "116.40",
       },
     ];
 

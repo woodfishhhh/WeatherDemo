@@ -1,41 +1,34 @@
 <template>
-  <main
-    class="container relative z-10 pt-28 pb-20 sm:pt-32 md:pt-48 md:pb-32 min-h-screen flex flex-col justify-between">
-    <HomeSearchHero
-      v-model="searchQuery"
-      :error-message="errorMessage"
-      :is-loading="isLoading"
-      :is-searching="isSearching"
-      :search-results="searchResults"
-      :show-tips="showTips"
-      @blur-input="onInputBlur"
-      @focus-input="onInputFocus"
-      @select-first-tip="selectFirstTip"
-      @select-tip="selectTip"
-    />
+  <main class="w-full relative z-10">
+    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-24">
+      <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full gap-24">
+        <HomeSearchHero v-model="searchQuery" :error-message="errorMessage" :is-loading="isLoading"
+          :is-searching="isSearching" :search-results="searchResults" :show-tips="showTips" @blur-input="onInputBlur"
+          @focus-input="onInputFocus" @select-first-tip="selectFirstTip" @select-tip="selectTip" />
+      </div>
+    </section>
 
-    <div class="flex-1 flex flex-col gap-12 mt-auto">
-      <HomeCurrentLocationSection
-        :current-location="currentLocation"
-        :format-temperature="formatTemperature"
-        :format-wind="formatWind"
-        :is-locating="isLocating"
-        :location-error-message="locationErrorMessage"
-        @open-current-location="openCurrentLocation"
-        @request-current-location="requestCurrentLocation"
-      />
+    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-24">
+      <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full">
+        <HomeCurrentLocationSection :current-location="currentLocation" :format-temperature="formatTemperature"
+          :format-wind="formatWind" :is-locating="isLocating" :location-error-message="locationErrorMessage"
+          @open-current-location="openCurrentLocation" @request-current-location="requestCurrentLocation" />
+      </div>
+    </section>
 
-      <HomeWorkspaceShortcutsSection
-        :compare-preview="comparePreview"
-        :recent-locations="recentLocations"
-        :workspace-shortcut-summary="workspaceShortcutSummary"
-        @open-compare-city="openCompareCity"
-        @open-recent-city="openRecentCity"
-        @open-workspace="openWorkspace"
-      />
+    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-24">
+      <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full">
+        <HomeSavedLocationsSection @open-saved-city="openSavedCity" />
+      </div>
+    </section>
 
-      <HomeSavedLocationsSection @open-saved-city="openSavedCity" />
-    </div>
+    <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-24">
+      <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full">
+        <HomeWorkspaceShortcutsSection :compare-preview="comparePreview" :recent-locations="recentLocations"
+          :workspace-shortcut-summary="workspaceShortcutSummary" @open-compare-city="openCompareCity"
+          @open-recent-city="openRecentCity" @open-workspace="openWorkspace" />
+      </div>
+    </section>
   </main>
 </template>
 
