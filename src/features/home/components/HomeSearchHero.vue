@@ -52,16 +52,35 @@
           en-class="text-xs text-brand-muted/60 uppercase tracking-[0.2em] font-medium"
           zh-class="text-sm text-brand-muted/40 mt-2" />
       </p>
-
-      <div v-show="!searchQuery" class="mt-8 flex items-center gap-4">
-        <button v-for="city in randomCities" :key="city.id" type="button"
-          @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
-          class="px-4 py-2 border border-brand-primary/10 rounded-full hover:border-brand-primary hover:bg-brand-primary/5 transition-all duration-300 flex items-center gap-2 group">
-          <span class="text-sm font-light tracking-wide group-hover:text-brand-secondary transition-colors">{{ city.name }}</span>
-          <span class="text-[10px] uppercase tracking-[0.2em] font-medium text-brand-muted/40">{{ city.enName }}</span>
-        </button>
-      </div>
     </div>
+
+    <!-- 跑马灯占满屏幕宽度 -->
+    <transition name="fade">
+      <div v-show="!searchQuery" class="w-[100vw] relative left-1/2 -translate-x-1/2 mt-16 md:mt-24 pt-8 md:pt-12 border-t border-brand-primary/5 overflow-hidden mask-edges pb-4">
+        <div class="flex flex-col gap-6 w-full opacity-80 hover:opacity-100 transition-opacity duration-1000">
+          <!-- 中文行 (向右滚动) -->
+          <div class="flex w-max marquee-right hover:pause items-center">
+            <button v-for="(city, index) in doubledCities" :key="'zh-' + index" type="button"
+              @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
+              class="px-12 py-2 transition-all duration-700 flex items-center group opacity-30 hover:opacity-100 cursor-pointer">
+              <span
+                class="text-lg sm:text-xl md:text-2xl font-light tracking-[0.4em] text-brand-text whitespace-nowrap">{{
+                  city.name }}</span>
+            </button>
+          </div>
+          <!-- 英文行 (向左滚动) -->
+          <div class="flex w-max marquee-left hover:pause items-center -mt-2">
+            <button v-for="(city, index) in doubledCities" :key="'en-' + index" type="button"
+              @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
+              class="px-12 py-2 transition-all duration-700 flex items-center group opacity-20 hover:opacity-100 cursor-pointer">
+              <span
+                class="text-xs sm:text-sm md:text-base uppercase tracking-[0.5em] font-medium text-brand-text whitespace-nowrap">{{
+                  city.enName }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -113,14 +132,51 @@
   ];
 
   const randomCities = ref<typeof allPopularCities>([]);
+  const doubledCities = ref<typeof allPopularCities>([]);
 
   onMounted(() => {
     const shuffled = [...allPopularCities].sort(() => 0.5 - Math.random());
     randomCities.value = shuffled.slice(0, 5);
+    doubledCities.value = [...shuffled, ...shuffled, ...shuffled, ...shuffled];
   });
 </script>
 
 <style scoped>
+  .marquee-left {
+    animation: marquee-left 90s linear infinite;
+  }
+
+  .marquee-right {
+    animation: marquee-right 90s linear infinite;
+  }
+
+  .hover\:pause:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee-left {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes marquee-right {
+    0% {
+      transform: translateX(-50%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  /* 渐变遮罩边缘，让滚动看起来更自然且不突兀，两端留白更克制 */
+  .mask-edges {
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  }
 
   .fade-enter-active,
   .fade-leave-active {

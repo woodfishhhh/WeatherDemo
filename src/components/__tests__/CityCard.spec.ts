@@ -34,7 +34,7 @@ describe("CityCard", () => {
     expect(wrapper.text()).toContain("北京");
     expect(wrapper.text()).toContain("晴");
     expect(wrapper.text()).toContain("Sunny");
-    expect(wrapper.text()).toContain("23°C");
+    expect(wrapper.text()).toContain("23°");
 
     await wrapper.find("button").trigger("click");
     expect(wrapper.emitted("delete")).toEqual([["101010100"]]);

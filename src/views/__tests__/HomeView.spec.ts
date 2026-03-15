@@ -222,10 +222,10 @@ describe("HomeView", () => {
     expect((searchInput.element as HTMLInputElement).value).toBe("beijing");
     expect(wrapper.get('[data-testid="search-results"]').text()).toContain("Beijing");
     expect(wrapper.get('[data-testid="workspace-shortcuts"]').text()).toContain(
-      "Monitor saved cities without breaking the home rhythm."
+      "The strategic overview of your monitored ecosystems."
     );
     expect(wrapper.findAll('[data-testid="recent-location-chip"]')).toHaveLength(1);
-    expect(wrapper.text()).toContain("Quick Compare / 快速对比");
+    expect(wrapper.get('[data-testid="workspace-shortcuts"]').text()).toContain("Comparative Analysis");
     expect(wrapper.find('[data-testid="saved-locations-section"]').exists()).toBe(true);
   });
 
@@ -234,20 +234,12 @@ describe("HomeView", () => {
     useHomeLocationSearchMock.mockReturnValue(state);
 
     const wrapper = renderHomeView();
-    const workspaceButtons = wrapper
-      .findAll("button")
-      .filter((button) => button.text().includes("Workspace") || button.text().includes("Recent"));
-
-    await workspaceButtons[0]?.trigger("click");
-    await workspaceButtons[1]?.trigger("click");
+    await wrapper.get('[data-testid="open-workspace-button"]').trigger("click");
     await wrapper.get('[data-testid="recent-location-chip"]').trigger("click");
-    await wrapper
-      .findAll("button")
-      .find((button) => button.text().includes("Open / 打开"))
-      ?.trigger("click");
+    await wrapper.get('[data-testid="compare-preview-card"]').trigger("click");
 
-    expect(state.openWorkspace).toHaveBeenNthCalledWith(1, "all");
-    expect(state.openWorkspace).toHaveBeenNthCalledWith(2, "recent");
+    expect(state.openWorkspace).toHaveBeenCalledTimes(1);
+    expect(state.openWorkspace).toHaveBeenCalledWith("all");
     expect(state.openRecentCity).toHaveBeenCalledWith(state.recentLocations.value[0]);
     expect(state.openCompareCity).toHaveBeenCalledWith(state.comparePreview.value[0]);
   });
@@ -257,11 +249,9 @@ describe("HomeView", () => {
     useHomeLocationSearchMock.mockReturnValue(state);
 
     const wrapper = renderHomeView();
-    const currentLocationCard = wrapper
-      .findAll(".group.cursor-pointer")
-      .find((node) => node.text().includes("Conditions / 天气概况"));
+    const currentLocationCard = wrapper.get('[data-testid="current-location-card"]');
 
-    await currentLocationCard?.trigger("click");
+    await currentLocationCard.trigger("click");
 
     expect(state.openCurrentLocation).toHaveBeenCalledTimes(1);
   });
@@ -278,7 +268,7 @@ describe("HomeView", () => {
     useHomeLocationSearchMock.mockReturnValue(state);
 
     const wrapper = renderHomeView();
-    const currentLocationButton = wrapper.get('button[aria-label="Use current location / 使用当前位置"]');
+    const currentLocationButton = wrapper.get('[data-testid="request-current-location-button"]');
 
     expect(wrapper.get('[data-testid="search-error"]').text()).toContain("Search failed");
     expect(wrapper.text()).toContain("Permission denied");

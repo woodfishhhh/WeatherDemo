@@ -29,7 +29,7 @@
       </div>
 
       <div class="mt-auto flex flex-col gap-6 pt-8 border-t border-brand-primary/10">
-        <button type="button" @click="emit('open-workspace', 'all')"
+        <button type="button" data-testid="open-workspace-button" @click="emit('open-workspace', 'all')"
           class="text-left transition-all duration-300 hover:text-brand-secondary flex items-center justify-between group-hover:pl-4">
           <BilingualStack en="Enter Workspace" zh="进入工作台" wrapper-class="flex flex-col gap-1" en-class="text-sm uppercase tracking-[0.3em] font-medium" zh-class="text-xs font-light opacity-60" />
           <span class="ml-4 text-xl">↗</span>
@@ -55,6 +55,7 @@
         <BilingualStack en="Comparative Analysis" zh="气象对比分析" wrapper-class="flex flex-col gap-1 mb-8" en-class="text-[10px] uppercase tracking-[0.4em] font-medium text-brand-muted/70" zh-class="text-xs font-light opacity-60" />
         <div v-if="comparePreview.length" class="space-y-6">
           <div v-for="city in comparePreview" :key="city.id"
+            data-testid="compare-preview-card"
             class="flex items-end justify-between gap-6 group/city cursor-pointer"
             @click="emit('open-compare-city', city)">
             <div>

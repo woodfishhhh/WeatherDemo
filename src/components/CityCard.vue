@@ -1,5 +1,6 @@
 <template>
   <div
+    data-testid="city-card"
     class="relative group flex flex-col md:flex-row items-start md:items-end justify-between py-10 md:py-16 border-b border-brand-primary/20 cursor-pointer overflow-hidden transition-all duration-700 hover:border-brand-primary">
     <div
       class="flex flex-col z-10 w-full md:w-1/2 group-hover:translate-x-6 transition-transform duration-700 ease-out">
@@ -29,7 +30,7 @@
       <div v-if="weatherData"
         class="flex flex-col items-start md:items-end gap-2 border-l border-brand-primary/10 pl-6 md:pl-10">
         <p class="text-5xl md:text-8xl font-medium tracking-tighter tabular-nums leading-none">{{
-          formatTemperature(weatherData.temperature).replace('°', '') }}<span
+          formatTemperatureNumber(weatherData.temperature) }}<span
             class="text-2xl md:text-4xl align-top text-brand-primary/50">°</span></p>
         <p class="text-xs uppercase tracking-[0.3em] font-light text-brand-muted mt-2">
           H:{{ weatherData.humidity }}%<span class="mx-3 opacity-30">|</span>W:{{ formatWind({
@@ -78,6 +79,8 @@
   };
 
   const weatherData = computed(() => props.city.weather ?? null);
+  const formatTemperatureNumber = (value: string | undefined): string =>
+    formatTemperature(value).replace(/[^\d.-]/g, '');
 </script>
 
 <style scoped>
