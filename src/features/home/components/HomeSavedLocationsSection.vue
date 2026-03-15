@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 mb-10 w-full lg:w-2/3 ml-auto">
-    <BilingualStack en="ARCHIVED LOCATIONS" zh="已归档位置" wrapper-class="flex items-center gap-3" en-class="text-xs md:text-sm tracking-[0.4em] font-medium uppercase shrink-0" zh-class="text-sm font-light shrink-0 opacity-60" />
+    <BilingualStack en="ARCHIVED LOCATIONS" zh="已归档位置" wrapper-class="flex items-center gap-3" en-class="text-xs md:text-sm tracking-[0.4em] font-medium uppercase shrink-0" zh-class="text-sm font-zh-weight shrink-0 opacity-60" />
     <div class="flex-1 h-[1px] bg-brand-primary/20 w-full md:w-auto"></div>
   </div>
 
@@ -18,7 +18,7 @@
             zh="收藏城市优先关注"
             wrapper-class="flex flex-col gap-1"
             en-class="text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/70"
-            zh-class="text-xs font-light text-brand-muted/60"
+            zh-class="text-xs font-zh-weight text-brand-muted/60"
           />
           <p class="text-3xl md:text-4xl font-light tracking-tight">{{ props.savedCityIntelligence.city.city }}</p>
           <p class="text-sm leading-7 text-brand-muted/68">{{ props.savedCityIntelligence.summaryEn }}</p>

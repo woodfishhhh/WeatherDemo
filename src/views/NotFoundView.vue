@@ -18,11 +18,11 @@
           zh="页面缺席"
           wrapper-class="flex flex-col gap-3 mb-6"
           en-class="text-[10px] md:text-xs uppercase tracking-[0.45em] font-bold"
-          zh-class="text-base md:text-lg font-light tracking-[0.06em]"
+          zh-class="text-base md:text-lg font-zh-weight tracking-[0.06em]"
         />
         <div class="max-w-3xl space-y-4">
           <p class="text-6xl md:text-[7rem] leading-none tracking-tighter font-light">Forecast not found.</p>
-          <p class="text-3xl md:text-5xl leading-none tracking-tight font-light text-brand-muted/88">天气页面未找到。</p>
+          <p class="text-3xl md:text-5xl leading-none tracking-tight font-zh-weight text-brand-muted/88">天气页面未找到。</p>
         </div>
         <div class="mt-8 max-w-xl text-sm md:text-base leading-7 text-brand-muted/70 space-y-2">
           <p>The page you requested drifted out of range. Try heading back to the main search and pick a saved city from there.</p>

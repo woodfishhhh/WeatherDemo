@@ -24,7 +24,7 @@
               class="w-full md:w-auto px-6 py-3 border border-brand-primary/18 rounded-full transition-colors duration-300 text-sm tracking-widest uppercase hover:bg-brand-primary hover:text-brand-text disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-transparent disabled:hover:text-inherit"
               @click="openWorkspace">
               <BilingualStack :en="workspaceContinuation.label" zh="打开工作台" wrapper-class="flex items-center gap-2"
-                en-class="uppercase tracking-[0.3em] font-medium" zh-class="text-xs font-light opacity-80" />
+                en-class="uppercase tracking-[0.3em] font-medium" zh-class="text-xs font-zh-weight opacity-80" />
             </button>
           </div>
           <p data-testid="workspace-journey-note" class="max-w-md text-xs leading-6 text-brand-muted/72 md:text-right">
@@ -69,9 +69,9 @@
         <div class="col-span-1 md:col-span-3 flex flex-col justify-end h-full">
           <p class="text-xs tracking-[0.18em] text-brand-muted/75 mb-2">Location Details / 城市信息</p>
           <p class="text-lg font-light">{{ weatherData.location.province }}</p>
-          <p class="text-sm font-light text-brand-secondary mt-1">Updated / 更新时间: {{
+          <p class="text-sm font-zh-weight text-brand-secondary mt-1">Updated / 更新时间: {{
             formatDateTime(weatherData.current.observationTime) }}</p>
-          <p class="text-sm font-light text-brand-secondary mt-1">TZ / 时区: {{ weatherData.location.timezone || '--' }}
+          <p class="text-sm font-zh-weight text-brand-secondary mt-1">TZ / 时区: {{ weatherData.location.timezone || '--' }}
           </p>
         </div>
       </div>
@@ -79,7 +79,7 @@
 
     <div class="container mt-20" data-testid="city-hourly-strip" v-if="weatherData?.hourly.length">
       <div class="w-full flex items-center justify-between border-b border-brand-primary/10 pb-6 mb-8">
-        <h2 class="text-xl md:text-3xl font-light tracking-tight">24 Hour Outlook / 24 小时趋势</h2>
+        <h2 class="text-xl md:text-3xl font-zh-weight tracking-tight">24 Hour Outlook / 24 小时趋势</h2>
         <p class="text-xs tracking-[0.18em] text-brand-muted/75 hidden md:block">Next 8 points / 未来 8 个时段</p>
       </div>
 
@@ -100,7 +100,7 @@
 
     <div class="container mt-32" data-testid="city-daily-grid" v-if="weatherData?.daily.length">
       <div class="w-full flex items-center justify-between border-b-2 border-brand-primary pb-6 mb-12">
-        <h2 class="text-xl md:text-3xl font-light tracking-tight">Extended Forecast / 长周期预报</h2>
+        <h2 class="text-xl md:text-3xl font-zh-weight tracking-tight">Extended Forecast / 长周期预报</h2>
         <p class="text-xs tracking-[0.18em] text-brand-muted/75 hidden md:block">Next 7 Days / 未来 7 天</p>
       </div>
 
@@ -216,7 +216,7 @@
 
     <div class="container mt-20" v-if="historicalTrends.status === 'available' && historicalTrends.data.length">
       <div class="flex items-center justify-between border-b border-brand-primary/10 pb-6 mb-8">
-        <h2 class="text-xl md:text-3xl font-light tracking-tight">Historical Trends / 历史趋势</h2>
+        <h2 class="text-xl md:text-3xl font-zh-weight tracking-tight">Historical Trends / 历史趋势</h2>
         <p class="text-xs tracking-[0.18em] text-brand-muted/75 hidden md:block">Monochrome chart system / 单色图表系统</p>
       </div>
 

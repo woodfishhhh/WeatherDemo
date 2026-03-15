@@ -32,14 +32,14 @@
           zh="工作台分组"
           wrapper-class="flex flex-col gap-2"
           en-class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70"
-          zh-class="text-xs font-light text-brand-muted/60"
+          zh-class="text-xs font-zh-weight text-brand-muted/60"
         />
         <BilingualStack
           en="Switch the active lane without breaking the route contract."
           zh="无缝切换分组，保持路由状态不断联。"
           wrapper-class="flex flex-col gap-1"
-          en-class="text-2xl md:text-3xl font-light tracking-tight"
-          zh-class="text-xl md:text-2xl font-light tracking-tight text-brand-muted/80"
+          en-class="text-2xl md:text-3xl font-zh-weight tracking-tight"
+          zh-class="text-xl md:text-2xl font-zh-weight tracking-tight text-brand-muted/80"
         />
       </div>
 
@@ -49,7 +49,7 @@
           zh="当前分组"
           wrapper-class="flex items-center gap-3"
           en-class="text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/70"
-          zh-class="text-xs font-light text-brand-muted/60"
+          zh-class="text-xs font-zh-weight text-brand-muted/60"
         />
         <div class="relative">
           <select

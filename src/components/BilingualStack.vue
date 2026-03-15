@@ -19,7 +19,7 @@
     as: 'div',
     wrapperClass: 'flex flex-col gap-2',
     enClass: 'text-[10px] md:text-xs uppercase tracking-[0.3em] font-bold text-brand-muted/75',
-    zhClass: 'text-sm md:text-base font-light tracking-[0.04em]',
+    zhClass: 'text-sm md:text-base font-zh-weight tracking-[0.04em]',
   })
 
   const isRow = computed(() => props.wrapperClass?.includes('flex') && !props.wrapperClass?.includes('flex-col'))

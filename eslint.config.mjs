@@ -22,6 +22,9 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
       globals: {
         ...globals.browser,
         ...globals.node,
@@ -36,6 +39,7 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         parser: tseslint.parser,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
   },
@@ -51,5 +55,5 @@ export default tseslint.config(
       "no-console": "off",
       "vue/multi-word-component-names": "off",
     },
-  }
+  },
 );

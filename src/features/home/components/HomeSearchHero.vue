@@ -3,7 +3,7 @@
     <div class="mb-8 pointer-events-none select-none -ml-2 sm:-ml-4 relative">
       <BilingualStack en="Forecast" zh="气象探索" wrapper-class="absolute -top-12 left-2 sm:left-4 z-10"
         en-class="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-brand-muted/60"
-        zh-class="text-sm md:text-base font-light tracking-[0.1em]" />
+        zh-class="text-sm md:text-base font-zh-weight tracking-[0.1em]" />
       <h1
         class="block text-[22vw] sm:text-[20vw] md:text-[180px] font-bold tracking-tighter leading-[0.8] opacity-90 uppercase">
         FORECAST.
@@ -33,12 +33,12 @@
             <BilingualStack :en="tip.name" :zh="tip.name" as="span"
               wrapper-class="flex flex-col-reverse md:flex-row md:items-baseline md:gap-4"
               en-class="text-3xl sm:text-5xl font-semibold tracking-tighter uppercase"
-              zh-class="text-xl md:text-2xl font-light opacity-60" />
+              zh-class="text-xl md:text-2xl font-zh-weight opacity-60" />
             <BilingualStack :en="tip.province || tip.name"
               :zh="tip.district ? tip.province + ' — ' + tip.district : tip.province" as="span"
               wrapper-class="flex flex-col items-start md:items-end mt-4 md:mt-0"
               en-class="text-sm md:text-base uppercase tracking-[0.2em] opacity-50 group-hover/item:opacity-100 transition-opacity duration-500 font-light"
-              zh-class="text-sm font-light opacity-40 group-hover/item:opacity-80" />
+              zh-class="text-sm font-zh-weight opacity-40 group-hover/item:opacity-80" />
           </li>
         </ul>
       </transition>

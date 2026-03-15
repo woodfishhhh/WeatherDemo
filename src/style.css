@@ -10,6 +10,7 @@
   --color-surface-text: #f5f7fb;
 
   --font-sans: 'Inter', sans-serif;
+  --font-weight-zh-weight: 400;
 
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;

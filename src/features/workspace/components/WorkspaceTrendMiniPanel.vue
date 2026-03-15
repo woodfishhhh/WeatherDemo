@@ -84,7 +84,7 @@
       :zh="titleParts.zh"
       wrapper-class="flex flex-col gap-1"
       en-class="text-[10px] uppercase tracking-[0.24em] font-bold text-brand-muted/72"
-      zh-class="text-[10px] font-light text-brand-muted/60"
+      zh-class="text-[10px] font-zh-weight text-brand-muted/60"
     />
     <p v-else class="text-[10px] uppercase tracking-[0.24em] font-bold text-brand-muted/72">{{ props.title }}</p>
 

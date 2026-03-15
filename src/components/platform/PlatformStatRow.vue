@@ -73,7 +73,7 @@
       :zh="parsedLabel.zh"
       wrapper-class="flex flex-col gap-1"
       en-class="text-[10px] uppercase tracking-[0.22em] font-bold text-brand-muted/68"
-      zh-class="text-xs font-light text-brand-muted/50"
+      zh-class="text-xs font-zh-weight text-brand-muted/50"
     />
     <p class="mt-3" :class="valueClasses">{{ props.value }}</p>
     <BilingualStack

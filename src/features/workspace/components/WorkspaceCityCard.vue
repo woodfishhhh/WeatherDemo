@@ -40,14 +40,14 @@
           class="rounded-full border border-brand-primary/10 px-3 py-2 text-[10px] uppercase tracking-[0.22em] font-bold text-brand-muted/70 flex items-center gap-1"
         >
           <span>RECENT</span>
-          <span class="font-light tracking-normal opacity-70">最近</span>
+          <span class="font-zh-weight tracking-normal opacity-70">最近</span>
         </span>
         <span
           v-if="props.isFavorite"
           class="rounded-full border border-brand-primary/14 px-3 py-2 text-[10px] uppercase tracking-[0.22em] font-bold flex items-center gap-1"
         >
           <span>FAVORITE</span>
-          <span class="font-light tracking-normal opacity-80">关注</span>
+          <span class="font-zh-weight tracking-normal opacity-80">关注</span>
         </span>
       </div>
     </div>
@@ -77,8 +77,8 @@
           en="Summary unavailable"
           zh="概览不可用"
           wrapper-class="flex flex-col gap-1"
-          en-class="text-xl font-light tracking-tight"
-          zh-class="text-lg font-light tracking-tight text-brand-muted/80"
+          en-class="text-xl font-zh-weight tracking-tight"
+          zh-class="text-lg font-zh-weight tracking-tight text-brand-muted/80"
         />
         <BilingualStack
           en="The saved city is available, but its compact weather summary could not be resolved in this session."
@@ -94,8 +94,8 @@
           en="Summary loading..."
           zh="概览加载中..."
           wrapper-class="flex flex-col gap-1"
-          en-class="text-xl font-light tracking-tight"
-          zh-class="text-lg font-light tracking-tight text-brand-muted/80"
+          en-class="text-xl font-zh-weight tracking-tight"
+          zh-class="text-lg font-zh-weight tracking-tight text-brand-muted/80"
         />
         <BilingualStack
           en="Live summary data will hydrate here as the saved city cards settle."
@@ -112,7 +112,7 @@
           zh="当前"
           wrapper-class="flex flex-col gap-1 sm:items-end"
           en-class="text-[10px] uppercase tracking-[0.24em] font-bold text-brand-muted/70"
-          zh-class="text-xs font-light text-brand-muted/60"
+          zh-class="text-xs font-zh-weight text-brand-muted/60"
         />
         <p class="mt-3 text-5xl md:text-6xl font-light tracking-tighter">
           {{ props.summary ? formatTemperature(props.summary.temperature) : "--" }}
@@ -127,7 +127,7 @@
         @click.stop="emit('toggleFavorite', props.locationId)"
       >
         <span>{{ props.isFavorite ? "FAVORITED" : "FAVORITE" }}</span>
-        <span class="font-light tracking-normal opacity-70 font-sans">{{ props.isFavorite ? "已关注" : "关注" }}</span>
+        <span class="font-zh-weight tracking-normal opacity-70 font-sans">{{ props.isFavorite ? "已关注" : "关注" }}</span>
       </button>
       <button
         type="button"
@@ -135,7 +135,7 @@
         @click.stop="emit('toggleCompare', props.locationId)"
       >
         <span>{{ props.isCompared ? "COMPARING" : "COMPARE" }}</span>
-        <span class="font-light tracking-normal opacity-70 font-sans">{{ props.isCompared ? "对比中" : "对比" }}</span>
+        <span class="font-zh-weight tracking-normal opacity-70 font-sans">{{ props.isCompared ? "对比中" : "对比" }}</span>
       </button>
       <button
         type="button"
@@ -143,7 +143,7 @@
         @click.stop="emit('remove', props.city.id)"
       >
         <span>REMOVE</span>
-        <span class="font-light tracking-normal opacity-70 font-sans">移除</span>
+        <span class="font-zh-weight tracking-normal opacity-70 font-sans">移除</span>
       </button>
     </div>
   </article>

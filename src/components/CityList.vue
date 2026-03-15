@@ -8,7 +8,7 @@
         zh="暂无已收藏城市"
         wrapper-class="flex flex-col gap-2"
         en-class="text-xs uppercase tracking-[0.28em] sm:tracking-[0.3em] font-medium text-brand-muted/50"
-        zh-class="text-sm font-light text-brand-muted/60"
+        zh-class="text-sm font-zh-weight text-brand-muted/60"
       />
     </div>
   </div>

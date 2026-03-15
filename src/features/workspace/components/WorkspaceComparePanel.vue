@@ -94,7 +94,7 @@
           zh="快速对比"
           wrapper-class="flex flex-col gap-2"
           en-class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70"
-          zh-class="text-xs font-light text-brand-muted/60"
+          zh-class="text-xs font-zh-weight text-brand-muted/60"
         />
         <h2 class="text-2xl md:text-3xl font-light tracking-tight">
           Quiet cross-city signals, kept compact.
@@ -121,7 +121,7 @@
             zh="当前预设"
             wrapper-class="flex flex-col gap-1"
             en-class="text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/70"
-            zh-class="text-xs font-light text-brand-muted/60"
+            zh-class="text-xs font-zh-weight text-brand-muted/60"
           />
           <p class="text-2xl font-light tracking-tight">{{ props.preset.label }}</p>
         </div>
@@ -180,7 +180,7 @@
                 zh="当前"
                 wrapper-class="flex flex-col gap-1 items-end"
                 en-class="text-[10px] uppercase tracking-[0.24em] font-bold text-brand-muted/68"
-                zh-class="text-[10px] font-light text-brand-muted/50"
+                zh-class="text-[10px] font-zh-weight text-brand-muted/50"
               />
               <p class="mt-3 text-4xl font-light tracking-tighter">
                 {{ record.summary ? formatTemperature(record.summary.temperature) : "--" }}
@@ -195,7 +195,7 @@
               @click="emit('openCity', record.city)"
             >
               <span>OPEN</span>
-              <span class="text-[8px] font-light opacity-60 font-sans tracking-normal">打开</span>
+              <span class="text-[8px] font-zh-weight opacity-60 font-sans tracking-normal">打开</span>
             </button>
             <button
               type="button"
@@ -203,7 +203,7 @@
               @click="emit('toggleCompare', record.locationId)"
             >
               <span>RELEASE</span>
-              <span class="text-[8px] font-light opacity-60 font-sans tracking-normal">移出</span>
+              <span class="text-[8px] font-zh-weight opacity-60 font-sans tracking-normal">移出</span>
             </button>
           </div>
         </PlatformPanel>
@@ -240,7 +240,7 @@
                 zh="趋势速览"
                 wrapper-class="flex flex-col gap-1"
                 en-class="text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/70"
-                zh-class="text-[10px] font-light text-brand-muted/60"
+                zh-class="text-[10px] font-zh-weight text-brand-muted/60"
               />
               <p class="mt-3 text-2xl font-light tracking-tight">
                 {{ findTrendInsight(record.locationId)?.headline ?? "Trend snapshot" }}

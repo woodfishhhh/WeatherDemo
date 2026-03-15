@@ -48,7 +48,7 @@
       <div class="p-8 md:p-12 pb-16 text-surface-text border-l-2 border-brand-primary">
         <BilingualStack as="h2" en="Concept" zh="理念" wrapper-class="flex flex-col gap-4 mb-12"
           en-class="text-xs uppercase tracking-[0.5em] font-medium text-brand-muted/75"
-          zh-class="text-5xl font-light tracking-tighter" />
+          zh-class="text-5xl font-zh-weight tracking-tighter" />
         <div class="text-brand-secondary leading-relaxed font-light text-xl md:text-2xl mb-12 space-y-6">
           <p>A weather study in monochrome motion, designed to keep atmosphere legible without losing restraint.</p>
           <p class="text-lg opacity-80 font-medium">一款以黑白留白和克制动效呈现的天气可视化工具，用更安静的方式传达真实气象。</p>

@@ -2,7 +2,7 @@
   <div class="flex items-center gap-6 md:gap-12 mb-10 w-full md:w-3/4">
     <BilingualStack en="Current Location" zh="当前位置" wrapper-class="flex items-end gap-3"
       en-class="text-xs md:text-sm tracking-[0.4em] font-medium uppercase shrink-0"
-      zh-class="text-sm font-light shrink-0 opacity-60" />
+      zh-class="text-sm font-zh-weight shrink-0 opacity-60" />
     <div class="flex-1 h-[1px] bg-brand-primary/20"></div>
   </div>
 
@@ -16,13 +16,13 @@
           <BilingualStack :en="currentLocation.location.province || ''"
             :zh="currentLocation.location.district ? currentLocation.location.province + ' — ' + currentLocation.location.district : currentLocation.location.province"
             en-class="text-[10px] md:text-xs uppercase tracking-[0.3em] font-medium text-brand-muted mb-1 opacity-50"
-            zh-class="text-xs font-light opacity-40 mb-4" />
+            zh-class="text-xs font-zh-weight opacity-40 mb-4" />
 
           <BilingualStack :en="currentLocation.location.name"
             :zh="currentLocation.location.name"
             wrapper-class="flex flex-col gap-2 mb-6 group-hover:px-4 transition-all duration-500"
             en-class="text-5xl md:text-7xl font-bold tracking-tighter leading-none uppercase"
-            zh-class="text-2xl font-light opacity-60" />
+            zh-class="text-2xl font-zh-weight opacity-60" />
 
           <div class="flex items-center gap-6 mt-8">
             <i :class="`qi-${currentLocation.weather.icon}`" class="weather-glyph text-4xl"></i>
@@ -51,7 +51,7 @@
           </div>
           <BilingualStack en="Explore ↗" zh="探索"
             wrapper-class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2"
-            en-class="text-xs tracking-[0.4em] font-medium uppercase" zh-class="text-xs font-light opacity-60" />
+            en-class="text-xs tracking-[0.4em] font-medium uppercase" zh-class="text-xs font-zh-weight opacity-60" />
         </div>
       </div>
     </div>
@@ -59,10 +59,10 @@
     <div v-else class="flex flex-col gap-8 md:gap-12 border-l border-brand-primary/20 pl-6 md:pl-12 py-4">
       <div>
         <BilingualStack en="Discover Your Local Atmosphere" zh="探索本地气象" wrapper-class="flex flex-col gap-3 mb-6"
-          en-class="text-3xl md:text-5xl font-medium tracking-tighter" zh-class="text-xl font-light opacity-75" />
+          en-class="text-3xl md:text-5xl font-medium tracking-tighter" zh-class="text-xl font-zh-weight opacity-75" />
         <BilingualStack en="We can request browser location permission to resolve your city securely."
           zh="允许获取浏览器定位权限，我们将安全地解析您所在的城市。" wrapper-class="flex flex-col gap-2 text-brand-secondary"
-          en-class="text-lg font-light tracking-wide" zh-class="text-sm font-light opacity-60" />
+          en-class="text-lg font-zh-weight tracking-wide" zh-class="text-sm font-zh-weight opacity-60" />
       </div>
       <button type="button" data-testid="request-current-location-button" @click="emit('request-current-location')" :disabled="isLocating"
         aria-label="Use current location / 使用当前位置"
@@ -70,7 +70,7 @@
         <BilingualStack :en="isLocating ? 'Locating...' : 'Enable Location Services ↗'"
           :zh="isLocating ? '正在定位...' : '启用定位服务'" wrapper-class="flex items-center gap-3"
           en-class="text-sm md:text-base uppercase tracking-[0.3em] font-medium"
-          zh-class="text-sm font-light opacity-75" />
+          zh-class="text-sm font-zh-weight opacity-75" />
       </button>
     </div>
 

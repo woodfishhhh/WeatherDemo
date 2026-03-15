@@ -48,7 +48,7 @@
         zh="系统偏好设置"
         wrapper-class="flex flex-col gap-3"
         en-class="text-[10px] md:text-xs uppercase tracking-[0.38em] font-bold text-brand-muted/75"
-        zh-class="text-lg md:text-xl font-light tracking-[0.08em]"
+        zh-class="text-lg md:text-xl font-zh-weight tracking-[0.08em]"
       />
 
       <div class="mt-6 grid grid-cols-1 gap-8 xl:grid-cols-[1.08fr_0.92fr] xl:items-end">
@@ -56,7 +56,7 @@
           <p data-testid="settings-heading" class="text-5xl md:text-7xl font-light tracking-tighter">
             Platform preferences are now durable and visible.
           </p>
-          <p class="text-3xl md:text-5xl font-light tracking-tight text-brand-muted/88">
+          <p class="text-3xl md:text-5xl font-zh-weight tracking-tight text-brand-muted/88">
             平台偏好现在已经可持久保存，并真正作用到界面上。
           </p>
           <div class="max-w-3xl text-sm md:text-base leading-7 text-brand-muted/70 space-y-2 mt-4">

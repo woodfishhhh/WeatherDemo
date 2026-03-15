@@ -47,7 +47,7 @@
       :zh="parsedEyebrow.zh"
       wrapper-class="flex flex-col gap-1"
       en-class="text-[10px] uppercase tracking-[0.32em] font-bold text-brand-muted/72"
-      zh-class="text-xs font-light text-brand-muted/60"
+      zh-class="text-xs font-zh-weight text-brand-muted/60"
     />
     <BilingualStack
       v-if="parsedTitle"
@@ -55,7 +55,7 @@
       :zh="parsedTitle.zh"
       wrapper-class="flex flex-col gap-2 mt-4"
       en-class="text-2xl md:text-3xl font-light tracking-tight"
-      zh-class="text-xl md:text-2xl font-light tracking-tight text-brand-muted/80"
+      zh-class="text-xl md:text-2xl font-zh-weight tracking-tight text-brand-muted/80"
     />
     <BilingualStack
       v-if="parsedDescription"

@@ -11,7 +11,7 @@
       </p>
       <BilingualStack :en="city.city" :zh="city.city" wrapper-class="flex flex-col gap-2"
         en-class="text-4xl md:text-7xl font-bold tracking-tighter leading-none uppercase"
-        zh-class="text-2xl md:text-4xl font-light opacity-60" />
+        zh-class="text-2xl md:text-4xl font-zh-weight opacity-60" />
     </div>
 
     <div
