@@ -50,7 +50,7 @@ type WorkspaceTrendInsight = {
   headline: string;
   summary: string;
   detail: string;
-  status: "available" | "unavailable";
+  status: "available" | "loading" | "unavailable";
 };
 
 type WorkspaceCityRecord = {
@@ -398,6 +398,16 @@ export const useWorkspaceDashboard = () => {
 
   const compareTrendInsights = computed<WorkspaceTrendInsight[]>(() =>
     compareRecords.value.slice(0, 2).map((record) => {
+      if (record.trendState.status === "loading") {
+        return {
+          locationId: record.locationId,
+          headline: "Trend loading",
+          summary: "Historical quick insight is hydrating for this compare city.",
+          detail: "Trend data is still loading for this compare city.",
+          status: "loading" as const,
+        };
+      }
+
       if (record.trendState.status !== "available" || !record.trendState.data.length) {
         return {
           locationId: record.locationId,

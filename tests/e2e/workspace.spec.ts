@@ -275,6 +275,7 @@ test("workspace dashboard renders grouped multi-city monitoring", async ({ page 
   await expect(page.getByTestId("workspace-heading")).toBeVisible();
   await expect(page.getByTestId("workspace-groups")).toBeVisible();
   await expect(page.getByTestId("compare-panel")).toBeVisible();
+  await expect(page.getByTestId("workspace-compare-empty")).toHaveCount(0);
   await expect(page.getByTestId("workspace-city-card")).toHaveCount(3);
   await expect(page.getByTestId("workspace-trend-panel").first()).toBeVisible();
   await expect(page.getByTestId("compare-panel")).toContainText("上海");

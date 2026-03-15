@@ -64,6 +64,7 @@
 
 <script setup lang="ts">
   import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+  import type { ComponentPublicInstance } from 'vue';
   import { RouterLink, useRoute } from 'vue-router';
   import { Info, MoonStar, SunMedium } from 'lucide-vue-next';
   import BilingualStack from '@/components/BilingualStack.vue';
@@ -89,8 +90,21 @@
   ];
 
   const navElements = ref<(HTMLElement | null)[]>([]);
-  const setNavRef = (el: unknown, index: number) => {
-    if (el) navElements.value[index] = (el as any).$el || el;
+  const setNavRef = (
+    el: Element | ComponentPublicInstance | null,
+    index: number
+  ) => {
+    if (el instanceof HTMLElement) {
+      navElements.value[index] = el;
+      return;
+    }
+
+    if (el && '$el' in el && el.$el instanceof HTMLElement) {
+      navElements.value[index] = el.$el;
+      return;
+    }
+
+    navElements.value[index] = null;
   };
 
   const hoverIndex = ref<number | null>(null);

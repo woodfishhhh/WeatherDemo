@@ -58,7 +58,7 @@
     headline: string;
     summary: string;
     detail: string;
-    status: "available" | "unavailable";
+    status: "available" | "loading" | "unavailable";
   };
 
   const props = defineProps<{
@@ -280,7 +280,7 @@
       </div>
     </div>
 
-      <div class="mt-8">
+      <div v-else class="mt-8" data-testid="workspace-compare-empty">
         <PlatformEmptyState
           eyebrow="Compare Module / 快速对比"
           title="No compare set yet / 还没有对比集合"

@@ -618,6 +618,32 @@ test.describe("home", () => {
       });
     });
 
+    await page.route("**/v7/weather/7d**", async (route) => {
+      const url = new URL(route.request().url());
+      const location = url.searchParams.get("location") ?? "101010100";
+
+      await route.fulfill({
+        json: {
+          code: "200",
+          daily: [
+            {
+              fxDate: "2026-03-14",
+              tempMax: location === "101020100" ? "20" : location === "101280101" ? "29" : "25",
+              tempMin: location === "101020100" ? "12" : location === "101280101" ? "23" : "15",
+              textDay: location === "101280101" ? "阵雨" : "晴",
+              textNight: "晴",
+              iconDay: location === "101280101" ? "300" : "100",
+              iconNight: "150",
+              windDirDay: "北风",
+              windScaleDay: "3",
+              humidity: location === "101020100" ? "64" : location === "101280101" ? "76" : "31",
+              precip: location === "101020100" ? "1.6" : location === "101280101" ? "6.2" : "0.4",
+            },
+          ],
+        },
+      });
+    });
+
     await page.goto("/");
 
     await expect(page.getByTestId("saved-locations-section")).toContainText("北京");

@@ -41,6 +41,23 @@
     <div>
       <p class="text-[10px] uppercase tracking-[0.32em] font-bold text-brand-muted/70">{{ props.label }}</p>
 
+      <label class="sr-only" :for="props.testId">{{ props.label }}</label>
+      <select
+        :id="props.testId"
+        :data-testid="props.testId"
+        class="sr-only"
+        :value="props.value"
+        @change="emit('change', ($event.target as HTMLSelectElement).value)"
+      >
+        <option
+          v-for="option in props.options"
+          :key="`native-${option.value}`"
+          :value="option.value"
+        >
+          {{ option.label }}
+        </option>
+      </select>
+
       <!-- Segmented Control Container -->
       <div class="mt-6 relative flex p-1 bg-brand-primary/5 rounded-2xl border border-brand-primary/10">
         <!-- Sliding background track -->

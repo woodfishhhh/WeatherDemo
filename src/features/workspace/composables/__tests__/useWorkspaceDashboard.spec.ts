@@ -428,6 +428,34 @@ describe("useWorkspaceDashboard", () => {
     ]);
   });
 
+  it("keeps loading trend insights distinct from unavailable copy", async () => {
+    savedCitiesState = [
+      createSavedCity("101010100", "北京"),
+      createSavedCity("101020100", "上海"),
+    ];
+    setRouteQuery({
+      group: "all",
+      compare: "101010100,101020100",
+    });
+    getHistoricalTrendsMock.mockImplementation(() => new Promise<HistoricalTrendState>(() => undefined));
+
+    const dashboard = useWorkspaceDashboard();
+    await settleWorkspace();
+
+    expect(dashboard.compareTrendInsights.value).toEqual([
+      expect.objectContaining({
+        locationId: "101010100",
+        status: "loading",
+        headline: "Trend loading",
+      }),
+      expect.objectContaining({
+        locationId: "101020100",
+        status: "loading",
+        headline: "Trend loading",
+      }),
+    ]);
+  });
+
   it("prunes saved-city favorites, recents, and compare ids after removals", async () => {
     const beijing = createSavedCity("101010100", "北京");
     const shanghai = createSavedCity("101020100", "上海");
