@@ -50,6 +50,12 @@ const workspaceState = {
   compareLocationIds: ["101010100", "101020100"],
 };
 
+const gotoRoute = async (page: Page, url: string) => {
+  await page.goto(url, {
+    waitUntil: "domcontentloaded",
+  });
+};
+
 const weatherByLocation: Record<
   string,
   {
@@ -59,6 +65,8 @@ const weatherByLocation: Record<
     icon: string;
     humidity: string;
     windScale: string;
+    windSpeed: string;
+    precip: string;
   }
 > = {
   "101010100": {
@@ -68,6 +76,8 @@ const weatherByLocation: Record<
     icon: "100",
     humidity: "31",
     windScale: "3",
+    windSpeed: "12",
+    precip: "0.4",
   },
   "101020100": {
     temp: "18",
@@ -76,6 +86,8 @@ const weatherByLocation: Record<
     icon: "101",
     humidity: "64",
     windScale: "4",
+    windSpeed: "22",
+    precip: "1.6",
   },
   "101280101": {
     temp: "27",
@@ -84,6 +96,8 @@ const weatherByLocation: Record<
     icon: "300",
     humidity: "76",
     windScale: "2",
+    windSpeed: "10",
+    precip: "6.2",
   },
 };
 
@@ -141,7 +155,7 @@ const installWorkspaceMocks = async (page: Page) => {
           humidity: weather.humidity,
           windDir: "北风",
           windScale: weather.windScale,
-          windSpeed: "12",
+          windSpeed: weather.windSpeed,
           pressure: "1014",
           vis: "18",
         },
@@ -190,7 +204,7 @@ const installWorkspaceMocks = async (page: Page) => {
             windDirDay: "北风",
             windScaleDay: weather.windScale,
             humidity: weather.humidity,
-            precip: "0.0",
+            precip: weather.precip,
           },
         ],
       },
@@ -256,7 +270,7 @@ const installWorkspaceMocks = async (page: Page) => {
 
 test("workspace dashboard renders grouped multi-city monitoring", async ({ page }) => {
   await installWorkspaceMocks(page);
-  await page.goto("/workspace?group=all&compare=101010100,101020100");
+  await gotoRoute(page, "/workspace?group=all&compare=101010100,101020100");
 
   await expect(page.getByTestId("workspace-heading")).toBeVisible();
   await expect(page.getByTestId("workspace-groups")).toBeVisible();
@@ -268,7 +282,7 @@ test("workspace dashboard renders grouped multi-city monitoring", async ({ page 
 
 test("workspace filters round-trip through the URL query string", async ({ page }) => {
   await installWorkspaceMocks(page);
-  await page.goto("/workspace?group=all&compare=101010100,101020100");
+  await gotoRoute(page, "/workspace?group=all&compare=101010100,101020100");
 
   await page.getByTestId("workspace-filter-group").selectOption("favorites");
   await expect(page).toHaveURL(/group=favorites/);
@@ -283,7 +297,7 @@ test("workspace filters round-trip through the URL query string", async ({ page 
 
 test("opening a workspace card keeps the active group and compare query on city detail", async ({ page }) => {
   await installWorkspaceMocks(page);
-  await page.goto("/workspace?group=favorites&compare=101010100,101020100");
+  await gotoRoute(page, "/workspace?group=favorites&compare=101010100,101020100");
 
   await page.getByTestId("workspace-city-card").filter({ hasText: "上海" }).click();
 
@@ -292,4 +306,36 @@ test("opening a workspace card keeps the active group and compare query on city 
   await expect(page).toHaveURL(/group=favorites/);
   await expect(page).toHaveURL(/compare=101010100,101020100/);
   await expect(page.getByTestId("open-workspace-button")).toBeEnabled();
+});
+
+test("workspace insights render rankings, deltas, and a persisted compare preset", async ({ page }) => {
+  await installWorkspaceMocks(page);
+  await gotoRoute(page, "/workspace?group=all&compare=101010100,101020100,101280101");
+
+  await expect(page.getByTestId("workspace-compare-preset")).toContainText("北京");
+  await expect(page.getByTestId("workspace-compare-preset")).toContainText("广州");
+  await expect(page.getByTestId("workspace-ranking-card")).toHaveCount(4);
+  await expect(page.getByTestId("workspace-ranking-card").filter({ hasText: "Warmest City" })).toContainText("广州");
+  await expect(page.getByTestId("workspace-ranking-card").filter({ hasText: "Highest Humidity" })).toContainText("广州");
+  await expect(page.getByTestId("workspace-ranking-card").filter({ hasText: "Windiest City" })).toContainText("上海");
+  await expect(page.getByTestId("workspace-ranking-card").filter({ hasText: "Highest Precipitation Risk" })).toContainText("广州");
+  await expect(page.getByTestId("workspace-delta-card")).toHaveCount(4);
+  await expect(page.getByTestId("workspace-trend-insight")).toHaveCount(2);
+
+  await page.reload();
+
+  await expect(page).toHaveURL(/compare=101010100,101020100,101280101/);
+  await expect(page.getByTestId("workspace-compare-preset")).toContainText("北京");
+  await expect(page.getByTestId("workspace-compare-preset")).toContainText("广州");
+});
+
+test("invalid compare ids are dropped without breaking the workspace route", async ({ page }) => {
+  await installWorkspaceMocks(page);
+  await gotoRoute(page, "/workspace?group=all&compare=bad-id,101010100");
+
+  await expect(page.getByTestId("compare-panel")).toBeVisible();
+  await expect(page).toHaveURL(/compare=101010100/);
+  await expect(page.getByTestId("workspace-compare-preset")).toContainText("北京");
+  await expect(page.getByTestId("workspace-compare-preset")).not.toContainText("bad-id");
+  await expect(page.getByTestId("workspace-city-card").first()).toBeVisible();
 });

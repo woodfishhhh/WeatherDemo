@@ -52,7 +52,12 @@ vi.mock("@/features/weather/utils/savedCityLocation", () => ({
 
 import { useWorkspaceDashboard } from "@/features/workspace/composables/useWorkspaceDashboard";
 import type { SavedCity } from "@/features/locations/services/persistence";
-import type { HistoricalTrendState, LocationRecord, SavedCityWeatherSummary } from "@/features/weather/types";
+import type {
+  HistoricalTrendPoint,
+  HistoricalTrendState,
+  LocationRecord,
+  SavedCityWeatherSummary,
+} from "@/features/weather/types";
 import { WORKSPACE_STORAGE_KEY, useWorkspaceStore } from "@/features/workspace/stores/workspace";
 
 type RouteState = {
@@ -86,39 +91,98 @@ const locationRecordForCity = (city: SavedCity): LocationRecord => ({
   timezone: city.timezone,
 });
 
+const summaryByLocationId: Record<
+  string,
+  Pick<SavedCityWeatherSummary, "temperature" | "humidity" | "windScale" | "windSpeed" | "province"> & {
+    precipitation: string;
+  }
+> = {
+  "101010100": {
+    temperature: "21",
+    humidity: "48",
+    windScale: "3",
+    windSpeed: "12",
+    precipitation: "0.4",
+    province: "北京市",
+  },
+  "101020100": {
+    temperature: "18",
+    humidity: "64",
+    windScale: "4",
+    windSpeed: "22",
+    precipitation: "1.6",
+    province: "上海市",
+  },
+  "101280101": {
+    temperature: "27",
+    humidity: "76",
+    windScale: "2",
+    windSpeed: "10",
+    precipitation: "6.2",
+    province: "广东省",
+  },
+};
+
 const summaryForLocation = (locationId: string): SavedCityWeatherSummary => ({
-  temperature: locationId.endsWith("1") ? "21" : locationId.endsWith("2") ? "22" : "23",
+  ...(summaryByLocationId[locationId] ?? summaryByLocationId["101010100"]),
   text: "晴",
   textBilingual: {
     en: `Sunny ${locationId}`,
     zh: `晴 ${locationId}`,
   },
   icon: "100",
-  humidity: "26",
-  windScale: "3",
-  windSpeed: "11",
-  province: `${locationId}省`,
 });
 
-const availableTrend = (label: string): HistoricalTrendState => ({
+const availableTrend = (overrides: Partial<HistoricalTrendPoint> = {}): HistoricalTrendState => ({
   status: "available",
   data: [
     {
       date: "2026-03-14",
-      temperatureMax: label,
+      temperatureMax: "24",
       temperatureMin: "10",
-      precipitation: "0",
-      humidity: "26",
-      windSpeed: "11",
+      precipitation: "0.4",
+      humidity: "48",
+      windSpeed: "12",
       text: "晴",
       textBilingual: {
-        en: `Sunny ${label}`,
-        zh: `晴 ${label}`,
+        en: "Sunny",
+        zh: "晴",
       },
       icon: "100",
+      ...overrides,
     },
   ],
 });
+
+const trendForLocation = (locationId: string): HistoricalTrendState => {
+  if (locationId === "101020100") {
+    return availableTrend({
+      temperatureMax: "20",
+      temperatureMin: "12",
+      precipitation: "1.4",
+      humidity: "63",
+      windSpeed: "22",
+    });
+  }
+
+  if (locationId === "101280101") {
+    return availableTrend({
+      temperatureMax: "30",
+      temperatureMin: "19",
+      precipitation: "6.2",
+      humidity: "76",
+      windSpeed: "10",
+    });
+  }
+
+  return availableTrend({
+    temperatureMax: "24",
+    temperatureMin: "11",
+    precipitation: "0.4",
+    humidity: "48",
+    windSpeed: "12",
+  });
+};
 
 const setRouteQuery = (query: Record<string, unknown>): void => {
   currentRoute.query = query;
@@ -197,7 +261,7 @@ describe("useWorkspaceDashboard", () => {
         : null
     );
     getSavedCityWeatherSummaryMock.mockImplementation(async (location: LocationRecord) => summaryForLocation(location.id));
-    getHistoricalTrendsMock.mockImplementation(async (location: LocationRecord) => availableTrend(`trend-${location.id}`));
+    getHistoricalTrendsMock.mockImplementation(async (location: LocationRecord) => trendForLocation(location.id));
   });
 
   it("syncs route query state into the workspace group and compare selection", async () => {
@@ -297,6 +361,73 @@ describe("useWorkspaceDashboard", () => {
     });
   });
 
+  it("derives ranking cards, compare deltas, trend insights, and preset copy from the active compare selection", async () => {
+    savedCitiesState = [
+      createSavedCity("101010100", "北京"),
+      createSavedCity("101020100", "上海"),
+      createSavedCity("101280101", "广州"),
+    ];
+    setRouteQuery({
+      group: "all",
+      compare: "101010100,101020100,101280101",
+    });
+
+    const dashboard = useWorkspaceDashboard();
+    await settleWorkspace();
+
+    expect(dashboard.compareMetrics.value.map((metric) => metric.id)).toEqual([
+      "warmest",
+      "humidity",
+      "windiest",
+      "precipitation-risk",
+    ]);
+    expect(dashboard.compareMetrics.value.find((metric) => metric.id === "warmest")).toMatchObject({
+      value: "广州 27°C",
+    });
+    expect(dashboard.compareMetrics.value.find((metric) => metric.id === "windiest")).toMatchObject({
+      value: "上海 22 km/h",
+    });
+    expect(dashboard.compareMetrics.value.find((metric) => metric.id === "precipitation-risk")).toMatchObject({
+      value: "广州 6.2 mm",
+    });
+
+    expect(dashboard.compareDeltas.value).toEqual([
+      expect.objectContaining({
+        id: "temperature-delta",
+        value: "9°C",
+      }),
+      expect.objectContaining({
+        id: "humidity-delta",
+        value: "28%",
+      }),
+      expect.objectContaining({
+        id: "wind-delta",
+        value: "12 km/h",
+      }),
+      expect.objectContaining({
+        id: "precipitation-delta",
+        value: "5.8 mm",
+      }),
+    ]);
+
+    expect(dashboard.comparePreset.value).toMatchObject({
+      label: "北京 · 上海 · 广州",
+      compareQuery: "101010100,101020100,101280101",
+      cityNames: ["北京", "上海", "广州"],
+    });
+
+    expect(dashboard.compareTrendInsights.value).toEqual([
+      expect.objectContaining({
+        locationId: "101010100",
+        headline: "13°C swing",
+      }),
+      expect.objectContaining({
+        locationId: "101020100",
+        headline: "8°C swing",
+      }),
+    ]);
+  });
+
   it("prunes saved-city favorites, recents, and compare ids after removals", async () => {
     const beijing = createSavedCity("101010100", "北京");
     const shanghai = createSavedCity("101020100", "上海");
@@ -382,12 +513,12 @@ describe("useWorkspaceDashboard", () => {
     expect(latestShanghaiTrend).toBeDefined();
     expect(latestGuangzhouTrend).toBeDefined();
 
-    latestShanghaiTrend!.resolve(availableTrend("latest-shanghai"));
-    latestGuangzhouTrend!.resolve(availableTrend("latest-guangzhou"));
+    latestShanghaiTrend!.resolve(availableTrend({ temperatureMax: "latest-shanghai" }));
+    latestGuangzhouTrend!.resolve(availableTrend({ temperatureMax: "latest-guangzhou" }));
     await settleWorkspace();
 
-    initialBeijingTrend!.resolve(availableTrend("stale-beijing"));
-    initialShanghaiTrend!.resolve(availableTrend("stale-shanghai"));
+    initialBeijingTrend!.resolve(availableTrend({ temperatureMax: "stale-beijing" }));
+    initialShanghaiTrend!.resolve(availableTrend({ temperatureMax: "stale-shanghai" }));
     await settleWorkspace();
 
     expect(dashboard.compareRecords.value.map((record) => record.locationId)).toEqual([

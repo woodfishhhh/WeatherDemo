@@ -403,7 +403,10 @@ export const getCityWeatherBundle = async (location: LocationRecord): Promise<Ci
 export const getSavedCityWeatherSummary = async (
   location: LocationRecord
 ): Promise<SavedCityWeatherSummary | null> => {
-  const current = await getCurrentWeather(location);
+  const [current, daily] = await Promise.all([
+    getCurrentWeather(location),
+    getDailyForecast(location),
+  ]);
   if (!current) {
     return null;
   }
@@ -416,6 +419,7 @@ export const getSavedCityWeatherSummary = async (
     humidity: current.humidity,
     windScale: current.windScale,
     windSpeed: current.windSpeed,
+    precipitation: daily[0]?.precip ?? "--",
     province: location.province,
   };
 };

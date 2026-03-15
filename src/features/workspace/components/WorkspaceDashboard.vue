@@ -8,8 +8,11 @@
 
   const {
     activeGroupCopy,
+    compareDeltas,
     compareMetrics,
+    comparePreset,
     compareRecords,
+    compareTrendInsights,
     groupCounts,
     openCity,
     prefersReducedMotion,
@@ -38,27 +41,37 @@
 
       <div class="mt-6 grid grid-cols-1 gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-end">
         <div class="space-y-4">
-          <p data-testid="workspace-heading" class="text-5xl md:text-7xl font-light tracking-tighter">
-            Multi-city monitoring now lives in a real workspace route.
-          </p>
-          <p class="text-3xl md:text-5xl font-light tracking-tight text-brand-muted/88">
-            多城市监测已经接入真正的工作台页面。
-          </p>
-          <div class="max-w-3xl text-sm md:text-base leading-7 text-brand-muted/70 space-y-2">
-            <p>
-              Grouped saved cities, URL-backed filters, compact compare metrics, and mini trend panels now share one restrained monitoring surface.
-            </p>
-            <p>
-              打开任意城市卡片时，当前分组和对比集合也会继续带到城市详情页，不会中断这条旅程。
-            </p>
+          <BilingualStack
+            en="Multi-city monitoring now lives in a real workspace route."
+            zh="多城市监测已经接入真正的工作台页面。"
+            data-testid="workspace-heading"
+            wrapper-class="flex flex-col gap-4"
+            en-class="text-4xl md:text-6xl font-light tracking-tighter"
+            zh-class="text-3xl md:text-5xl font-light tracking-tight text-brand-muted/88"
+          />
+          <div class="max-w-3xl text-sm md:text-base leading-7 text-brand-muted/70 space-y-2 mt-4">
+            <BilingualStack
+              en="Grouped saved cities, URL-backed filters, compact compare metrics, and mini trend panels now share one restrained monitoring surface."
+              zh="将收藏城市、URL参数过滤、对比指标以及迷你趋势面板全部收敛到一个页面。"
+              wrapper-class="flex flex-col gap-1"
+              en-class="block"
+              zh-class="block opacity-90"
+            />
+            <BilingualStack
+              en="Location and compare set context traverses the route boundary natively. Opening a city card drops you into the detail view without losing the workspace session state."
+              zh="打开任意城市卡片时，当前分组和对比集合也会继续带到城市详情页，不会中断这条旅程。"
+              wrapper-class="flex flex-col gap-1"
+              en-class="block"
+              zh-class="block opacity-90"
+            />
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <PlatformStatRow label="Saved" :value="workspaceSummary.savedCount" tone="elevated" />
-          <PlatformStatRow label="Favorites" :value="workspaceSummary.favoriteCount" tone="elevated" />
-          <PlatformStatRow label="Recent" :value="workspaceSummary.recentCount" tone="elevated" />
-          <PlatformStatRow label="Compare" :value="workspaceSummary.compareCount" tone="elevated" />
+          <PlatformStatRow label="Saved / 收藏" :value="workspaceSummary.savedCount" tone="elevated" />
+          <PlatformStatRow label="Favorites / 关注" :value="workspaceSummary.favoriteCount" tone="elevated" />
+          <PlatformStatRow label="Recent / 最近" :value="workspaceSummary.recentCount" tone="elevated" />
+          <PlatformStatRow label="Compare / 对比" :value="workspaceSummary.compareCount" tone="elevated" />
         </div>
       </div>
     </section>
@@ -70,19 +83,29 @@
     />
 
     <div v-if="syncStatus === 'recoverable-error' && syncErrorReason" class="mt-8 max-w-3xl">
-      <p class="text-xs tracking-[0.18em] font-bold text-brand-muted/75">
-        Sync fallback active / 同步回退已启用: {{ syncErrorReason }}
-      </p>
+      <BilingualStack
+        :en="`Sync fallback active: ${syncErrorReason}`"
+        :zh="`同步回退已启用: ${syncErrorReason}`"
+        wrapper-class="flex flex-col gap-1"
+        en-class="text-xs tracking-[0.18em] font-bold text-brand-muted/75 uppercase"
+        zh-class="text-xs font-light text-brand-muted/75"
+      />
     </div>
 
     <section class="mt-12 grid grid-cols-1 gap-6 xl:grid-cols-[1.08fr_0.92fr] xl:items-start">
       <div>
         <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70">Saved Group / 当前分组</p>
-            <h2 class="mt-4 text-3xl md:text-4xl font-light tracking-tight">{{ activeGroupCopy.title }}</h2>
+          <div class="space-y-4">
+            <BilingualStack
+              en="Saved Group"
+              zh="当前分组"
+              wrapper-class="flex flex-col gap-2"
+              en-class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70"
+              zh-class="text-xs font-light text-brand-muted/60"
+            />
+            <h2 class="text-3xl md:text-4xl font-light tracking-tight">{{ activeGroupCopy.title }}</h2>
           </div>
-          <p class="max-w-xl text-sm leading-7 text-brand-muted/68">
+          <p class="max-w-xl text-sm leading-7 text-brand-muted/68 md:text-right">
             {{ activeGroupCopy.description }}
           </p>
         </div>
@@ -108,19 +131,30 @@
           />
         </div>
 
-        <PlatformEmptyState
-          v-else
-          class="mt-8"
-          eyebrow="Workspace Group / 工作台分组"
-          title="No cities in this group / 当前分组暂无城市"
-          description="Switch the filter, reopen a city from search, or mark a saved city as favorite to repopulate this workspace lane."
-        />
+        <div class="mt-8">
+          <BilingualStack
+            v-if="!visibleCityRecords.length"
+            en="Workspace Group"
+            zh="工作台分组"
+            wrapper-class="flex flex-col gap-2"
+            en-class="text-[10px] uppercase tracking-[0.38em] font-bold text-brand-muted/60"
+            zh-class="text-xs font-light text-brand-muted/50 mb-4"
+          />
+          <PlatformEmptyState
+            v-if="!visibleCityRecords.length"
+            title="No cities in this group / 当前分组暂无城市"
+            description="Switch the filter, reopen a city from search, or mark a saved city as favorite to repopulate this workspace lane."
+          />
+        </div>
       </div>
 
       <WorkspaceComparePanel
+        :deltas="compareDeltas"
+        :preset="comparePreset"
         :records="compareRecords"
         :metrics="compareMetrics"
         :reduced-motion="prefersReducedMotion"
+        :trend-insights="compareTrendInsights"
         @open-city="openCity"
         @toggle-compare="toggleCompareForCity"
       />

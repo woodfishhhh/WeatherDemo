@@ -31,6 +31,28 @@ type WorkspaceCompareMetric = {
   detail: string;
 };
 
+type WorkspaceCompareDelta = {
+  id: string;
+  label: string;
+  value: string;
+  detail: string;
+};
+
+type WorkspaceComparePreset = {
+  label: string;
+  description: string;
+  cityNames: string[];
+  compareQuery: string;
+};
+
+type WorkspaceTrendInsight = {
+  locationId: string;
+  headline: string;
+  summary: string;
+  detail: string;
+  status: "available" | "unavailable";
+};
+
 type WorkspaceCityRecord = {
   city: SavedCity;
   locationId: string;
@@ -75,6 +97,24 @@ const parseNumber = (value: string | undefined): number | null => {
 
   const normalized = Number.parseFloat(value.replace(/[^\d.-]/g, ""));
   return Number.isFinite(normalized) ? normalized : null;
+};
+
+const formatMetricNumber = (value: number, unit: string): string =>
+  `${Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)} ${unit}`;
+
+const formatTemperatureDeltaValue = (value: number, isFahrenheit: boolean): string =>
+  `${Math.round(isFahrenheit ? (value * 9) / 5 : value)}°${isFahrenheit ? "F" : "C"}`;
+
+const getValueRange = (values: Array<number | null>): { min: number; max: number } | null => {
+  const present = values.filter((value): value is number => value !== null);
+  if (present.length < 2) {
+    return null;
+  }
+
+  return {
+    min: Math.min(...present),
+    max: Math.max(...present),
+  };
 };
 
 const cityByIdFrom = (cities: SavedCity[]): Map<string, SavedCity> =>
@@ -194,6 +234,8 @@ export const useWorkspaceDashboard = () => {
     compareCount: compareRecords.value.length,
   }));
 
+  const compareQueryValue = computed(() => compareLocationIds.value.join(","));
+
   const activeGroupCopy = computed(() => {
     if (selectedGroup.value === "favorites") {
       return {
@@ -238,19 +280,22 @@ export const useWorkspaceDashboard = () => {
           (parseNumber(right.summary?.humidity) ?? Number.NEGATIVE_INFINITY) -
           (parseNumber(left.summary?.humidity) ?? Number.NEGATIVE_INFINITY)
       )[0];
-    const temperatureValues = recordsWithSummary
-      .map((record) => parseNumber(record.summary?.temperature))
-      .filter((value): value is number => value !== null);
-    const temperatureSpread =
-      temperatureValues.length > 1 ? Math.max(...temperatureValues) - Math.min(...temperatureValues) : null;
+    const windiestRecord = recordsWithSummary
+      .filter((record) => parseNumber(record.summary?.windSpeed) !== null)
+      .sort(
+        (left, right) =>
+          (parseNumber(right.summary?.windSpeed) ?? Number.NEGATIVE_INFINITY) -
+          (parseNumber(left.summary?.windSpeed) ?? Number.NEGATIVE_INFINITY)
+      )[0];
+    const precipitationRiskRecord = recordsWithSummary
+      .filter((record) => parseNumber(record.summary?.precipitation) !== null)
+      .sort(
+        (left, right) =>
+          (parseNumber(right.summary?.precipitation) ?? Number.NEGATIVE_INFINITY) -
+          (parseNumber(left.summary?.precipitation) ?? Number.NEGATIVE_INFINITY)
+      )[0];
 
     return [
-      {
-        id: "cities",
-        label: "Cities In Compare / 对比城市",
-        value: `${compareRecords.value.length}`,
-        detail: "Compare selection is URL-backed, so the same monitoring set survives reload and deep links.",
-      },
       {
         id: "warmest",
         label: "Warmest City / 当前最暖",
@@ -268,25 +313,134 @@ export const useWorkspaceDashboard = () => {
           : "Humidity signals are unavailable for the current compare selection.",
       },
       {
-        id: "spread",
-        label: "Temperature Spread / 温差跨度",
-        value:
-          temperatureSpread !== null
-            ? `${Math.round(
-                temperatureUnit.value === "fahrenheit" ? (temperatureSpread * 9) / 5 : temperatureSpread
-              )}°${temperatureUnit.value === "fahrenheit" ? "F" : "C"}`
-            : "--",
-        detail:
-          temperatureSpread !== null
-            ? "A wider spread signals where the saved cities are currently diverging the most."
-            : "Add at least two cities with live summaries to unlock the spread readout.",
+        id: "windiest",
+        label: "Windiest City / 风力最强",
+        value: windiestRecord
+          ? `${windiestRecord.city.city} ${formatMetricNumber(parseNumber(windiestRecord.summary?.windSpeed) ?? 0, "km/h")}`
+          : "--",
+        detail: windiestRecord
+          ? `${windiestRecord.summary?.textBilingual.en} · ${windiestRecord.city.province}`
+          : "Wind-speed signals are unavailable for the current compare selection.",
+      },
+      {
+        id: "precipitation-risk",
+        label: "Highest Precipitation Risk / 最高降水风险",
+        value: precipitationRiskRecord
+          ? `${precipitationRiskRecord.city.city} ${formatMetricNumber(parseNumber(precipitationRiskRecord.summary?.precipitation) ?? 0, "mm")}`
+          : "--",
+        detail: precipitationRiskRecord
+          ? `${precipitationRiskRecord.summary?.textBilingual.en} · ${precipitationRiskRecord.city.province}`
+          : "Daily precipitation signals are unavailable for the current compare selection.",
       },
     ];
   });
 
+  const compareDeltas = computed<WorkspaceCompareDelta[]>(() => {
+    const recordsWithSummary = compareRecords.value.filter((record) => record.summary);
+    if (recordsWithSummary.length < 2) {
+      return [];
+    }
+
+    const temperatureRange = getValueRange(recordsWithSummary.map((record) => parseNumber(record.summary?.temperature)));
+    const humidityRange = getValueRange(recordsWithSummary.map((record) => parseNumber(record.summary?.humidity)));
+    const windRange = getValueRange(recordsWithSummary.map((record) => parseNumber(record.summary?.windSpeed)));
+    const precipitationRange = getValueRange(
+      recordsWithSummary.map((record) => parseNumber(record.summary?.precipitation))
+    );
+
+    return [
+      {
+        id: "temperature-delta",
+        label: "Temperature Delta / 温度差",
+        value: temperatureRange
+          ? formatTemperatureDeltaValue(
+              temperatureRange.max - temperatureRange.min,
+              temperatureUnit.value === "fahrenheit"
+            )
+          : "--",
+        detail: "Current temperature spread across the active compare set.",
+      },
+      {
+        id: "humidity-delta",
+        label: "Humidity Delta / 湿度差",
+        value: humidityRange ? `${Math.round(humidityRange.max - humidityRange.min)}%` : "--",
+        detail: "Relative humidity distance between the driest and most saturated city.",
+      },
+      {
+        id: "wind-delta",
+        label: "Wind Delta / 风速差",
+        value: windRange ? formatMetricNumber(windRange.max - windRange.min, "km/h") : "--",
+        detail: "Current wind-speed spread across the active compare set.",
+      },
+      {
+        id: "precipitation-delta",
+        label: "Precipitation Delta / 降水差",
+        value: precipitationRange ? formatMetricNumber(precipitationRange.max - precipitationRange.min, "mm") : "--",
+        detail: "Daily precipitation spread for the active compare set.",
+      },
+    ];
+  });
+
+  const comparePreset = computed<WorkspaceComparePreset | null>(() => {
+    if (!compareRecords.value.length || !compareQueryValue.value) {
+      return null;
+    }
+
+    const cityNames = compareRecords.value.map((record) => record.city.city);
+    return {
+      label: cityNames.join(" · "),
+      description:
+        "This compare preset is derived from the route query and persisted workspace state, so it survives reloads and deep links.",
+      cityNames,
+      compareQuery: compareQueryValue.value,
+    };
+  });
+
+  const compareTrendInsights = computed<WorkspaceTrendInsight[]>(() =>
+    compareRecords.value.slice(0, 2).map((record) => {
+      if (record.trendState.status !== "available" || !record.trendState.data.length) {
+        return {
+          locationId: record.locationId,
+          headline: "Trend unavailable",
+          summary: "Historical quick insight is unavailable for this compare city.",
+          detail:
+            record.trendState.status === "unavailable"
+              ? record.trendState.reason
+              : "Trend data is still loading for this compare city.",
+          status: "unavailable" as const,
+        };
+      }
+
+      const temperatureRange = getValueRange(
+        record.trendState.data.flatMap((point) => [parseNumber(point.temperatureMax), parseNumber(point.temperatureMin)])
+      );
+      const windRange = getValueRange(record.trendState.data.map((point) => parseNumber(point.windSpeed)));
+      const precipitationPeak = Math.max(
+        ...record.trendState.data
+          .map((point) => parseNumber(point.precipitation))
+          .filter((value): value is number => value !== null)
+      );
+
+      return {
+        locationId: record.locationId,
+        headline: temperatureRange
+          ? `${formatTemperatureDeltaValue(
+              temperatureRange.max - temperatureRange.min,
+              temperatureUnit.value === "fahrenheit"
+            )} swing`
+          : "Trend snapshot",
+        summary: `Peak wind ${windRange ? formatMetricNumber(windRange.max, "km/h") : "--"} · peak precip ${
+          Number.isFinite(precipitationPeak) ? formatMetricNumber(precipitationPeak, "mm") : "--"
+        }`,
+        detail: `Five-day trend read for ${record.city.city}.`,
+        status: "available",
+      };
+    })
+  );
+
   const syncRouteQuery = async (): Promise<void> => {
-    const nextGroup = selectedGroup.value;
-    const nextCompare = compareLocationIds.value.length ? compareLocationIds.value.join(",") : undefined;
+      const nextGroup = selectedGroup.value;
+    const nextCompare = compareQueryValue.value || undefined;
     const currentGroup = typeof route.query.group === "string" ? route.query.group : undefined;
     const currentCompare = compareQueryKey(route.query.compare);
 
@@ -452,7 +606,10 @@ export const useWorkspaceDashboard = () => {
   return {
     activeGroupCopy,
     compareMetrics,
+    compareDeltas,
+    comparePreset,
     compareRecords,
+    compareTrendInsights,
     groupCounts,
     prefersReducedMotion,
     removeCity,

@@ -114,6 +114,7 @@ export interface SavedCityWeatherSummary {
   humidity: string;
   windScale: string;
   windSpeed: string;
+  precipitation?: string;
   province: string;
 }
 
