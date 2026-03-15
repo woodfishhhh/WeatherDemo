@@ -56,25 +56,26 @@
 
     <!-- 跑马灯占满屏幕宽度 -->
     <transition name="fade">
-      <div v-show="!searchQuery" class="w-[100vw] relative left-1/2 -translate-x-1/2 mt-16 md:mt-24 pt-8 md:pt-12 border-t border-brand-primary/5 overflow-hidden mask-edges pb-4">
-        <div class="flex flex-col gap-6 w-full opacity-80 hover:opacity-100 transition-opacity duration-1000">
+      <div v-show="!searchQuery"
+        class="w-[100vw] relative left-1/2 -translate-x-1/2 mt-12 md:mt-16 pt-4 md:pt-6 overflow-hidden mask-edges pb-4 z-0">
+        <div class="flex flex-col gap-8 w-full opacity-80 hover:opacity-100 transition-opacity duration-1000">
           <!-- 中文行 (向右滚动) -->
           <div class="flex w-max marquee-right hover:pause items-center">
             <button v-for="(city, index) in doubledCities" :key="'zh-' + index" type="button"
               @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
-              class="px-12 py-2 transition-all duration-700 flex items-center group opacity-30 hover:opacity-100 cursor-pointer">
+              class="px-12 py-2 transition-all duration-700 flex items-center group opacity-40 hover:opacity-100 cursor-pointer">
               <span
-                class="text-lg sm:text-xl md:text-2xl font-light tracking-[0.4em] text-brand-text whitespace-nowrap">{{
+                class="text-2xl sm:text-3xl md:text-4xl font-light tracking-[0.4em] text-brand-primary whitespace-nowrap">{{
                   city.name }}</span>
             </button>
           </div>
           <!-- 英文行 (向左滚动) -->
-          <div class="flex w-max marquee-left hover:pause items-center -mt-2">
+          <div class="flex w-max marquee-left hover:pause items-center -mt-6">
             <button v-for="(city, index) in doubledCities" :key="'en-' + index" type="button"
               @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
-              class="px-12 py-2 transition-all duration-700 flex items-center group opacity-20 hover:opacity-100 cursor-pointer">
+              class="px-12 py-2 transition-all duration-700 flex items-center group opacity-30 hover:opacity-100 cursor-pointer">
               <span
-                class="text-xs sm:text-sm md:text-base uppercase tracking-[0.5em] font-medium text-brand-text whitespace-nowrap">{{
+                class="text-xs sm:text-sm md:text-base uppercase tracking-[0.6em] font-medium text-brand-primary whitespace-nowrap">{{
                   city.enName }}</span>
             </button>
           </div>
@@ -158,6 +159,7 @@
     0% {
       transform: translateX(0);
     }
+
     100% {
       transform: translateX(-50%);
     }
@@ -167,6 +169,7 @@
     0% {
       transform: translateX(-50%);
     }
+
     100% {
       transform: translateX(0);
     }
