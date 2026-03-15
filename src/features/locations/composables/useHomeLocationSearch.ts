@@ -1,15 +1,22 @@
 import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
+import type { HomeComparePreset, HomeSavedCityIntelligence } from "@/features/home/utils/homeWorkspaceIntelligence";
+import {
+  buildHighestRiskSavedCity,
+  buildHomeComparePreset,
+} from "@/features/home/utils/homeWorkspaceIntelligence";
 import type { SavedCity } from "@/features/locations/services/persistence";
 import type { LocationRecord } from "@/features/weather/types";
 import { useLocationsStore } from "@/features/locations/stores/locations";
 import { useWeatherDisplayPreferences } from "@/features/settings/composables/useWeatherDisplayPreferences";
 import { useWorkspaceStore } from "@/features/workspace/stores/workspace";
+import { useWeatherStore } from "@/features/weather/stores/weather";
 
 export const useHomeLocationSearch = () => {
   const router = useRouter();
   const locationsStore = useLocationsStore();
+  const weatherStore = useWeatherStore();
   const workspaceStore = useWorkspaceStore();
   const { formatTemperature, formatWind } = useWeatherDisplayPreferences();
   const {
@@ -46,6 +53,13 @@ export const useHomeLocationSearch = () => {
     return explicitCompare.length ? explicitCompare.slice(0, 2) : savedCities.value.slice(0, 2);
   });
 
+  const persistedCompareCities = computed(() =>
+    compareLocationIds.value
+      .map((locationId) => savedCities.value.find((city) => (city.locationId || city.id) === locationId))
+      .filter((city): city is SavedCity => Boolean(city))
+      .slice(0, 4)
+  );
+
   const compareQueryIds = computed(() => {
     const explicitCompareIds = compareLocationIds.value.filter((locationId) =>
       savedCities.value.some((city) => (city.locationId || city.id) === locationId)
@@ -56,6 +70,19 @@ export const useHomeLocationSearch = () => {
       : savedCities.value.slice(0, 2).map((city) => city.locationId || city.id);
   });
   const compareQueryValue = computed(() => compareQueryIds.value.join(",") || undefined);
+
+  const comparePreset = computed<HomeComparePreset | null>(() =>
+    buildHomeComparePreset(persistedCompareCities.value)
+  );
+
+  const savedCityIntelligence = computed<HomeSavedCityIntelligence | null>(() =>
+    buildHighestRiskSavedCity(
+      savedCities.value.map((city) => ({
+        city,
+        summary: weatherStore.getSavedCitySummary(city),
+      }))
+    )
+  );
 
   const buildCityJourneyQuery = ({
     savedCityId,
@@ -90,6 +117,20 @@ export const useHomeLocationSearch = () => {
       query: {
         group,
         compare: compareQueryValue.value,
+      },
+    });
+  };
+
+  const openComparePreset = async (): Promise<void> => {
+    if (!comparePreset.value) {
+      return;
+    }
+
+    await router.push({
+      name: "workspace",
+      query: {
+        group: "all",
+        compare: comparePreset.value.compareQuery,
       },
     });
   };
@@ -183,6 +224,14 @@ export const useHomeLocationSearch = () => {
     void locationsStore.loadSavedCities();
   });
 
+  watch(
+    savedCities,
+    (cities) => {
+      void weatherStore.hydrateSavedCitySummaries(cities);
+    },
+    { immediate: true }
+  );
+
   watch(searchQuery, (value) => {
     if (debounceTimer) {
       clearTimeout(debounceTimer);
@@ -233,6 +282,7 @@ export const useHomeLocationSearch = () => {
   });
 
   return {
+    comparePreset,
     comparePreview,
     currentLocation,
     errorMessage: searchError,
@@ -244,6 +294,7 @@ export const useHomeLocationSearch = () => {
     locationErrorMessage: currentLocationError,
     onInputBlur,
     onInputFocus,
+    openComparePreset,
     openCompareCity,
     openCurrentLocation,
     openRecentCity,
@@ -253,6 +304,7 @@ export const useHomeLocationSearch = () => {
     requestCurrentLocation: locationsStore.requestCurrentLocation,
     searchQuery,
     searchResults,
+    savedCityIntelligence,
     savedCities,
     selectTip,
     selectFirstTip,

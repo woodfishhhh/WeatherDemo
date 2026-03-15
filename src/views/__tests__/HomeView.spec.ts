@@ -13,6 +13,13 @@ vi.mock("@/features/locations/composables/useHomeLocationSearch", () => ({
 import HomeView from "@/views/HomeView.vue";
 
 type HomeLocationSearchOptions = {
+  comparePreset?: {
+    label: string;
+    cityNames: string[];
+    compareQuery: string;
+    descriptionEn: string;
+    descriptionZh: string;
+  } | null;
   comparePreview?: Array<{
     id: string;
     city: string;
@@ -63,6 +70,18 @@ type HomeLocationSearchOptions = {
     province: string;
     district?: string;
   }>;
+  savedCityIntelligence?: {
+    city: {
+      id: string;
+      city: string;
+      province: string;
+      locationId?: string;
+    };
+    severity: "low" | "moderate" | "high";
+    summaryEn: string;
+    summaryZh: string;
+    detail: string;
+  } | null;
   showTips?: boolean;
   workspaceShortcutSummary?: {
     savedCount: number;
@@ -72,6 +91,16 @@ type HomeLocationSearchOptions = {
 };
 
 const createHomeLocationSearchState = (options: HomeLocationSearchOptions = {}) => ({
+  comparePreset: shallowRef(
+    options.comparePreset === undefined ? {
+      label: "北京 · 上海",
+      cityNames: ["北京", "上海"],
+      compareQuery: "101010100,101020100",
+      descriptionEn: "Reopen the persisted compare lane directly from home without rebuilding the selection.",
+      descriptionZh: "不用重新挑选城市，直接从首页恢复上一次的对比集合。",
+    }
+    : options.comparePreset
+  ),
   comparePreview: shallowRef(
     options.comparePreview ?? [
       {
@@ -121,9 +150,11 @@ const createHomeLocationSearchState = (options: HomeLocationSearchOptions = {}) 
   locationErrorMessage: shallowRef(options.locationErrorMessage ?? ""),
   onInputBlur: vi.fn(),
   onInputFocus: vi.fn(),
+  openComparePreset: vi.fn(),
   openCompareCity: vi.fn(),
   openCurrentLocation: vi.fn(),
   openRecentCity: vi.fn(),
+  openSavedCity: vi.fn(),
   openWorkspace: vi.fn(),
   recentLocations: shallowRef(
     options.recentLocations ?? [
@@ -162,6 +193,21 @@ const createHomeLocationSearchState = (options: HomeLocationSearchOptions = {}) 
         district: "Chaoyang",
       },
     ]
+  ),
+  savedCityIntelligence: shallowRef(
+    options.savedCityIntelligence === undefined ? {
+      city: {
+        id: "saved-guangzhou",
+        city: "广州",
+        province: "广东省",
+        locationId: "101280101",
+      },
+      severity: "high",
+      summaryEn: "This saved city is carrying the sharpest weather signal in your list.",
+      summaryZh: "这座已收藏城市目前承载着最强的一档天气信号。",
+      detail: "Precip 6.2 mm · Humidity 76% · Wind 10 km/h",
+    }
+    : options.savedCityIntelligence
   ),
   selectFirstTip: vi.fn(),
   selectTip: vi.fn(),
@@ -224,22 +270,30 @@ describe("HomeView", () => {
     expect(wrapper.get('[data-testid="workspace-shortcuts"]').text()).toContain(
       "The strategic overview of your monitored ecosystems."
     );
+    expect(wrapper.get('[data-testid="saved-city-intelligence-strip"]').text()).toContain("广州");
     expect(wrapper.findAll('[data-testid="recent-location-chip"]')).toHaveLength(1);
     expect(wrapper.get('[data-testid="workspace-shortcuts"]').text()).toContain("Comparative Analysis");
+    expect(wrapper.get('[data-testid="home-compare-preset"]').text()).toContain("北京 · 上海");
     expect(wrapper.find('[data-testid="saved-locations-section"]').exists()).toBe(true);
   });
 
-  it("keeps workspace and preview entrypoints wired to the composable handlers", async () => {
+  it("keeps workspace, saved-city intelligence, and preview entrypoints wired to the composable handlers", async () => {
     const state = createHomeLocationSearchState();
     useHomeLocationSearchMock.mockReturnValue(state);
 
     const wrapper = renderHomeView();
+    await wrapper.get('[data-testid="open-risk-city-button"]').trigger("click");
     await wrapper.get('[data-testid="open-workspace-button"]').trigger("click");
+    await wrapper.get('[data-testid="home-open-compare-preset-button"]').trigger("click");
+    await wrapper.get('[data-testid="home-continue-recent-button"]').trigger("click");
     await wrapper.get('[data-testid="recent-location-chip"]').trigger("click");
     await wrapper.get('[data-testid="compare-preview-card"]').trigger("click");
 
+    expect(state.openSavedCity).toHaveBeenCalledWith(state.savedCityIntelligence.value.city);
     expect(state.openWorkspace).toHaveBeenCalledTimes(1);
     expect(state.openWorkspace).toHaveBeenCalledWith("all");
+    expect(state.openComparePreset).toHaveBeenCalledTimes(1);
+    expect(state.openRecentCity).toHaveBeenCalledWith(state.recentLocations.value[0]);
     expect(state.openRecentCity).toHaveBeenCalledWith(state.recentLocations.value[0]);
     expect(state.openCompareCity).toHaveBeenCalledWith(state.comparePreview.value[0]);
   });
@@ -261,6 +315,8 @@ describe("HomeView", () => {
       currentLocation: null,
       errorMessage: "Search failed",
       locationErrorMessage: "Permission denied",
+      comparePreset: null,
+      savedCityIntelligence: null,
       searchResults: [],
       showTips: false,
       searchQuery: "shanghai",
@@ -272,6 +328,8 @@ describe("HomeView", () => {
 
     expect(wrapper.get('[data-testid="search-error"]').text()).toContain("Search failed");
     expect(wrapper.text()).toContain("Permission denied");
+    expect(wrapper.find('[data-testid="saved-city-intelligence-fallback"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="home-compare-preset"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="workspace-shortcuts"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="saved-locations-section"]').exists()).toBe(true);
 

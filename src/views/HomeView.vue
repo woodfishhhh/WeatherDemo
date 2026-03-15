@@ -18,14 +18,15 @@
 
     <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-12">
       <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full">
-        <HomeSavedLocationsSection @open-saved-city="openSavedCity" />
+        <HomeSavedLocationsSection :saved-city-intelligence="savedCityIntelligence" @open-saved-city="openSavedCity" />
       </div>
     </section>
 
     <section class="min-h-[100dvh] w-full flex flex-col justify-center items-center px-6 md:px-12 py-12">
       <div class="w-full max-w-7xl mx-auto flex flex-col justify-center h-full">
-        <HomeWorkspaceShortcutsSection :compare-preview="comparePreview" :recent-locations="recentLocations"
-          :workspace-shortcut-summary="workspaceShortcutSummary" @open-compare-city="openCompareCity"
+        <HomeWorkspaceShortcutsSection :compare-preset="comparePreset" :compare-preview="comparePreview"
+          :recent-locations="recentLocations" :workspace-shortcut-summary="workspaceShortcutSummary"
+          @open-compare-city="openCompareCity" @open-compare-preset="openComparePreset"
           @open-recent-city="openRecentCity" @open-workspace="openWorkspace" />
       </div>
     </section>
@@ -40,6 +41,7 @@
   import { useHomeLocationSearch } from '@/features/locations/composables/useHomeLocationSearch';
 
   const {
+    comparePreset,
     comparePreview,
     currentLocation,
     errorMessage,
@@ -51,6 +53,7 @@
     locationErrorMessage,
     onInputBlur,
     onInputFocus,
+    openComparePreset,
     openCompareCity,
     openCurrentLocation,
     openRecentCity,
@@ -60,6 +63,7 @@
     requestCurrentLocation,
     searchQuery,
     searchResults,
+    savedCityIntelligence,
     selectFirstTip,
     selectTip,
     showTips,

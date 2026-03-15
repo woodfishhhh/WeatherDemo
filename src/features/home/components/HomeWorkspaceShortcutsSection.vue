@@ -67,15 +67,57 @@
         </div>
         <BilingualStack v-else en="Select multiple coordinates to initiate comparative telemetry." zh="尚未选择对比城市" en-class="text-lg font-light text-brand-muted/68" zh-class="text-sm font-light text-brand-muted/40 mt-1" />
       </div>
+
+      <div v-if="comparePreset" data-testid="home-compare-preset" class="rounded-[1.8rem] border border-brand-primary/10 bg-brand-accent/12 px-5 py-6">
+        <BilingualStack en="Persisted Compare Preset" zh="持久化对比预设" wrapper-class="flex flex-col gap-1 mb-4" en-class="text-[10px] uppercase tracking-[0.34em] font-medium text-brand-muted/70" zh-class="text-xs font-light opacity-60" />
+        <p class="text-2xl font-medium tracking-tight">{{ comparePreset.label }}</p>
+        <p class="mt-3 text-sm leading-7 text-brand-muted/68">{{ comparePreset.descriptionEn }}</p>
+        <p class="text-xs leading-6 text-brand-muted/60 mt-1">{{ comparePreset.descriptionZh }}</p>
+        <div class="mt-5 flex flex-wrap gap-2">
+          <span v-for="cityName in comparePreset.cityNames" :key="cityName"
+            class="rounded-full border border-brand-primary/10 px-3 py-2 text-[10px] uppercase tracking-[0.22em] font-medium text-brand-muted/78">
+            {{ cityName }}
+          </span>
+        </div>
+        <button type="button" data-testid="home-open-compare-preset-button" @click="emit('open-compare-preset')"
+          class="mt-6 inline-flex items-center gap-2 rounded-full border border-brand-primary/14 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-medium transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text">
+          <span>Reopen Preset</span>
+          <span class="text-[10px] font-light tracking-normal opacity-70">恢复预设</span>
+        </button>
+      </div>
+
+      <div class="border-t border-brand-primary/12 pt-8">
+        <BilingualStack en="Continuity Actions" zh="连续性动作" wrapper-class="flex flex-col gap-1 mb-6" en-class="text-[10px] uppercase tracking-[0.34em] font-medium text-brand-muted/70" zh-class="text-xs font-light opacity-60" />
+
+        <div v-if="recentLocations[0] || comparePreview[0]" class="flex flex-wrap gap-3">
+          <button v-if="recentLocations[0]" type="button" data-testid="home-continue-recent-button"
+            @click="emit('open-recent-city', recentLocations[0])"
+            class="rounded-full border border-brand-primary/12 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-medium transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text">
+            Resume {{ recentLocations[0].city }} / 继续最近旅程
+          </button>
+          <button v-if="comparePreview[0]" type="button" data-testid="home-continue-compare-button"
+            @click="emit('open-compare-city', comparePreview[0])"
+            class="rounded-full border border-brand-primary/10 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-medium text-brand-muted/80 transition-colors duration-300 hover:border-brand-primary/28 hover:text-brand-primary">
+            Reopen {{ comparePreview[0].city }} / 回到对比入口
+          </button>
+        </div>
+        <BilingualStack v-else data-testid="home-intelligence-fallback"
+          en="Recent and compare continuity actions stay hidden until the home route has enough workspace state to reopen."
+          zh="在首页拿到足够的工作台连续性状态前，最近与对比快捷动作会保持隐藏。"
+          en-class="text-sm leading-7 text-brand-muted/68"
+          zh-class="text-xs leading-6 text-brand-muted/60 mt-1" />
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
   import BilingualStack from '@/components/BilingualStack.vue';
+  import type { HomeComparePreset } from '@/features/home/utils/homeWorkspaceIntelligence';
   import type { SavedCity } from '@/features/locations/services/persistence';
 
   defineProps<{
+    comparePreset: HomeComparePreset | null;
     comparePreview: SavedCity[];
     recentLocations: SavedCity[];
     workspaceShortcutSummary: {
@@ -87,6 +129,7 @@
 
   const emit = defineEmits<{
     (event: 'open-compare-city', city: SavedCity): void;
+    (event: 'open-compare-preset'): void;
     (event: 'open-recent-city', city: SavedCity): void;
     (event: 'open-workspace', group: 'all' | 'recent'): void;
   }>();

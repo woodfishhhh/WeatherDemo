@@ -9,7 +9,9 @@ const {
   clearSearchMock,
   formatTemperatureMock,
   formatWindMock,
+  getSavedCitySummaryMock,
   hydrateWorkspaceMock,
+  hydrateSavedCitySummariesMock,
   loadSavedCitiesMock,
   rememberRecentLocationMock,
   requestCurrentLocationMock,
@@ -17,15 +19,19 @@ const {
   searchByKeywordMock,
   useLocationsStoreMock,
   useRouterMock,
+  useWeatherStoreMock,
   useWorkspaceStoreMock,
 } = vi.hoisted(() => ({
   useRouterMock: vi.fn(),
   useLocationsStoreMock: vi.fn(),
+  useWeatherStoreMock: vi.fn(),
   useWorkspaceStoreMock: vi.fn(),
   searchByKeywordMock: vi.fn(),
   clearSearchMock: vi.fn(),
   requestCurrentLocationMock: vi.fn(),
   loadSavedCitiesMock: vi.fn(),
+  hydrateSavedCitySummariesMock: vi.fn(),
+  getSavedCitySummaryMock: vi.fn(),
   hydrateWorkspaceMock: vi.fn(),
   rememberRecentLocationMock: vi.fn(),
   routerPushMock: vi.fn(),
@@ -47,6 +53,10 @@ vi.mock("@/features/locations/stores/locations", () => ({
 
 vi.mock("@/features/workspace/stores/workspace", () => ({
   useWorkspaceStore: useWorkspaceStoreMock,
+}));
+
+vi.mock("@/features/weather/stores/weather", () => ({
+  useWeatherStore: useWeatherStoreMock,
 }));
 
 vi.mock("@/features/settings/composables/useWeatherDisplayPreferences", () => ({
@@ -131,6 +141,40 @@ const setupStores = (): void => {
   });
   requestCurrentLocationMock.mockResolvedValue(null);
   loadSavedCitiesMock.mockResolvedValue(savedCitiesRef.value);
+  hydrateSavedCitySummariesMock.mockResolvedValue({});
+  getSavedCitySummaryMock.mockImplementation((city: SavedCity) => {
+    if ((city.locationId || city.id) === "101020100") {
+      return {
+        temperature: "18",
+        text: "多云",
+        textBilingual: {
+          en: "Cloudy",
+          zh: "多云",
+        },
+        icon: "101",
+        humidity: "64",
+        windScale: "4",
+        windSpeed: "22",
+        precipitation: "1.6",
+        province: "上海市",
+      };
+    }
+
+    return {
+      temperature: "23",
+      text: "晴",
+      textBilingual: {
+        en: "Sunny",
+        zh: "晴",
+      },
+      icon: "100",
+      humidity: "31",
+      windScale: "3",
+      windSpeed: "12",
+      precipitation: "0.4",
+      province: "北京市",
+    };
+  });
   hydrateWorkspaceMock.mockImplementation(() => undefined);
   rememberRecentLocationMock.mockImplementation((locationId: string) => {
     recentLocationIdsRef.value = [locationId];
@@ -154,6 +198,10 @@ const setupStores = (): void => {
     loadSavedCities: loadSavedCitiesMock,
     requestCurrentLocation: requestCurrentLocationMock,
     searchByKeyword: searchByKeywordMock,
+  });
+  useWeatherStoreMock.mockReturnValue({
+    getSavedCitySummary: getSavedCitySummaryMock,
+    hydrateSavedCitySummaries: hydrateSavedCitySummariesMock,
   });
   useWorkspaceStoreMock.mockReturnValue({
     __refs: {
@@ -201,6 +249,7 @@ describe("useHomeLocationSearch", () => {
 
     expect(hydrateWorkspaceMock).toHaveBeenCalledTimes(1);
     expect(loadSavedCitiesMock).toHaveBeenCalledTimes(1);
+    expect(hydrateSavedCitySummariesMock).toHaveBeenCalledWith(savedCitiesRef.value);
 
     api.openCurrentLocation();
     await flushComposable();
@@ -218,6 +267,32 @@ describe("useHomeLocationSearch", () => {
         lat: "39.90499",
         lon: "116.40529",
         group: "recent",
+        compare: "101010100,101020100",
+      },
+    });
+
+    wrapper.unmount();
+  });
+
+  it("derives saved-city intelligence and compare preset continuity from workspace state", async () => {
+    const { api, wrapper } = mountComposable();
+    await flushComposable();
+
+    expect(api.savedCityIntelligence.value).toMatchObject({
+      city: expect.objectContaining({ city: "上海" }),
+      severity: "moderate",
+    });
+    expect(api.comparePreset.value).toMatchObject({
+      label: "北京 · 上海",
+      compareQuery: "101010100,101020100",
+    });
+
+    await api.openComparePreset();
+
+    expect(routerPushMock).toHaveBeenCalledWith({
+      name: "workspace",
+      query: {
+        group: "all",
         compare: "101010100,101020100",
       },
     });
