@@ -2,9 +2,12 @@ import { shallowRef } from "vue";
 import { defineStore } from "pinia";
 
 export type TemperatureUnit = "celsius" | "fahrenheit";
-export type WindUnit = "scale" | "kph";
+export type WindUnit = "scale" | "kph" | "mph";
 export type TimezonePolicy = "location" | "device";
 export type WorkspaceDefaultGroup = "all" | "favorites" | "recent";
+export type TimeFormat = "24h" | "12h";
+export type PressureUnit = "hPa" | "inHg";
+export type VisibilityUnit = "km" | "mi";
 
 export type PlatformSettings = {
   temperatureUnit: TemperatureUnit;
@@ -12,6 +15,9 @@ export type PlatformSettings = {
   timezonePolicy: TimezonePolicy;
   reducedMotion: boolean | null;
   workspaceDefaultGroup: WorkspaceDefaultGroup;
+  timeFormat: TimeFormat;
+  pressureUnit: PressureUnit;
+  visibilityUnit: VisibilityUnit;
 };
 
 const STORAGE_KEY = "weather-platform-settings";
@@ -22,6 +28,9 @@ const defaultSettings: PlatformSettings = {
   timezonePolicy: "location",
   reducedMotion: null,
   workspaceDefaultGroup: "all",
+  timeFormat: "24h",
+  pressureUnit: "hPa",
+  visibilityUnit: "km",
 };
 
 const normalizeSettings = (input: unknown): PlatformSettings => {
@@ -36,7 +45,10 @@ const normalizeSettings = (input: unknown): PlatformSettings => {
       raw.temperatureUnit === "fahrenheit" || raw.temperatureUnit === "celsius"
         ? raw.temperatureUnit
         : defaultSettings.temperatureUnit,
-    windUnit: raw.windUnit === "kph" || raw.windUnit === "scale" ? raw.windUnit : defaultSettings.windUnit,
+    windUnit: 
+      raw.windUnit === "kph" || raw.windUnit === "scale" || raw.windUnit === "mph"
+        ? raw.windUnit
+        : defaultSettings.windUnit,
     timezonePolicy:
       raw.timezonePolicy === "device" || raw.timezonePolicy === "location"
         ? raw.timezonePolicy
@@ -48,6 +60,15 @@ const normalizeSettings = (input: unknown): PlatformSettings => {
       raw.workspaceDefaultGroup === "all"
         ? raw.workspaceDefaultGroup
         : defaultSettings.workspaceDefaultGroup,
+    timeFormat: raw.timeFormat === "12h" || raw.timeFormat === "24h" 
+        ? raw.timeFormat 
+        : defaultSettings.timeFormat,
+    pressureUnit: raw.pressureUnit === "inHg" || raw.pressureUnit === "hPa"
+        ? raw.pressureUnit
+        : defaultSettings.pressureUnit,
+    visibilityUnit: raw.visibilityUnit === "mi" || raw.visibilityUnit === "km"
+        ? raw.visibilityUnit
+        : defaultSettings.visibilityUnit,
   };
 };
 
@@ -57,6 +78,9 @@ export const useSettingsStore = defineStore("settings", () => {
   const timezonePolicy = shallowRef<TimezonePolicy>(defaultSettings.timezonePolicy);
   const reducedMotion = shallowRef<boolean | null>(defaultSettings.reducedMotion);
   const workspaceDefaultGroup = shallowRef<WorkspaceDefaultGroup>(defaultSettings.workspaceDefaultGroup);
+  const timeFormat = shallowRef<TimeFormat>(defaultSettings.timeFormat);
+  const pressureUnit = shallowRef<PressureUnit>(defaultSettings.pressureUnit);
+  const visibilityUnit = shallowRef<VisibilityUnit>(defaultSettings.visibilityUnit);
   const hasHydrated = shallowRef(false);
 
   const snapshot = (): PlatformSettings => ({
@@ -65,6 +89,9 @@ export const useSettingsStore = defineStore("settings", () => {
     timezonePolicy: timezonePolicy.value,
     reducedMotion: reducedMotion.value,
     workspaceDefaultGroup: workspaceDefaultGroup.value,
+    timeFormat: timeFormat.value,
+    pressureUnit: pressureUnit.value,
+    visibilityUnit: visibilityUnit.value,
   });
 
   const applySettings = (nextSettings: PlatformSettings): void => {
@@ -73,6 +100,9 @@ export const useSettingsStore = defineStore("settings", () => {
     timezonePolicy.value = nextSettings.timezonePolicy;
     reducedMotion.value = nextSettings.reducedMotion;
     workspaceDefaultGroup.value = nextSettings.workspaceDefaultGroup;
+    timeFormat.value = nextSettings.timeFormat;
+    pressureUnit.value = nextSettings.pressureUnit;
+    visibilityUnit.value = nextSettings.visibilityUnit;
   };
 
   const persist = (): void => {
@@ -120,6 +150,9 @@ export const useSettingsStore = defineStore("settings", () => {
     timezonePolicy,
     reducedMotion,
     workspaceDefaultGroup,
+    timeFormat,
+    pressureUnit,
+    visibilityUnit,
     hasHydrated,
     hydrate,
     updateSettings,
