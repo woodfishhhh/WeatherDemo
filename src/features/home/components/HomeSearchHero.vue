@@ -60,20 +60,22 @@
         class="w-[100vw] relative left-1/2 -translate-x-1/2 mt-12 md:mt-16 pt-4 md:pt-6 overflow-hidden mask-edges pb-4 z-0">
         <div class="flex flex-col gap-8 w-full opacity-80 hover:opacity-100 transition-opacity duration-1000">
           <!-- 中文行 (向右滚动) -->
-          <div class="flex w-max marquee-right hover:pause items-center">
+          <div ref="topSetRef" class="flex w-max items-center" :style="{ transform: `translateX(${xTop}px)` }">
             <button v-for="(city, index) in doubledCities" :key="'zh-' + index" type="button"
               @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
-              class="px-12 py-2 transition-all duration-700 flex items-center group opacity-40 hover:opacity-100 cursor-pointer">
+              @mouseenter="onHover(city, index)" @mouseleave="onLeave"
+              :class="['px-12 py-2 transition-all duration-700 flex items-center group cursor-pointer', activeCityId === city.id ? 'opacity-100' : 'opacity-40 hover:opacity-100']">
               <span
                 class="text-2xl sm:text-3xl md:text-4xl font-light tracking-[0.4em] text-brand-primary whitespace-nowrap">{{
                   city.name }}</span>
             </button>
           </div>
           <!-- 英文行 (向左滚动) -->
-          <div class="flex w-max marquee-left hover:pause items-center -mt-6">
+          <div ref="bottomSetRef" class="flex w-max items-center -mt-6"
+            :style="{ transform: `translateX(${xBottom}px)` }">
             <button v-for="(city, index) in doubledCities" :key="'en-' + index" type="button"
               @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
-              class="px-12 py-2 transition-all duration-700 flex items-center group opacity-30 hover:opacity-100 cursor-pointer">
+              :class="['px-12 py-2 transition-all duration-700 flex items-center group cursor-pointer', activeCityId === city.id ? 'opacity-100' : 'opacity-30']">
               <span
                 class="text-xs sm:text-sm md:text-base uppercase tracking-[0.6em] font-medium text-brand-primary whitespace-nowrap">{{
                   city.enName }}</span>
@@ -86,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, onUnmounted } from 'vue';
   import BilingualStack from '@/components/BilingualStack.vue';
   import type { LocationRecord } from '@/features/weather/types';
 
@@ -135,45 +137,124 @@
   const randomCities = ref<typeof allPopularCities>([]);
   const doubledCities = ref<typeof allPopularCities>([]);
 
+  // 跑马灯状态与物理引擎
+  const topSetRef = ref<HTMLElement | null>(null);
+  const bottomSetRef = ref<HTMLElement | null>(null);
+
+  const xTop = ref(0);
+  const xBottom = ref(0);
+  let vTop = 0.5;
+  let vBottom = -0.5;
+
+  const baseSpeedTop = 0.5;
+  const baseSpeedBottom = -0.5;
+
+  const activeCityId = ref<string | null>(null);
+  let activeIndex = -1;
+  let isTracking = false;
+
+  let topSetWidth = 0;
+  let bottomSetWidth = 0;
+  let rafId: number;
+
+  const onHover = (city: typeof allPopularCities[0], index: number) => {
+    activeCityId.value = city.id;
+    activeIndex = index;
+    isTracking = true;
+  };
+
+  const onLeave = () => {
+    activeCityId.value = null;
+    activeIndex = -1;
+    isTracking = false;
+  };
+
+  const loop = () => {
+    if (!topSetRef.value || !bottomSetRef.value) return;
+
+    if (topSetWidth === 0) {
+      topSetWidth = topSetRef.value.scrollWidth / 4;
+      bottomSetWidth = bottomSetRef.value.scrollWidth / 4;
+      if (topSetWidth === 0) {
+        rafId = requestAnimationFrame(loop);
+        return;
+      }
+    }
+
+    if (isTracking && activeIndex !== -1) {
+      // 减缓中文行
+      vTop += (0 - vTop) * 0.1;
+
+      const topChildren = topSetRef.value.children;
+      const bottomChildren = bottomSetRef.value.children;
+
+      const topEl = topChildren[activeIndex] as HTMLElement;
+      const bottomEl = bottomChildren[activeIndex] as HTMLElement;
+
+      if (topEl && bottomEl) {
+        // 计算目标视觉中心
+        const topElCenter = topEl.offsetLeft + topEl.offsetWidth / 2;
+        const bottomElCenter = bottomEl.offsetLeft + bottomEl.offsetWidth / 2;
+
+        const idealXBottom = xTop.value + topElCenter - bottomElCenter;
+
+        // 最短路径对齐
+        let err = idealXBottom - xBottom.value;
+        err = ((err % bottomSetWidth) + bottomSetWidth) % bottomSetWidth;
+        if (err > bottomSetWidth / 2) {
+          err -= bottomSetWidth;
+        }
+
+        // 吸附弹性计算 (根据上文设定的弹簧效果)
+        vBottom += err * 0.005;
+        vBottom -= vBottom * 0.08;
+      }
+    } else {
+      // 恢复滚动基准速度
+      vTop += (baseSpeedTop - vTop) * 0.02;
+      vBottom += (baseSpeedBottom - vBottom) * 0.02;
+    }
+
+    xTop.value += vTop;
+    xBottom.value += vBottom;
+
+    // 循环复位
+    if (xTop.value > 0) xTop.value -= topSetWidth;
+    if (xTop.value < -topSetWidth * 2) xTop.value += topSetWidth;
+
+    if (xBottom.value > 0) xBottom.value -= bottomSetWidth;
+    if (xBottom.value < -bottomSetWidth * 2) xBottom.value += bottomSetWidth;
+
+    rafId = requestAnimationFrame(loop);
+  };
+
   onMounted(() => {
     const shuffled = [...allPopularCities].sort(() => 0.5 - Math.random());
     randomCities.value = shuffled.slice(0, 5);
     doubledCities.value = [...shuffled, ...shuffled, ...shuffled, ...shuffled];
+
+    requestAnimationFrame(() => {
+      // 初始化起点和开始渲染循环
+      setTimeout(() => {
+        if (topSetRef.value && bottomSetRef.value) {
+          topSetWidth = topSetRef.value.scrollWidth / 4;
+          bottomSetWidth = bottomSetRef.value.scrollWidth / 4;
+          xTop.value = -topSetWidth * 2;
+          xBottom.value = -bottomSetWidth * 2;
+          rafId = requestAnimationFrame(loop);
+        }
+      }, 100);
+    });
+  });
+
+  onUnmounted(() => {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+    }
   });
 </script>
 
 <style scoped>
-  .marquee-left {
-    animation: marquee-left 90s linear infinite;
-  }
-
-  .marquee-right {
-    animation: marquee-right 90s linear infinite;
-  }
-
-  .hover\:pause:hover {
-    animation-play-state: paused;
-  }
-
-  @keyframes marquee-left {
-    0% {
-      transform: translateX(0);
-    }
-
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-
-  @keyframes marquee-right {
-    0% {
-      transform: translateX(-50%);
-    }
-
-    100% {
-      transform: translateX(0);
-    }
-  }
 
   /* 渐变遮罩边缘，让滚动看起来更自然且不突兀，两端留白更克制 */
   .mask-edges {

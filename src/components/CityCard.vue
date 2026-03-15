@@ -3,7 +3,7 @@
     data-testid="city-card"
     class="relative group flex flex-col md:flex-row items-start md:items-end justify-between py-10 md:py-16 border-b border-brand-primary/20 cursor-pointer overflow-hidden transition-all duration-700 hover:border-brand-primary">
     <div
-      class="flex flex-col z-10 w-full md:w-1/2 group-hover:translate-x-6 transition-transform duration-700 ease-out">
+      class="flex flex-col z-10 w-full md:w-1/2 group-hover:translate-x-6 transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)]">
       <p v-if="weatherData"
         class="flex flex-col gap-1 mb-4 md:mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
         <span class="text-[10px] md:text-sm uppercase tracking-[0.4em] font-medium text-brand-muted/70">{{
@@ -15,7 +15,7 @@
     </div>
 
     <div
-      class="flex flex-col md:flex-row md:items-end gap-8 md:gap-16 z-10 mt-8 md:mt-0 w-full md:w-auto justify-between md:justify-end">
+      class="flex flex-col md:flex-row md:items-end gap-8 md:gap-16 z-10 mt-8 md:mt-0 w-full md:w-auto justify-between md:justify-end transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:-translate-x-12 md:group-hover:-translate-x-20">
       <div v-if="weatherData" class="flex items-center gap-6">
         <i :class="`qi-${weatherData.icon}`" class="weather-glyph text-3xl md:text-5xl opacity-80"></i>
         <div class="flex flex-col">
@@ -40,16 +40,26 @@
       </div>
     </div>
 
+    <!-- Minimalist Delete Button Container -->
     <div
-      class="absolute right-0 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none pr-8">
+      class="absolute right-0 top-0 bottom-0 z-20 flex items-center justify-end opacity-0 group-hover:opacity-100 translate-x-8 group-hover:translate-x-0 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] pointer-events-none md:pr-4">
       <button @click.stop="deleteCity" aria-label="Remove location"
-        class="pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-brand-primary/20 bg-surface hover:bg-brand-primary hover:text-brand-text transition-all duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        class="pointer-events-auto h-full flex flex-col items-center justify-center px-4 group/btn hover:scale-x-110 transition-transform duration-500 ease-out py-8 hover:bg-brand-primary/5">
+        
+        <!-- Flowing vertical line (Top) -->
+        <span class="w-[1px] h-0 group-hover:h-full bg-brand-primary/20 group-hover/btn:bg-brand-primary transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] mb-4 origin-bottom transform-gpu"></span>
+        
+        <!-- Typography -->
+        <div class="flex flex-col items-center gap-2">
+          <svg class="w-3 h-3 text-brand-primary/40 group-hover/btn:text-brand-primary transition-colors duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+          <span class="text-[9px] uppercase tracking-[0.5em] font-medium text-brand-primary/40 group-hover/btn:text-brand-primary transition-colors duration-500 mt-2" style="writing-mode: vertical-rl;">
+            REMOVE
+          </span>
+        </div>
+
+        <!-- Flowing vertical line (Bottom) -->
+        <span class="w-[1px] h-0 group-hover:h-full bg-brand-primary/20 group-hover/btn:bg-brand-primary transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] mt-4 origin-top transform-gpu delay-75"></span>
       </button>
-      <span
-        class="text-[10px] uppercase tracking-[0.3em] font-medium text-brand-muted rotate-90 origin-right translate-y-12">REMOVE</span>
     </div>
   </div>
 </template>

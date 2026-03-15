@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @theme {
   --color-brand-primary: #f5f7fb;
@@ -9,8 +9,8 @@
   --color-surface: #06080d;
   --color-surface-text: #f5f7fb;
 
-  --font-sans: 'Inter', sans-serif;
-  --font-weight-zh-weight: 400;
+  --font-sans: "Inter", sans-serif;
+  --font-weight-zh-weight: 1000;
 
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
@@ -29,7 +29,7 @@
   --theme-ripple-line: rgba(245, 247, 251, 0.6);
 }
 
-html[data-theme='light'] {
+html[data-theme="light"] {
   color-scheme: light;
   --color-brand-primary: #0a1220;
   --color-brand-secondary: #445066;
@@ -55,7 +55,8 @@ html[data-theme='light'] {
   padding-inline: clamp(1.25rem, 4vw, 4rem);
 }
 
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 
@@ -129,11 +130,10 @@ input {
   }
 }
 
-
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
