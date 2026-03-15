@@ -1,6 +1,5 @@
 <template>
-  <div
-    data-testid="city-card"
+  <div data-testid="city-card"
     class="relative group flex flex-col md:flex-row items-start md:items-end justify-between py-10 md:py-16 border-b border-brand-primary/20 cursor-pointer overflow-hidden transition-all duration-700 hover:border-brand-primary">
     <div
       class="flex flex-col z-10 w-full md:w-1/2 group-hover:translate-x-6 transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)]">
@@ -15,7 +14,7 @@
     </div>
 
     <div
-      class="flex flex-col md:flex-row md:items-end gap-8 md:gap-16 z-10 mt-8 md:mt-0 w-full md:w-auto justify-between md:justify-end transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:-translate-x-12 md:group-hover:-translate-x-20">
+      class="flex flex-col md:flex-row md:items-end gap-8 md:gap-16 z-10 mt-8 md:mt-0 w-full md:w-auto justify-between md:justify-end transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:-translate-x-24 md:group-hover:-translate-x-40">
       <div v-if="weatherData" class="flex items-center gap-6">
         <i :class="`qi-${weatherData.icon}`" class="weather-glyph text-3xl md:text-5xl opacity-80"></i>
         <div class="flex flex-col">
@@ -35,7 +34,8 @@
         <p class="text-xs uppercase tracking-[0.3em] font-light text-brand-muted mt-2">
           H:{{ weatherData.humidity }}%<span class="mx-3 opacity-30">|</span>W:{{ formatWind({
             scale:
-              weatherData.windScale }) }}
+              weatherData.windScale
+          }) }}
         </p>
       </div>
     </div>
@@ -44,21 +44,31 @@
     <div
       class="absolute right-0 top-0 bottom-0 z-20 flex items-center justify-end opacity-0 group-hover:opacity-100 translate-x-8 group-hover:translate-x-0 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] pointer-events-none md:pr-4">
       <button @click.stop="deleteCity" aria-label="Remove location"
-        class="pointer-events-auto h-full flex flex-col items-center justify-center px-4 group/btn hover:scale-x-110 transition-transform duration-500 ease-out py-8 hover:bg-brand-primary/5">
-        
+        class="pointer-events-auto h-full flex flex-col items-center justify-center px-4 md:px-6 group/btn hover:scale-105 transition-transform duration-500 ease-out py-8 hover:bg-brand-primary/5">
+
         <!-- Flowing vertical line (Top) -->
-        <span class="w-[1px] h-0 group-hover:h-full bg-brand-primary/20 group-hover/btn:bg-brand-primary transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] mb-4 origin-bottom transform-gpu"></span>
-        
+        <span
+          class="w-[1px] h-0 group-hover:h-full bg-brand-primary/20 group-hover/btn:bg-red-500 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] mb-4 origin-bottom transform-gpu"></span>
+
         <!-- Typography -->
-        <div class="flex flex-col items-center gap-2">
-          <svg class="w-3 h-3 text-brand-primary/40 group-hover/btn:text-brand-primary transition-colors duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-          <span class="text-[9px] uppercase tracking-[0.5em] font-medium text-brand-primary/40 group-hover/btn:text-brand-primary transition-colors duration-500 mt-2" style="writing-mode: vertical-rl;">
+        <div class="flex flex-col items-center gap-1.5">
+          <svg class="w-4 h-4 text-brand-primary group-hover/btn:text-red-500 transition-colors duration-500"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <span
+            class="text-[11px] md:text-[13px] uppercase tracking-[0.2em] font-bold text-brand-primary group-hover/btn:text-red-500 transition-colors duration-500 mt-1">
             REMOVE
+          </span>
+          <span
+            class="text-[10px] md:text-sm font-zh-weight tracking-[0.3em] text-brand-primary group-hover/btn:text-red-500 transition-colors duration-500">
+            删除
           </span>
         </div>
 
         <!-- Flowing vertical line (Bottom) -->
-        <span class="w-[1px] h-0 group-hover:h-full bg-brand-primary/20 group-hover/btn:bg-brand-primary transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] mt-4 origin-top transform-gpu delay-75"></span>
+        <span
+          class="w-[1px] h-0 group-hover:h-full bg-brand-primary/20 group-hover/btn:bg-red-500 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] mt-4 origin-top transform-gpu delay-75"></span>
       </button>
     </div>
   </div>
