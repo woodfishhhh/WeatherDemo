@@ -1,22 +1,22 @@
 <template>
-  <div class="w-full relative group mb-32 mt-16 sm:mt-24">
-    <div class="mb-8 pointer-events-none select-none -ml-2 sm:-ml-4 relative">
-      <BilingualStack en="Forecast" zh="气象探索" wrapper-class="absolute -top-12 left-2 sm:left-4 z-10"
+  <div class="group relative mb-20 mt-10 w-full sm:mb-24 sm:mt-16 md:mb-32 md:mt-24">
+    <div class="relative mb-8 -ml-1 overflow-hidden pointer-events-none select-none sm:-ml-4">
+      <BilingualStack en="Forecast" zh="气象探索" wrapper-class="absolute left-1 top-0 z-10 sm:left-4 md:-top-12"
         en-class="text-[10px] md:text-xs uppercase tracking-[0.4em] font-medium text-brand-muted/60"
         zh-class="text-sm md:text-base font-zh-weight tracking-[0.1em]" />
       <h1
-        class="block text-[22vw] sm:text-[20vw] md:text-[180px] font-bold tracking-tighter leading-[0.8] opacity-90 uppercase">
+        class="block max-w-full overflow-hidden text-ellipsis pt-8 text-[clamp(4.5rem,22vw,11.25rem)] font-bold tracking-tighter leading-[0.8] opacity-90 uppercase md:pt-0 md:text-[180px]">
         FORECAST.
       </h1>
     </div>
 
-    <div class="relative w-full md:w-3/4 lg:w-2/3 ml-auto border-t-2 border-brand-primary pt-8 mt-12 pr-4 md:pr-0">
-      <div class="flex items-end justify-between w-full">
+    <div class="relative ml-0 mt-10 w-full border-t-2 border-brand-primary pt-6 sm:pt-8 md:ml-auto md:mt-12 md:w-3/4 lg:w-2/3">
+      <div class="flex w-full flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <input v-model="searchQuery" data-testid="home-search-input" type="text" placeholder="SEARCH LOCATION"
           aria-label="Search location" @focus="emit('focus-input')" @blur="emit('blur-input')"
           @keydown.enter.prevent="emit('select-first-tip')"
-          class="w-full bg-transparent placeholder:text-brand-muted/30 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight leading-none focus:outline-none transition-all duration-700 uppercase" />
-        <div class="hidden sm:block text-brand-secondary/80 shrink-0 transition-opacity">
+          class="min-w-0 w-full max-w-full bg-transparent text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight leading-none uppercase placeholder:text-brand-muted/30 focus:outline-none transition-all duration-700" />
+        <div class="shrink-0 self-start text-brand-secondary/80 transition-opacity sm:self-auto">
           <BilingualStack v-if="isSearching" en="Locating..." zh="定位中..." class="animate-pulse"
             en-class="text-xs uppercase tracking-widest" zh-class="text-xs opacity-60 text-right" />
           <BilingualStack v-else en="Search ↗" zh="搜索" en-class="text-xs uppercase tracking-widest"
@@ -26,19 +26,19 @@
 
       <transition name="fade">
         <ul v-if="showTips && searchResults.length" data-testid="search-results"
-          class="absolute left-0 right-0 top-full mt-8 bg-surface border-y-2 border-brand-primary shadow-2xl z-30 py-4">
+          class="absolute left-0 right-0 top-full z-30 mt-6 max-h-[60vh] overflow-y-auto overflow-x-hidden border-y-2 border-brand-primary bg-surface py-4 shadow-2xl md:mt-8">
           <li v-for="(tip, index) in searchResults" :key="tip.id" data-testid="search-result-item"
             :style="{ transitionDelay: `${index * 50}ms` }" @mousedown.prevent="emit('select-tip', tip)"
-            class="px-6 py-6 sm:px-10 sm:py-8 cursor-pointer hover:bg-brand-primary hover:text-brand-text transition-all duration-500 flex flex-col md:flex-row md:justify-between border-b border-brand-primary/10 last:border-0 group/item items-start md:items-center">
+            class="group/item flex cursor-pointer flex-col items-start gap-3 border-b border-brand-primary/10 px-5 py-5 transition-all duration-500 hover:bg-brand-primary hover:text-brand-text last:border-0 sm:px-8 sm:py-6 md:flex-row md:items-center md:justify-between md:px-10 md:py-8">
             <BilingualStack :en="tip.name" :zh="tip.name" as="span"
-              wrapper-class="flex flex-col-reverse md:flex-row md:items-baseline md:gap-4"
-              en-class="text-3xl sm:text-5xl font-semibold tracking-tighter uppercase"
-              zh-class="text-xl md:text-2xl font-zh-weight opacity-60" />
+              wrapper-class="flex min-w-0 max-w-full flex-col-reverse md:flex-row md:items-baseline md:gap-4"
+              en-class="max-w-full overflow-hidden text-ellipsis text-2xl sm:text-4xl md:text-5xl font-semibold tracking-tighter uppercase"
+              zh-class="max-w-full overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl font-zh-weight opacity-60" />
             <BilingualStack :en="tip.province || tip.name"
               :zh="tip.district ? tip.province + ' — ' + tip.district : tip.province" as="span"
-              wrapper-class="flex flex-col items-start md:items-end mt-4 md:mt-0"
-              en-class="text-sm md:text-base uppercase tracking-[0.2em] opacity-50 group-hover/item:opacity-100 transition-opacity duration-500 font-light"
-              zh-class="text-sm font-zh-weight opacity-40 group-hover/item:opacity-80" />
+              wrapper-class="mt-1 flex min-w-0 max-w-full flex-col items-start md:mt-0 md:items-end"
+              en-class="max-w-full overflow-hidden text-ellipsis text-xs sm:text-sm md:text-base uppercase tracking-[0.2em] opacity-70 transition-opacity duration-500 font-light md:opacity-50 md:group-hover/item:opacity-100"
+              zh-class="max-w-full overflow-hidden text-ellipsis text-xs sm:text-sm font-zh-weight opacity-60 md:opacity-40 md:group-hover/item:opacity-80" />
           </li>
         </ul>
       </transition>
@@ -54,12 +54,41 @@
       </p>
     </div>
 
-    <!-- 跑马灯占满屏幕宽度 -->
+    <transition name="fade">
+      <div
+        v-show="!searchQuery"
+        data-testid="home-popular-cities-mobile"
+        class="mt-10 md:hidden"
+      >
+        <BilingualStack
+          en="Popular Cities"
+          zh="热门城市"
+          wrapper-class="mb-4 flex flex-col gap-1"
+          en-class="text-[10px] uppercase tracking-[0.34em] font-medium text-brand-muted/60"
+          zh-class="text-sm font-zh-weight text-brand-muted/60"
+        />
+        <div class="no-scrollbar -mx-4 overflow-x-auto px-4 pb-2">
+          <div class="flex w-max gap-3 pr-4">
+            <button
+              v-for="city in allPopularCities"
+              :key="`mobile-${city.id}`"
+              type="button"
+              class="flex min-w-[10rem] flex-col items-start rounded-[1.5rem] border border-brand-primary/10 bg-brand-accent/10 px-4 py-4 text-left transition-colors duration-500 hover:border-brand-primary/30 hover:bg-brand-accent/20"
+              @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
+            >
+              <span class="max-w-full truncate text-lg font-medium tracking-tight">{{ city.name }}</span>
+              <span class="mt-2 max-w-full truncate text-[10px] uppercase tracking-[0.32em] text-brand-muted/68">{{ city.enName }}</span>
+              <span class="mt-3 max-w-full truncate text-xs font-zh-weight text-brand-secondary/80">{{ city.province }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <transition name="fade">
       <div v-show="!searchQuery"
-        class="w-[100vw] relative left-1/2 -translate-x-1/2 mt-12 md:mt-16 pt-4 md:pt-6 overflow-hidden mask-edges pb-4 z-0">
+        class="relative left-1/2 z-0 mt-12 hidden w-[100vw] -translate-x-1/2 overflow-hidden pb-4 pt-6 mask-edges md:mt-16 md:block">
         <div class="flex flex-col gap-8 w-full opacity-80 hover:opacity-100 transition-opacity duration-1000">
-          <!-- 中文行 (向右滚动) -->
           <div ref="topSetRef" class="flex w-max items-center" :style="{ transform: `translateX(${xTop}px)` }">
             <button v-for="(city, index) in doubledCities" :key="'zh-' + index" type="button"
               @mousedown.prevent="emit('select-tip', city as unknown as LocationRecord)"
@@ -70,7 +99,6 @@
                   city.name }}</span>
             </button>
           </div>
-          <!-- 英文行 (向左滚动) -->
           <div ref="bottomSetRef" class="flex w-max items-center -mt-6"
             :style="{ transform: `translateX(${xBottom}px)` }">
             <button v-for="(city, index) in doubledCities" :key="'en-' + index" type="button"
@@ -134,7 +162,6 @@
     { id: "101240101", name: "南昌", enName: "Nanchang", province: "江西省" }
   ];
 
-  const randomCities = ref<typeof allPopularCities>([]);
   const doubledCities = ref<typeof allPopularCities>([]);
 
   // 跑马灯状态与物理引擎
@@ -230,7 +257,6 @@
 
   onMounted(() => {
     const shuffled = [...allPopularCities].sort(() => 0.5 - Math.random());
-    randomCities.value = shuffled.slice(0, 5);
     doubledCities.value = [...shuffled, ...shuffled, ...shuffled, ...shuffled];
 
     requestAnimationFrame(() => {

@@ -1,12 +1,12 @@
 <template>
   <header data-testid="site-navigation"
-    class="fixed top-0 w-full z-50 transition-all duration-700 py-6 px-6 md:px-12 flex justify-between items-center mix-blend-difference">
-    <RouterLink :to="{ name: 'home' }" class="group flex items-center gap-4 text-white">
+    class="fixed top-0 z-50 flex w-full items-center justify-between px-4 py-5 transition-all duration-700 mix-blend-difference sm:px-6 md:px-12 md:py-6">
+    <RouterLink :to="{ name: 'home' }" class="group flex min-w-0 items-center gap-3 text-white sm:gap-4">
       <LogoIcon class="h-6 md:h-8 w-auto transition-transform duration-700 group-hover:scale-105" />
-      <p class="text-sm md:text-base font-medium tracking-[0.4em] uppercase">WOODFISH.STUDIO</p>
+      <p class="truncate text-[11px] font-medium uppercase tracking-[0.22em] sm:text-sm sm:tracking-[0.34em] md:text-base md:tracking-[0.4em]">WOODFISH.STUDIO</p>
     </RouterLink>
 
-    <div class="flex items-center gap-6 md:gap-10">
+    <div class="flex items-center gap-4 sm:gap-6 md:gap-10">
       <nav class="hidden sm:flex items-center gap-8 relative" @mouseleave="hoverIndex = null">
         <!-- Animated Underline -->
         <div

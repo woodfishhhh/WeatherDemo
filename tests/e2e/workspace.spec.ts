@@ -281,6 +281,19 @@ test("workspace dashboard renders grouped multi-city monitoring", async ({ page 
   await expect(page.getByTestId("compare-panel")).toContainText("上海");
 });
 
+test("workspace route remains readable on a mobile viewport without horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await installWorkspaceMocks(page);
+  await gotoRoute(page, "/workspace?group=all&compare=101010100,101020100");
+
+  await expect(page.getByTestId("workspace-heading")).toBeVisible();
+  await expect(page.getByTestId("workspace-groups")).toBeVisible();
+  await expect(page.getByTestId("compare-panel")).toBeVisible();
+  await expect.poll(() =>
+    page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+  ).toBe(true);
+});
+
 test("workspace filters round-trip through the URL query string", async ({ page }) => {
   await installWorkspaceMocks(page);
   await gotoRoute(page, "/workspace?group=all&compare=101010100,101020100");

@@ -1,5 +1,5 @@
 import { isAxiosError } from "axios";
-import { computed, shallowRef } from "vue";
+import { shallowRef } from "vue";
 import { defineStore } from "pinia";
 import type { LocationRecord, SavedCityWeatherSummary } from "@/features/weather/types";
 import {
@@ -14,7 +14,10 @@ import {
   type SavedCitiesSyncStatus,
   type SavedCity,
 } from "@/features/locations/services/persistence";
-import { getLocationRecordKey, getSavedCityKey } from "@/features/locations/utils/locationKeys";
+import {
+  isSameSavedCity,
+  matchesSavedCityLocation,
+} from "@/features/locations/utils/locationKeys";
 
 export type CurrentLocationWeather = {
   location: LocationRecord;
@@ -38,8 +41,6 @@ export const useLocationsStore = defineStore("locations", () => {
   const currentLocation = shallowRef<CurrentLocationWeather | null>(null);
   const currentLocationStatus = shallowRef<SearchStatus>("idle");
   const currentLocationError = shallowRef("");
-
-  const savedLocationKeys = computed(() => new Set(savedCities.value.map((city) => getSavedCityKey(city))));
 
   const loadSavedCities = async (force = false): Promise<SavedCity[]> => {
     if (hasLoadedSavedCities.value && !force) {
@@ -98,11 +99,10 @@ export const useLocationsStore = defineStore("locations", () => {
     persistSavedCities(savedCities.value.filter((city) => city.id !== id));
 
   const toggleSavedCity = async (city: SavedCity): Promise<SavedCity[]> => {
-    const nextKey = getSavedCityKey(city);
-    const existingCity = savedCities.value.find((item) => getSavedCityKey(item) === nextKey);
+    const hasExistingMatch = savedCities.value.some((item) => isSameSavedCity(item, city));
 
-    if (existingCity) {
-      return removeSavedCityById(existingCity.id);
+    if (hasExistingMatch) {
+      return persistSavedCities(savedCities.value.filter((item) => !isSameSavedCity(item, city)));
     }
 
     return persistSavedCities([...savedCities.value, city]);
@@ -113,7 +113,7 @@ export const useLocationsStore = defineStore("locations", () => {
       return false;
     }
 
-    return savedLocationKeys.value.has(getLocationRecordKey(location));
+    return savedCities.value.some((city) => matchesSavedCityLocation(city, location));
   };
 
   const searchByKeyword = async (

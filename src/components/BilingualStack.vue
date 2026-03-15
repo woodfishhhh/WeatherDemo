@@ -31,10 +31,10 @@
   })
 
   const computedEnClass = computed(() => {
-    return isRow.value ? `${props.enClass} whitespace-nowrap` : props.enClass
+    return isRow.value ? `${props.enClass} md:whitespace-nowrap` : props.enClass
   })
 
   const computedZhClass = computed(() => {
-    return isRow.value ? `${props.zhClass} whitespace-nowrap` : props.zhClass
+    return isRow.value ? `${props.zhClass} md:whitespace-nowrap` : props.zhClass
   })
 </script>

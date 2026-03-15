@@ -43,7 +43,7 @@
         />
       </div>
 
-      <div class="flex flex-col gap-4 min-w-[14rem]">
+      <div class="flex w-full max-w-sm flex-col gap-4 lg:w-auto lg:min-w-[14rem]">
         <BilingualStack
           en="Active Group"
           zh="当前分组"

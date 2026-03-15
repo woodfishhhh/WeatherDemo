@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col flex-1 pb-32">
+  <div class="flex flex-1 flex-col overflow-x-clip pb-24 md:pb-32">
     <Transition name="banner-slide">
       <div v-if="resolvedLocation && !isSaved"
         class="w-full bg-brand-primary text-brand-text py-10 text-center z-20 flex flex-col items-center justify-center">
@@ -8,11 +8,11 @@
       </div>
     </Transition>
 
-    <div class="container relative z-10 pt-24" data-testid="city-current-panel" v-if="weatherData?.current">
-      <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-12 ml-[-2px] md:ml-[-4px]">
-        <h1 class="text-[18vw] sm:text-[14vw] md:text-9xl font-bold tracking-tighter leading-none break-words">{{
+    <div class="container relative z-10 pt-20 sm:pt-24" data-testid="city-current-panel" v-if="weatherData?.current">
+      <div class="mb-10 ml-[-2px] flex min-w-0 flex-col gap-6 md:mb-12 md:ml-[-4px] md:flex-row md:items-end md:justify-between">
+        <h1 class="max-w-full break-words text-[clamp(3.5rem,16vw,9rem)] font-bold tracking-tighter leading-[0.88]">{{
           route.params.city }}</h1>
-        <div class="flex flex-col gap-3 md:items-end">
+        <div class="flex min-w-0 flex-col gap-3 md:items-end">
           <div class="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
             <button @click="toggleSaveCity" data-testid="save-city-button"
               :aria-label="isSaved ? 'Remove saved city / 取消收藏城市' : 'Save city / 收藏城市'"
@@ -38,15 +38,15 @@
       </div>
 
       <div
-        class="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 items-start border-t-2 border-brand-primary/10 pt-12">
-        <div class="col-span-1 md:col-span-3">
-          <div class="flex items-center gap-4 pb-4 border-b border-brand-primary/10">
-            <i :class="`qi-${weatherData.current.icon}`" class="weather-glyph text-4xl md:text-5xl"></i>
-            <div class="flex flex-col gap-2">
-              <p class="text-[10px] uppercase tracking-[0.28em] font-bold text-brand-secondary/85">
+        class="grid grid-cols-1 items-start gap-8 border-t-2 border-brand-primary/10 pt-10 md:grid-cols-12 md:gap-8 md:pt-12">
+        <div class="col-span-1 min-w-0 md:col-span-3">
+          <div class="flex min-w-0 items-center gap-4 border-b border-brand-primary/10 pb-4">
+            <i :class="`qi-${weatherData.current.icon}`" class="weather-glyph shrink-0 text-4xl md:text-5xl"></i>
+            <div class="flex min-w-0 flex-col gap-2">
+              <p class="truncate text-[10px] uppercase tracking-[0.28em] font-bold text-brand-secondary/85">
                 {{ weatherData.current.textBilingual.en }}
               </p>
-              <p class="text-[5vw] md:text-5xl font-light tracking-tight">{{ weatherData.current.textBilingual.zh }}</p>
+              <p class="max-w-full overflow-hidden text-ellipsis text-[clamp(1.5rem,8vw,3rem)] md:text-5xl font-light tracking-tight">{{ weatherData.current.textBilingual.zh }}</p>
             </div>
           </div>
           <div class="mt-4 flex flex-col gap-2">
@@ -60,15 +60,15 @@
           </div>
         </div>
 
-        <div class="col-span-1 md:col-span-6 flex justify-start md:justify-end md:pr-16">
-          <p class="text-[20vw] sm:text-[18vw] md:text-[10rem] leading-none font-light tracking-tighter select-none">
+        <div class="col-span-1 flex min-w-0 justify-start md:col-span-6 md:justify-end md:pr-16">
+          <p class="max-w-full break-words text-[clamp(4.75rem,24vw,10rem)] leading-none font-light tracking-tighter select-none">
             {{ formatTemperature(weatherData.current.temperature) }}
           </p>
         </div>
 
-        <div class="col-span-1 md:col-span-3 flex flex-col justify-end h-full">
+        <div class="col-span-1 flex min-w-0 flex-col justify-end md:col-span-3 md:h-full">
           <p class="text-xs tracking-[0.18em] text-brand-muted/75 mb-2">Location Details / 城市信息</p>
-          <p class="text-lg font-light">{{ weatherData.location.province }}</p>
+          <p class="break-words text-lg font-light">{{ weatherData.location.province }}</p>
           <p class="text-sm font-zh-weight text-brand-secondary mt-1">Updated / 更新时间: {{
             formatDateTime(weatherData.current.observationTime) }}</p>
           <p class="text-sm font-zh-weight text-brand-secondary mt-1">TZ / 时区: {{ weatherData.location.timezone || '--' }}
@@ -83,15 +83,15 @@
         <p class="text-xs tracking-[0.18em] text-brand-muted/75 hidden md:block">Next 8 points / 未来 8 个时段</p>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-8">
         <div v-for="point in weatherData.hourly" :key="point.time"
-          class="border border-brand-primary/10 rounded-3xl px-4 py-5 flex flex-col gap-4 bg-brand-accent/25">
+          class="flex min-w-0 flex-col gap-4 rounded-3xl border border-brand-primary/10 bg-brand-accent/25 px-4 py-5">
           <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/75">{{ formatHour(point.time) }}</p>
           <i :class="`qi-${point.icon}`" class="weather-glyph text-3xl"></i>
           <p class="text-2xl font-light">{{ formatTemperature(point.temperature) }}</p>
-          <div class="flex flex-col gap-1">
-            <p class="text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ point.textBilingual.en }}</p>
-            <p class="text-sm font-light tracking-[0.08em]">{{ point.textBilingual.zh }}</p>
+          <div class="flex min-w-0 flex-col gap-1">
+            <p class="break-words text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ point.textBilingual.en }}</p>
+            <p class="break-words text-sm font-light tracking-[0.08em]">{{ point.textBilingual.zh }}</p>
           </div>
           <p class="text-[10px] uppercase tracking-[0.2em] text-brand-muted/75">Pop {{ point.pop }}%</p>
         </div>
@@ -104,33 +104,33 @@
         <p class="text-xs tracking-[0.18em] text-brand-muted/75 hidden md:block">Next 7 Days / 未来 7 天</p>
       </div>
 
-      <div class="flex flex-col w-full">
+      <div class="flex w-full flex-col">
         <div v-for="cast in weatherData.daily" :key="cast.date"
-          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-center py-8 md:py-10 border-b border-brand-primary/10 group cursor-default hover:bg-brand-primary/5 transition-colors duration-500 px-4 md:px-8 -mx-4 md:-mx-8 rounded-2xl">
+          class="group grid grid-cols-1 items-start gap-4 rounded-2xl border-b border-brand-primary/10 px-4 py-8 transition-colors duration-500 hover:bg-brand-primary/5 -mx-4 sm:grid-cols-2 md:grid-cols-5 md:px-8 md:py-10 md:-mx-8">
           <div class="col-span-1 sm:col-span-2 md:col-span-1">
             <p class="text-xl md:text-2xl font-light tracking-tight">{{ formatDay(cast.date) }}</p>
             <p class="text-[10px] md:text-xs uppercase tracking-[0.2em] text-brand-muted/75 mt-2">{{ cast.date }}</p>
           </div>
 
-          <div class="col-span-1 flex flex-col">
+          <div class="col-span-1 min-w-0 flex flex-col">
             <div class="flex items-start gap-3">
               <i :class="`qi-${cast.iconDay}`" class="weather-glyph"></i>
-              <div class="flex flex-col gap-1">
-                <p class="text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ cast.textDayBilingual.en }}
+              <div class="flex min-w-0 flex-col gap-1">
+                <p class="break-words text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ cast.textDayBilingual.en }}
                 </p>
-                <p class="text-lg font-light">{{ cast.textDayBilingual.zh }}</p>
+                <p class="break-words text-lg font-light">{{ cast.textDayBilingual.zh }}</p>
               </div>
             </div>
             <p class="text-[10px] tracking-[0.18em] text-brand-muted/75 mt-2">Daytime / 白天</p>
           </div>
 
-          <div class="col-span-1 flex flex-col">
+          <div class="col-span-1 min-w-0 flex flex-col">
             <div class="flex items-start gap-3">
               <i :class="`qi-${cast.iconNight}`" class="weather-glyph"></i>
-              <div class="flex flex-col gap-1">
-                <p class="text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ cast.textNightBilingual.en
+              <div class="flex min-w-0 flex-col gap-1">
+                <p class="break-words text-[10px] uppercase tracking-[0.2em] text-brand-secondary/85">{{ cast.textNightBilingual.en
                   }}</p>
-                <p class="text-lg font-light">{{ cast.textNightBilingual.zh }}</p>
+                <p class="break-words text-lg font-light">{{ cast.textNightBilingual.zh }}</p>
               </div>
             </div>
             <p class="text-[10px] tracking-[0.18em] text-brand-muted/75 mt-2">Nighttime / 夜间</p>
@@ -145,12 +145,12 @@
             <p class="text-[10px] tracking-[0.18em] text-brand-muted/75 mt-2">Conditions / 细节</p>
           </div>
 
-          <div class="col-span-1 flex justify-end md:justify-end items-center gap-6">
-            <div class="text-right">
+          <div class="col-span-1 flex items-center justify-start gap-6 md:justify-end">
+            <div class="text-left md:text-right">
               <span class="text-brand-muted/75 text-sm mr-2">↑</span>
               <span class="text-3xl font-light">{{ formatTemperature(cast.tempMax) }}</span>
             </div>
-            <div class="text-right">
+            <div class="text-left md:text-right">
               <span class="text-brand-muted/75 text-sm mr-2">↓</span>
               <span class="text-3xl font-light text-brand-secondary">{{ formatTemperature(cast.tempMin) }}</span>
             </div>

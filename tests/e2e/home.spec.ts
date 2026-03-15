@@ -386,6 +386,25 @@ const installCityJourneyMocks = async (page: Page) => {
 };
 
 test.describe("home", () => {
+  test("mobile viewport keeps the home route readable without horizontal overflow", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await installHomeWorkspaceMocks(page);
+
+    await page.goto("/");
+
+    await expect(page.getByTestId("home-search-input")).toBeVisible();
+    await expect(page.getByTestId("saved-locations-section")).toBeVisible();
+    await expect(page.getByTestId("workspace-shortcuts")).toBeVisible();
+    await expect(
+      page.getByTestId("saved-locations-section")
+        .getByRole("button", { name: "Remove location" })
+        .first()
+    ).toBeVisible();
+    await expect.poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+    ).toBe(true);
+  });
+
   test("typing rapidly only shows the latest suggestion set", async ({ page }) => {
     await page.route("**/geo/v2/city/lookup**", async (route) => {
       const url = new URL(route.request().url());

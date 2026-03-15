@@ -6,13 +6,13 @@
     <div class="flex-1 h-[1px] bg-brand-primary/20"></div>
   </div>
 
-  <div class="relative w-full lg:w-4/5 ml-auto">
+  <div class="relative ml-0 w-full lg:ml-auto lg:w-4/5">
     <div v-if="currentLocation"
       data-testid="current-location-card"
-      class="group cursor-pointer block border-l text-left border-brand-primary/20 pl-6 md:pl-12 py-4 hover:border-brand-primary transition-all duration-700"
+      class="group block cursor-pointer border-l border-brand-primary/20 py-4 pl-5 text-left transition-all duration-700 hover:border-brand-primary sm:pl-6 md:pl-12"
       @click="emit('open-current-location')">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 md:gap-12">
-        <div>
+      <div class="flex flex-col justify-between gap-8 md:flex-row md:items-end md:gap-12">
+        <div class="min-w-0">
           <BilingualStack :en="currentLocation.location.province || ''"
             :zh="currentLocation.location.district ? currentLocation.location.province + ' — ' + currentLocation.location.district : currentLocation.location.province"
             en-class="text-[10px] md:text-xs uppercase tracking-[0.3em] font-medium text-brand-muted mb-1 opacity-50"
@@ -20,37 +20,37 @@
 
           <BilingualStack :en="currentLocation.location.name"
             :zh="currentLocation.location.name"
-            wrapper-class="flex flex-col gap-2 mb-6 group-hover:px-4 transition-all duration-500"
-            en-class="text-5xl md:text-7xl font-bold tracking-tighter leading-none uppercase"
-            zh-class="text-2xl font-zh-weight opacity-60" />
+            wrapper-class="mb-5 flex min-w-0 flex-col gap-2 transition-all duration-500 md:mb-6 md:group-hover:px-4"
+            en-class="max-w-full overflow-hidden text-ellipsis text-[clamp(2.75rem,15vw,4.5rem)] md:text-7xl font-bold tracking-tighter leading-none uppercase"
+            zh-class="max-w-full overflow-hidden text-ellipsis text-xl sm:text-2xl font-zh-weight opacity-60" />
 
-          <div class="flex items-center gap-6 mt-8">
-            <i :class="`qi-${currentLocation.weather.icon}`" class="weather-glyph text-4xl"></i>
-            <div>
-              <p class="text-xl font-medium tracking-tight">{{ currentLocation.weather.textBilingual.en ||
+          <div class="mt-6 flex min-w-0 items-center gap-4 sm:mt-8 sm:gap-6">
+            <i :class="`qi-${currentLocation.weather.icon}`" class="weather-glyph shrink-0 text-4xl"></i>
+            <div class="min-w-0">
+              <p class="truncate text-lg sm:text-xl font-medium tracking-tight">{{ currentLocation.weather.textBilingual.en ||
                 currentLocation.weather.textBilingual.zh }}</p>
-              <p class="text-sm font-light text-brand-secondary mt-1">{{ currentLocation.weather.textBilingual.zh }}</p>
+              <p class="truncate mt-1 text-sm font-light text-brand-secondary">{{ currentLocation.weather.textBilingual.zh }}</p>
             </div>
           </div>
         </div>
 
         <div
-          class="flex flex-col items-start md:items-end gap-6 border-t md:border-t-0 md:border-l border-brand-primary/10 pt-6 md:pt-0 md:pl-12">
-          <p class="text-7xl md:text-9xl font-medium tracking-tighter tabular-nums leading-none">{{
+          class="flex min-w-0 flex-col items-start gap-5 border-t border-brand-primary/10 pt-6 md:items-end md:border-t-0 md:border-l md:pl-12 md:pt-0">
+          <p class="max-w-full overflow-hidden text-ellipsis text-[clamp(4rem,24vw,7rem)] md:text-9xl font-medium tracking-tighter tabular-nums leading-none">{{
             formatTemperatureNumber(currentLocation.weather.temperature) }}<span
               class="text-3xl md:text-5xl align-top">°</span></p>
 
-          <div class="flex flex-col md:items-end gap-1 mt-auto">
+          <div class="mt-auto flex flex-col gap-1 md:items-end">
             <BilingualStack en="Humidity / Wind" zh="湿度与风级" wrapper-class="flex flex-col md:items-end gap-1"
               en-class="text-[10px] uppercase font-bold tracking-[0.2em] opacity-40" zh-class="hidden" />
-            <p class="text-sm tracking-widest font-light">
+            <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm tracking-widest font-light">
               H: {{ currentLocation.weather.humidity }}%<span class="mx-2 opacity-30">|</span>W: {{ formatWind({
                 scale:
                   currentLocation.weather.windScale }) }}
             </p>
           </div>
           <BilingualStack en="Explore ↗" zh="探索"
-            wrapper-class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2"
+            wrapper-class="mt-4 flex items-center gap-2 opacity-80 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100"
             en-class="text-xs tracking-[0.4em] font-medium uppercase" zh-class="text-xs font-zh-weight opacity-60" />
         </div>
       </div>
@@ -59,7 +59,8 @@
     <div v-else class="flex flex-col gap-8 md:gap-12 border-l border-brand-primary/20 pl-6 md:pl-12 py-4">
       <div>
         <BilingualStack en="Discover Your Local Atmosphere" zh="探索本地气象" wrapper-class="flex flex-col gap-3 mb-6"
-          en-class="text-3xl md:text-5xl font-medium tracking-tighter" zh-class="text-xl font-zh-weight opacity-75" />
+          en-class="text-[clamp(2rem,10vw,3rem)] md:text-5xl font-medium tracking-tighter"
+          zh-class="text-lg sm:text-xl font-zh-weight opacity-75" />
         <BilingualStack en="We can request browser location permission to resolve your city securely."
           zh="允许获取浏览器定位权限，我们将安全地解析您所在的城市。" wrapper-class="flex flex-col gap-2 text-brand-secondary"
           en-class="text-lg font-zh-weight tracking-wide" zh-class="text-sm font-zh-weight opacity-60" />

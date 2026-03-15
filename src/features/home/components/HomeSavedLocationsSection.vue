@@ -31,7 +31,7 @@
         <button
           type="button"
           data-testid="open-risk-city-button"
-          class="inline-flex items-center justify-center rounded-full border border-brand-primary/14 px-5 py-3 text-[10px] uppercase tracking-[0.28em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text"
+          class="inline-flex self-start items-center justify-center rounded-full border border-brand-primary/14 px-5 py-3 text-[10px] uppercase tracking-[0.28em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text md:self-auto"
           @click="emit('open-saved-city', props.savedCityIntelligence.city)"
         >
           Inspect City / 查看城市

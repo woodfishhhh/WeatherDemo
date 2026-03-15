@@ -221,6 +221,21 @@ test("city intelligence page renders current, hourly, daily, and intelligence mo
   await expect(page.getByTestId("city-current-panel")).toContainText("23°C");
 });
 
+test("city detail stays within the mobile viewport without horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await gotoRoute(page, "/");
+  await page.evaluate(() => window.localStorage.clear());
+  await installCityMocks(page);
+  await gotoRoute(page, cityRoute);
+
+  await expect(page.getByTestId("city-current-panel")).toBeVisible();
+  await expect(page.getByTestId("city-hourly-strip")).toBeVisible();
+  await expect(page.getByTestId("city-daily-grid")).toBeVisible();
+  await expect.poll(() =>
+    page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+  ).toBe(true);
+});
+
 test("save toggle persists through reload", async ({ page }) => {
   await gotoRoute(page, "/");
   await page.evaluate(() => window.localStorage.clear());

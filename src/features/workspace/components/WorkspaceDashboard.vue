@@ -29,8 +29,8 @@
 </script>
 
 <template>
-  <main class="container relative z-10 min-h-screen pt-28 pb-20 sm:pt-32 md:pt-40 md:pb-28">
-    <section class="max-w-6xl">
+  <main class="container relative z-10 min-h-screen overflow-x-clip pt-24 pb-20 sm:pt-32 md:pt-40 md:pb-28">
+    <section class="max-w-6xl min-w-0">
       <BilingualStack
         en="Workspace"
         zh="工作台"
@@ -40,14 +40,14 @@
       />
 
       <div class="mt-6 grid grid-cols-1 gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-end">
-        <div class="space-y-4">
+        <div class="min-w-0 space-y-4">
           <BilingualStack
             en="Multi-city monitoring now lives in a real workspace route."
             zh="多城市监测已经接入真正的工作台页面。"
             data-testid="workspace-heading"
-            wrapper-class="flex flex-col gap-4"
-            en-class="text-4xl md:text-6xl font-zh-weight tracking-tighter"
-            zh-class="text-3xl md:text-5xl font-zh-weight tracking-tight text-brand-muted/88"
+            wrapper-class="flex min-w-0 flex-col gap-4"
+            en-class="text-[clamp(2.5rem,10vw,4.5rem)] md:text-6xl font-zh-weight tracking-tighter"
+            zh-class="text-[clamp(2rem,8vw,3.75rem)] md:text-5xl font-zh-weight tracking-tight text-brand-muted/88"
           />
           <div class="max-w-3xl text-sm md:text-base leading-7 text-brand-muted/70 space-y-2 mt-4">
             <BilingualStack
@@ -93,9 +93,9 @@
     </div>
 
     <section class="mt-12 grid grid-cols-1 gap-6 xl:grid-cols-[1.08fr_0.92fr] xl:items-start">
-      <div>
+      <div class="min-w-0">
         <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div class="space-y-4">
+          <div class="min-w-0 space-y-4">
             <BilingualStack
               en="Saved Group"
               zh="当前分组"
@@ -103,7 +103,7 @@
               en-class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70"
               zh-class="text-xs font-zh-weight text-brand-muted/60"
             />
-            <h2 class="text-3xl md:text-4xl font-light tracking-tight">{{ activeGroupCopy.title }}</h2>
+            <h2 class="break-words text-3xl md:text-4xl font-light tracking-tight">{{ activeGroupCopy.title }}</h2>
           </div>
           <p class="max-w-xl text-sm leading-7 text-brand-muted/68 md:text-right">
             {{ activeGroupCopy.description }}

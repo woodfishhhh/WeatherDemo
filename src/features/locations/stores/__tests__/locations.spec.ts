@@ -44,6 +44,15 @@ const beijingLocation: LocationRecord = {
   timezone: "Asia/Shanghai",
 };
 
+const nanchangLocation: LocationRecord = {
+  id: "101240101",
+  name: "南昌",
+  province: "江西省",
+  latitude: "28.67649",
+  longitude: "115.89215",
+  timezone: "Asia/Shanghai",
+};
+
 describe("useLocationsStore", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -221,5 +230,36 @@ describe("useLocationsStore", () => {
 
     await togglePromise;
     expect(store.isLocationSaved(beijingLocation)).toBe(true);
+  });
+
+  it("treats a legacy saved city with overlapping identity as the same location", async () => {
+    savedCitiesState.cities = [
+      {
+        id: "0325d7f715f",
+        province: "江西省",
+        city: "南昌市",
+        latitude: "28.67649",
+        longitude: "115.89215",
+        timezone: "Asia/Shanghai",
+      },
+    ];
+
+    const store = useLocationsStore();
+    await store.loadSavedCities(true);
+
+    expect(store.isLocationSaved(nanchangLocation)).toBe(true);
+
+    const nextCities = await store.toggleSavedCity({
+      id: "0325d7f715f",
+      province: "江西省",
+      city: "南昌",
+      locationId: "101240101",
+      latitude: "28.67649",
+      longitude: "115.89215",
+      timezone: "Asia/Shanghai",
+    });
+
+    expect(nextCities).toEqual([]);
+    expect(saveSavedCitiesMock).toHaveBeenLastCalledWith([]);
   });
 });

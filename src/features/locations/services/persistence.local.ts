@@ -4,17 +4,9 @@ import {
   type SavedCity,
   type SavedCitiesEnvelope,
 } from "./persistence.types";
+import { getSavedCityKey, isSameSavedCity, mergeSavedCityRecords } from "@/features/locations/utils/locationKeys";
 
 const STORAGE_KEY = "savedCities";
-
-const getCanonicalSavedCityKey = (city: SavedCity): string =>
-  city.adcode
-    ? "adcode:" + city.adcode
-    : city.locationId
-      ? "location:" + city.locationId
-      : city.latitude && city.longitude
-        ? "coords:" + city.latitude + "," + city.longitude
-        : city.id || city.province + "::" + city.city;
 
 export const normalizeSavedCities = (input: unknown): SavedCity[] => {
   if (!Array.isArray(input)) {
@@ -68,10 +60,15 @@ export const normalizeSavedCities = (input: unknown): SavedCity[] => {
 
   const unique = new Map<string, SavedCity>();
   for (const city of mapped) {
-    const key = getCanonicalSavedCityKey(city);
-    if (!unique.has(key)) {
-      unique.set(key, city);
+    const matchingEntry = Array.from(unique.entries()).find(([, existing]) => isSameSavedCity(existing, city));
+
+    if (matchingEntry) {
+      const [existingKey, existingCity] = matchingEntry;
+      unique.set(existingKey, mergeSavedCityRecords(existingCity, city));
+      continue;
     }
+
+    unique.set(getSavedCityKey(city), city);
   }
 
   return Array.from(unique.values());

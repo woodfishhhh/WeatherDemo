@@ -1,74 +1,94 @@
 <template>
-  <div data-testid="city-card"
-    class="relative group flex flex-col md:flex-row items-start md:items-end justify-between py-10 md:py-16 border-b border-brand-primary/20 cursor-pointer overflow-hidden transition-all duration-700 hover:border-brand-primary">
-    <div
-      class="flex flex-col z-10 w-full md:w-1/2 group-hover:translate-x-6 transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)]">
-      <p v-if="weatherData"
-        class="flex flex-col gap-1 mb-4 md:mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-        <span class="text-[10px] md:text-sm uppercase tracking-[0.4em] font-medium text-brand-muted/70">{{
-          weatherData.province }} — DOMAIN</span>
-      </p>
-      <BilingualStack :en="city.city" :zh="city.city" wrapper-class="flex flex-col gap-2"
-        en-class="text-4xl md:text-7xl font-bold tracking-tighter leading-none uppercase"
-        zh-class="text-2xl md:text-4xl font-zh-weight opacity-60" />
-    </div>
+  <div
+    data-testid="city-card"
+    class="relative group cursor-pointer overflow-hidden border-b border-brand-primary/20 transition-all duration-700 hover:border-brand-primary"
+  >
+    <div class="flex w-full min-w-0 flex-col gap-8 py-8 sm:py-10 md:flex-row md:items-end md:justify-between md:gap-10 md:py-16">
+      <div
+        class="z-10 flex min-w-0 w-full flex-col md:w-1/2 md:group-hover:translate-x-6 transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)]"
+      >
+        <p
+          v-if="weatherData"
+          class="mb-4 flex max-w-full flex-col gap-1 opacity-100 transition-opacity duration-500 md:mb-6 md:opacity-0 md:group-hover:opacity-100"
+        >
+          <span class="truncate text-[10px] md:text-sm uppercase tracking-[0.4em] font-medium text-brand-muted/70">
+            {{ weatherData.province }} — DOMAIN
+          </span>
+        </p>
+        <BilingualStack
+          :en="city.city"
+          :zh="city.city"
+          wrapper-class="flex min-w-0 flex-col gap-2"
+          en-class="max-w-full overflow-hidden text-ellipsis text-[clamp(2.5rem,14vw,4.5rem)] md:text-7xl font-bold tracking-tighter leading-none uppercase"
+          zh-class="max-w-full overflow-hidden text-ellipsis text-xl sm:text-2xl md:text-4xl font-zh-weight opacity-60"
+        />
+      </div>
 
-    <div
-      class="flex flex-col md:flex-row md:items-end gap-8 md:gap-16 z-10 mt-8 md:mt-0 w-full md:w-auto justify-between md:justify-end transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:-translate-x-24 md:group-hover:-translate-x-40">
-      <div v-if="weatherData" class="flex items-center gap-6">
-        <i :class="`qi-${weatherData.icon}`" class="weather-glyph text-3xl md:text-5xl opacity-80"></i>
-        <div class="flex flex-col">
-          <p class="text-sm md:text-lg font-medium tracking-tight uppercase">
-            {{ weatherData.textBilingual.en }}
+      <div
+        class="z-10 flex w-full min-w-0 flex-col gap-6 md:w-auto md:flex-row md:items-end md:justify-end md:gap-16 transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] md:group-hover:-translate-x-40"
+      >
+        <div v-if="weatherData" class="flex min-w-0 items-center gap-4 md:gap-6">
+          <i :class="`qi-${weatherData.icon}`" class="weather-glyph shrink-0 text-3xl md:text-5xl opacity-80"></i>
+          <div class="flex min-w-0 flex-col">
+            <p class="truncate text-sm md:text-lg font-medium tracking-tight uppercase">
+              {{ weatherData.textBilingual.en }}
+            </p>
+            <p class="truncate mt-1 text-xs md:text-sm font-light tracking-wider text-brand-secondary">
+              {{ weatherData.textBilingual.zh || 'Details' }}
+            </p>
+          </div>
+        </div>
+
+        <div
+          v-if="weatherData"
+          class="flex min-w-0 flex-col items-start gap-2 border-t border-brand-primary/10 pt-6 md:items-end md:border-t-0 md:border-l md:pl-10 md:pt-0"
+        >
+          <p class="max-w-full overflow-hidden text-ellipsis text-[clamp(3.5rem,20vw,5.75rem)] md:text-8xl font-medium tracking-tighter tabular-nums leading-none">
+            {{ formatTemperatureNumber(weatherData.temperature) }}<span class="align-top text-2xl md:text-4xl text-brand-primary/50">°</span>
           </p>
-          <p class="text-xs md:text-sm font-light text-brand-secondary mt-1 tracking-wider">{{
-            weatherData.textBilingual.zh || 'Details' }}</p>
+          <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-[0.3em] font-light text-brand-muted">
+            <span>H:{{ weatherData.humidity }}%</span>
+            <span class="opacity-30">|</span>
+            <span>W:{{ formatWind({ scale: weatherData.windScale }) }}</span>
+          </p>
         </div>
       </div>
-
-      <div v-if="weatherData"
-        class="flex flex-col items-start md:items-end gap-2 border-l border-brand-primary/10 pl-6 md:pl-10">
-        <p class="text-5xl md:text-8xl font-medium tracking-tighter tabular-nums leading-none">{{
-          formatTemperatureNumber(weatherData.temperature) }}<span
-            class="text-2xl md:text-4xl align-top text-brand-primary/50">°</span></p>
-        <p class="text-xs uppercase tracking-[0.3em] font-light text-brand-muted mt-2">
-          H:{{ weatherData.humidity }}%<span class="mx-3 opacity-30">|</span>W:{{ formatWind({
-            scale:
-              weatherData.windScale
-          }) }}
-        </p>
-      </div>
     </div>
 
-    <!-- Minimalist Delete Button Container -->
     <div
-      class="absolute right-0 top-0 bottom-0 z-20 flex items-center justify-end opacity-0 group-hover:opacity-100 translate-x-8 group-hover:translate-x-0 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] pointer-events-none md:pr-4">
-      <button @click.stop="deleteCity" aria-label="Remove location"
-        class="pointer-events-auto h-full flex flex-col items-center justify-center px-4 md:px-6 group/btn hover:scale-105 transition-transform duration-500 ease-out py-8 hover:bg-brand-primary/5">
-
-        <!-- Flowing vertical line (Top) -->
+      class="z-20 flex w-full justify-end pb-2 md:absolute md:inset-y-0 md:right-0 md:w-auto md:items-center md:pb-0 md:pr-4 md:pointer-events-none md:opacity-0 md:translate-x-8 md:group-hover:opacity-100 md:group-hover:translate-x-0 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)]"
+    >
+      <button
+        data-testid="city-card-remove-button"
+        @click.stop="deleteCity"
+        aria-label="Remove location"
+        class="pointer-events-auto group/btn inline-flex items-center justify-center gap-3 rounded-full border border-brand-primary/12 px-4 py-3 text-left transition-transform duration-500 ease-out hover:bg-brand-primary/5 md:h-full md:flex-col md:gap-1.5 md:rounded-none md:border-0 md:px-6 md:py-8 md:hover:scale-105"
+      >
         <span
-          class="w-[1px] h-0 group-hover:h-full bg-brand-primary/20 group-hover/btn:bg-red-500 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] mb-4 origin-bottom transform-gpu"></span>
+          class="hidden w-[1px] bg-brand-primary/20 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] md:block md:h-0 md:mb-4 md:origin-bottom md:transform-gpu md:group-hover:h-full md:group-hover/btn:bg-red-500"
+        ></span>
 
-        <!-- Typography -->
-        <div class="flex flex-col items-center gap-1.5">
-          <svg class="w-4 h-4 text-brand-primary group-hover/btn:text-red-500 transition-colors duration-500"
-            fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <div class="flex items-center gap-3 md:flex-col md:gap-1.5">
+          <svg
+            class="h-4 w-4 text-brand-primary transition-colors duration-500 group-hover/btn:text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
-          <span
-            class="text-[11px] md:text-[13px] uppercase tracking-[0.2em] font-bold text-brand-primary group-hover/btn:text-red-500 transition-colors duration-500 mt-1">
+          <span class="text-[11px] md:text-[13px] uppercase tracking-[0.2em] font-bold text-brand-primary transition-colors duration-500 group-hover/btn:text-red-500">
             REMOVE
           </span>
-          <span
-            class="text-[10px] md:text-sm font-zh-weight tracking-[0.3em] text-brand-primary group-hover/btn:text-red-500 transition-colors duration-500">
+          <span class="text-[10px] md:text-sm font-zh-weight tracking-[0.3em] text-brand-primary transition-colors duration-500 group-hover/btn:text-red-500">
             删除
           </span>
         </div>
 
-        <!-- Flowing vertical line (Bottom) -->
         <span
-          class="w-[1px] h-0 group-hover:h-full bg-brand-primary/20 group-hover/btn:bg-red-500 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] mt-4 origin-top transform-gpu delay-75"></span>
+          class="hidden w-[1px] bg-brand-primary/20 transition-all duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] md:block md:h-0 md:mt-4 md:origin-top md:transform-gpu md:delay-75 md:group-hover:h-full md:group-hover/btn:bg-red-500"
+        ></span>
       </button>
     </div>
   </div>

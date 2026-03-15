@@ -85,10 +85,10 @@
     as="aside"
     data-testid="compare-panel"
     tone="elevated"
-    class="px-5 py-6 md:px-6 md:py-7"
+    class="overflow-hidden px-5 py-6 md:px-6 md:py-7"
   >
     <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-      <div class="space-y-4">
+      <div class="min-w-0 space-y-4">
         <BilingualStack
           en="Compare Module"
           zh="快速对比"
@@ -96,7 +96,7 @@
           en-class="text-[10px] uppercase tracking-[0.34em] font-bold text-brand-muted/70"
           zh-class="text-xs font-zh-weight text-brand-muted/60"
         />
-        <h2 class="text-2xl md:text-3xl font-light tracking-tight">
+        <h2 class="break-words text-2xl md:text-3xl font-light tracking-tight">
           Quiet cross-city signals, kept compact.
         </h2>
       </div>
@@ -115,7 +115,7 @@
       class="mt-8 rounded-[1.6rem] border border-brand-primary/10 bg-brand-accent/10 px-4 py-5"
     >
       <div class="flex flex-col gap-4">
-        <div class="space-y-3">
+        <div class="min-w-0 space-y-3">
           <BilingualStack
             en="Active Preset"
             zh="当前预设"
@@ -123,7 +123,7 @@
             en-class="text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/70"
             zh-class="text-xs font-zh-weight text-brand-muted/60"
           />
-          <p class="text-2xl font-light tracking-tight">{{ props.preset.label }}</p>
+          <p class="break-words text-2xl font-light tracking-tight">{{ props.preset.label }}</p>
         </div>
         <p class="text-sm leading-7 text-brand-muted/68">{{ props.preset.description }}</p>
         <div class="flex flex-wrap gap-2">
@@ -144,10 +144,10 @@
         :key="record.locationId"
       >
         <PlatformPanel tone="soft" shape="card" class="px-4 py-4">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="text-[10px] uppercase tracking-[0.24em] font-bold text-brand-muted/68">{{ record.city.province }}</p>
-              <p class="mt-3 text-2xl font-light tracking-tight">{{ record.city.city }}</p>
+          <div class="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0">
+              <p class="truncate text-[10px] uppercase tracking-[0.24em] font-bold text-brand-muted/68">{{ record.city.province }}</p>
+              <p class="mt-3 break-words text-2xl font-light tracking-tight">{{ record.city.city }}</p>
               <BilingualStack
                 v-if="record.summary"
                 :en="`${record.summary.textBilingual.en} · ${record.summary.humidity}% humidity · wind ${formatWind({ scale: record.summary.windScale })}`"
@@ -174,24 +174,24 @@
               />
             </div>
 
-            <div class="text-right">
+            <div class="min-w-0 text-left sm:text-right">
               <BilingualStack
                 en="Current"
                 zh="当前"
-                wrapper-class="flex flex-col gap-1 items-end"
+                wrapper-class="flex flex-col gap-1 sm:items-end"
                 en-class="text-[10px] uppercase tracking-[0.24em] font-bold text-brand-muted/68"
                 zh-class="text-[10px] font-zh-weight text-brand-muted/50"
               />
-              <p class="mt-3 text-4xl font-light tracking-tighter">
+              <p class="mt-3 max-w-full break-words text-[clamp(3rem,14vw,4rem)] font-light tracking-tighter">
                 {{ record.summary ? formatTemperature(record.summary.temperature) : "--" }}
               </p>
             </div>
           </div>
 
-          <div class="mt-5 flex flex-wrap gap-3">
+          <div class="mt-5 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
             <button
               type="button"
-              class="rounded-full border border-brand-primary/12 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text flex flex-col items-center gap-1 min-w-[5rem]"
+              class="flex w-full flex-col items-center gap-1 rounded-full border border-brand-primary/12 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text sm:w-auto sm:min-w-[5rem]"
               @click="emit('openCity', record.city)"
             >
               <span>OPEN</span>
@@ -199,7 +199,7 @@
             </button>
             <button
               type="button"
-              class="rounded-full border border-brand-primary/10 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/80 transition-colors duration-300 hover:border-brand-primary/28 hover:text-brand-primary flex flex-col items-center gap-1 min-w-[5rem]"
+              class="flex w-full flex-col items-center gap-1 rounded-full border border-brand-primary/10 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/80 transition-colors duration-300 hover:border-brand-primary/28 hover:text-brand-primary sm:w-auto sm:min-w-[5rem]"
               @click="emit('toggleCompare', record.locationId)"
             >
               <span>RELEASE</span>
@@ -242,7 +242,7 @@
                 en-class="text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/70"
                 zh-class="text-[10px] font-zh-weight text-brand-muted/60"
               />
-              <p class="mt-3 text-2xl font-light tracking-tight">
+              <p class="mt-3 break-words text-2xl font-light tracking-tight">
                 {{ findTrendInsight(record.locationId)?.headline ?? "Trend snapshot" }}
               </p>
               <BilingualStack

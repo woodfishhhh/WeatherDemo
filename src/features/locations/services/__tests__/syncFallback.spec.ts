@@ -97,6 +97,55 @@ describe("saved city sync fallback", () => {
     });
   });
 
+  it("merges overlapping legacy and normalized saved-city records into one entry", async () => {
+    hasFirebaseConfigMock.mockReturnValue(false);
+
+    const result = await saveSavedCities([
+      {
+        id: "0325d7f715f",
+        province: "江西省",
+        city: "南昌市",
+        latitude: "28.67649",
+        longitude: "115.89215",
+        timezone: "Asia/Shanghai",
+      },
+      {
+        id: "0325d7f715f",
+        province: "江西省",
+        city: "南昌",
+        locationId: "101240101",
+        latitude: "28.67649",
+        longitude: "115.89215",
+        timezone: "Asia/Shanghai",
+        country: "中国",
+      },
+    ]);
+
+    expect(result.syncStatus).toBe("ready");
+    expect(result.cities).toEqual([
+      expect.objectContaining({
+        id: "0325d7f715f",
+        province: "江西省",
+        city: "南昌市",
+        locationId: "101240101",
+        latitude: "28.67649",
+        longitude: "115.89215",
+        timezone: "Asia/Shanghai",
+        country: "中国",
+      }),
+    ]);
+    expect(JSON.parse(window.localStorage.getItem("savedCities") || "{}")).toMatchObject({
+      version: 2,
+      cities: [
+        expect.objectContaining({
+          id: "0325d7f715f",
+          city: "南昌市",
+          locationId: "101240101",
+        }),
+      ],
+    });
+  });
+
   it("keeps local data and surfaces a recoverable error when cloud loading fails", async () => {
     window.localStorage.setItem(
       "savedCities",

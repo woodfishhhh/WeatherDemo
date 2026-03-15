@@ -25,16 +25,16 @@
 <template>
   <article
     data-testid="workspace-city-card"
-    class="group border border-brand-primary/10 rounded-[2rem] bg-brand-accent/16 px-5 py-6 md:px-6 md:py-7 cursor-pointer transition-colors duration-300 hover:border-brand-primary/30 hover:bg-brand-accent/24 flex flex-col"
+    class="group flex cursor-pointer flex-col rounded-[2rem] border border-brand-primary/10 bg-brand-accent/16 px-5 py-6 transition-colors duration-300 hover:border-brand-primary/30 hover:bg-brand-accent/24 md:px-6 md:py-7"
     @click="emit('open', props.city)"
   >
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <p class="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-muted/70">{{ props.city.province }}</p>
-        <h3 class="mt-4 text-3xl md:text-4xl font-light tracking-tight">{{ props.city.city }}</h3>
+    <div class="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div class="min-w-0">
+        <p class="truncate text-[10px] uppercase tracking-[0.3em] font-bold text-brand-muted/70">{{ props.city.province }}</p>
+        <h3 class="mt-4 break-words text-[clamp(2rem,8vw,2.5rem)] md:text-4xl font-light tracking-tight">{{ props.city.city }}</h3>
       </div>
 
-      <div class="flex flex-wrap justify-end gap-2">
+      <div class="flex flex-wrap gap-2 sm:justify-end">
         <span
           v-if="props.isRecent"
           class="rounded-full border border-brand-primary/10 px-3 py-2 text-[10px] uppercase tracking-[0.22em] font-bold text-brand-muted/70 flex items-center gap-1"
@@ -53,14 +53,14 @@
     </div>
 
     <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-[1.15fr_0.85fr] sm:items-end">
-      <div v-if="props.summary" class="space-y-4">
-        <div class="flex items-center gap-3">
-          <i :class="`qi-${props.summary.icon}`" class="weather-glyph text-3xl"></i>
-          <div>
-            <p class="text-[10px] uppercase tracking-[0.24em] font-bold text-brand-secondary/85">
+      <div v-if="props.summary" class="min-w-0 space-y-4">
+        <div class="flex min-w-0 items-center gap-3">
+          <i :class="`qi-${props.summary.icon}`" class="weather-glyph shrink-0 text-3xl"></i>
+          <div class="min-w-0">
+            <p class="truncate text-[10px] uppercase tracking-[0.24em] font-bold text-brand-secondary/85">
               {{ props.summary.textBilingual.en }}
             </p>
-            <p class="mt-1 text-lg font-light tracking-[0.08em]">{{ props.summary.textBilingual.zh }}</p>
+            <p class="truncate mt-1 text-lg font-light tracking-[0.08em]">{{ props.summary.textBilingual.zh }}</p>
           </div>
         </div>
         <BilingualStack
@@ -72,7 +72,7 @@
         />
       </div>
 
-      <div v-else-if="props.summary === null" class="space-y-3">
+      <div v-else-if="props.summary === null" class="min-w-0 space-y-3">
         <BilingualStack
           en="Summary unavailable"
           zh="概览不可用"
@@ -89,7 +89,7 @@
         />
       </div>
 
-      <div v-else class="space-y-3">
+      <div v-else class="min-w-0 space-y-3">
         <BilingualStack
           en="Summary loading..."
           zh="概览加载中..."
@@ -106,7 +106,7 @@
         />
       </div>
 
-      <div class="sm:text-right">
+      <div class="min-w-0 sm:text-right">
         <BilingualStack
           en="Current"
           zh="当前"
@@ -114,16 +114,16 @@
           en-class="text-[10px] uppercase tracking-[0.24em] font-bold text-brand-muted/70"
           zh-class="text-xs font-zh-weight text-brand-muted/60"
         />
-        <p class="mt-3 text-5xl md:text-6xl font-light tracking-tighter">
+        <p class="mt-3 max-w-full break-words text-[clamp(3.5rem,16vw,4.75rem)] md:text-6xl font-light tracking-tighter">
           {{ props.summary ? formatTemperature(props.summary.temperature) : "--" }}
         </p>
       </div>
     </div>
 
-    <div class="mt-auto pt-8 flex flex-wrap gap-3">
+    <div class="mt-auto grid grid-cols-1 gap-3 pt-8 sm:flex sm:flex-wrap">
       <button
         type="button"
-        class="rounded-full border border-brand-primary/12 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text flex items-center gap-1.5"
+        class="flex w-full items-center justify-center gap-1.5 rounded-full border border-brand-primary/12 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text sm:w-auto"
         @click.stop="emit('toggleFavorite', props.locationId)"
       >
         <span>{{ props.isFavorite ? "FAVORITED" : "FAVORITE" }}</span>
@@ -131,7 +131,7 @@
       </button>
       <button
         type="button"
-        class="rounded-full border border-brand-primary/12 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text flex items-center gap-1.5"
+        class="flex w-full items-center justify-center gap-1.5 rounded-full border border-brand-primary/12 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold transition-colors duration-300 hover:bg-brand-primary hover:text-brand-text sm:w-auto"
         @click.stop="emit('toggleCompare', props.locationId)"
       >
         <span>{{ props.isCompared ? "COMPARING" : "COMPARE" }}</span>
@@ -139,7 +139,7 @@
       </button>
       <button
         type="button"
-        class="rounded-full border border-brand-primary/10 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/80 transition-colors duration-300 hover:border-brand-primary/28 hover:text-brand-primary flex items-center gap-1.5"
+        class="flex w-full items-center justify-center gap-1.5 rounded-full border border-brand-primary/10 px-4 py-3 text-[10px] uppercase tracking-[0.28em] font-bold text-brand-muted/80 transition-colors duration-300 hover:border-brand-primary/28 hover:text-brand-primary sm:w-auto"
         @click.stop="emit('remove', props.city.id)"
       >
         <span>REMOVE</span>

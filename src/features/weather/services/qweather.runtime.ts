@@ -215,10 +215,16 @@ export const resolveLocation = async ({
   province?: string;
 }): Promise<LocationRecord | null> => {
   if (id) {
-    const byId = await searchLocations(id);
-    const exactId = byId.find((item) => item.id === id);
-    if (exactId) {
-      return exactId;
+    try {
+      const byId = await searchLocations(id);
+      const exactId = byId.find((item) => item.id === id);
+      if (exactId) {
+        return exactId;
+      }
+    } catch (error) {
+      if (!city) {
+        throw error;
+      }
     }
   }
 
