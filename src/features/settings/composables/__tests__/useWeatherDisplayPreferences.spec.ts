@@ -34,12 +34,14 @@ describe("useWeatherDisplayPreferences helpers", () => {
       sampleDate,
       formatOptions,
       "location",
+      "24h",
       "America/New_York"
     );
     const deviceTime = formatDateWithTimezonePolicy(
       sampleDate,
       formatOptions,
       "device",
+      "24h",
       "America/New_York"
     );
 

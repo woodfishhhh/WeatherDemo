@@ -52,10 +52,13 @@ describe("useSettingsStore", () => {
       "weather-platform-settings",
       JSON.stringify({
         temperatureUnit: "kelvin",
-        windUnit: "mph",
+        windUnit: "knots",
         timezonePolicy: "utc",
         reducedMotion: "yes",
         workspaceDefaultGroup: "archive",
+        timeFormat: "13h",
+        pressureUnit: "psi",
+        visibilityUnit: "yards",
       })
     );
 
@@ -67,5 +70,8 @@ describe("useSettingsStore", () => {
     expect(store.timezonePolicy).toBe("location");
     expect(store.reducedMotion).toBeNull();
     expect(store.workspaceDefaultGroup).toBe("all");
+    expect(store.timeFormat).toBe("24h");
+    expect(store.pressureUnit).toBe("hPa");
+    expect(store.visibilityUnit).toBe("km");
   });
 });
