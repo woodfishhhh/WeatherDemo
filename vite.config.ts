@@ -9,7 +9,7 @@ import Components from "unplugin-vue-components/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/weather/',
+  base: "/weather/",
   plugins: [
     tailwindcss(),
     vue(),

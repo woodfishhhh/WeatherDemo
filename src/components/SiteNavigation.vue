@@ -53,7 +53,7 @@
           <p>A weather study in monochrome motion, designed to keep atmosphere legible without losing restraint.</p>
           <p class="text-lg opacity-80 font-medium">一款以黑白留白和克制动效呈现的天气可视化工具，用更安静的方式传达真实气象。</p>
         </div>
-        <a href="https://www.woodfishhhh.xyz/" target="_blank" rel="noopener noreferrer"
+        <a href="http://36.151.148.198/newBlog/" target="_blank" rel="noopener noreferrer"
           class="inline-block px-8 py-4 border-b-2 border-brand-primary text-sm uppercase tracking-[0.3em] font-bold hover:text-brand-secondary hover:border-brand-secondary transition-all duration-300">
           Visit The Journal ↗
         </a>
